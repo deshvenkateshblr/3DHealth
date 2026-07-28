@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Routine &mdash; Your Health Profile</title>
+<link rel="stylesheet" href="shared/styles.css">
+</head>
+<body>
+
+<header class="masthead">
+  <div class="masthead-row">
+    <div>
+      <a class="brand-link" href="index.html"><p class="eyebrow">Your Health Profile</p></a>
+      <h1 class="brand">Your <em>routine</em></h1>
+    </div>
+    <p class="tagline">How your 24 hours actually break down, against the ideal for your profile.</p>
+  </div>
+</header>
+
+<nav class="steps">
+  <a class="step done" href="profile.html"><span class="n">&check;</span>Profile</a>
+  <a class="step done" href="diagnostics.html"><span class="n">&check;</span>Diagnostics</a>
+  <a class="step current" href="routine.html"><span class="n">3</span>Routine</a>
+  <a class="step" href="diet.html"><span class="n">4</span>Diet</a>
+  <a class="step" href="summary.html"><span class="n">5</span>Summary</a>
+</nav>
+
+<main id="main-content">
+  <div class="empty-state" id="loading-state">Loading your profile&hellip;</div>
+</main>
+
+<footer>
+  <span>Your Health Profile &mdash; runs entirely in your browser. No data leaves this page.</span>
+  <span>Not a substitute for professional medical advice.</span>
+</footer>
+
+<script src="shared/data.routine.js"></script>
+<script src="shared/utils.js"></script>
+<script>
+const state = loadState();
+const profile = state.profile;
+const main = document.getElementById('main-content');
+
+const FIELDS = [
+  {key:'sleep', label:'Sleep', color:'var(--ink)'},
+  {key:'desk', label:'Desk productive', color:'#5c6b62'},
+  {key:'idle', label:'Idle sitting', color:'var(--rose)'},
+  {key:'standing', label:'Standing light', color:'#9fc2ba'},
+  {key:'walking', label:'Walking', color:'var(--teal)'},
+  {key:'yoga', label:'Yoga', color:'#e8c891'},
+  {key:'exercise', label:'Exercise', color:'var(--amber)'},
+  {key:'other', label:'Other', color:'var(--line)'}
+];
+/* symptoms flagged on the profile page that are worth a routine-specific note here */
+const SYMPTOM_ROUTINE_TIPS = {
+  'Insomnia':'Your sleep gauge above is worth the closest look, even if the hours look adequate on paper.',
+  'Fatigue':'Fatigue can be a routine issue as much as a diet one &mdash; check where your idle sitting and sleep gauges land above.',
+  'Low Energy':'Low energy often tracks with idle sitting and sleep more than total exercise minutes &mdash; check those two gauges above.',
+  'Back Pain':'Back pain often tracks with long unbroken desk or idle stretches &mdash; short standing breaks every hour can help more than total exercise minutes.',
+  'Poor Posture':'Posture tends to track with how long a single sitting stretch runs, not just total desk hours &mdash; regular standing breaks help more than the total.',
+  'Slouching':'Posture tends to track with how long a single sitting stretch runs, not just total desk hours &mdash; regular standing breaks help more than the total.',
+  'Weak Core':'Building light strength work into your Exercise time, even briefly, tends to help more than passive stretching alone.',
+  'Muscle Weakness':'Building light strength work into your Exercise time, even briefly, tends to help more than passive stretching alone.',
+  'Stress':'Stress often improves with consistent movement breaks through the day, not just total exercise time.',
+  'Anxiety':'Consistent movement breaks through the day can help more with anxiety than one single block of exercise.',
+  'Burnout':'Burnout often responds to protecting sleep and adding short breaks through the day, more than adding more exercise.',
+  'Restlessness':'Restlessness can often be traced to long idle-sitting stretches &mdash; see how that gauge compares to the ideal above.'
+};
+
+function deriveActivityLevel(vals){
+  const totalActive = (vals.walking||0) + (vals.exercise||0) + (vals.yoga||0);
+  if(totalActive < 0.75) return 'Sedentary';
+  if(totalActive <= 2) return 'Moderate';
+  return 'Active';
+}
+
+function init(){
+  const prevActual = (state.routine && state.routine.actual) || {};
+  let inputRows = FIELDS.map(f=>`
+    <div class="field">
+      <label class="intake-label"><span class="legend-swatch" style="background:${f.color};"></span> ${f.label} (h)</label>
+      <input type="number" step="0.25" min="0" max="24" id="actual-${f.key}" value="${prevActual[f.key]!==undefined?prevActual[f.key]:''}">
+    </div>`).join('');
+
+  main.innerHTML = `
+  <div class="section-head">
+    <h2>Log a typical day</h2>
+    <span class="section-sub">03 of 05</span>
+  </div>
+  <p class="lede">Enter roughly how many hours you spend on each, on a typical day. Doesn't need to add up to exactly 24 &mdash; we'll compare the shape of it against your ideal.</p>
+  <div class="field-row">${inputRows}</div>
+  <p class="validation-msg" id="total-msg"></p>
+  <div class="page-footer-nav" style="border-top:none;padding-top:14px;">
+    <span></span>
+    <button class="btn" id="calc-btn">Compare to ideal &rarr;</button>
+  </div>
+  <div id="results"></div>
+  `;
+
+  document.getElementById('calc-btn').addEventListener('click', renderResults);
+  FIELDS.forEach(f=>document.getElementById('actual-'+f.key).addEventListener('input', updateTotal));
+  updateTotal();
+  if(state.routine && state.routine.actual) renderResults();
+}
+
+function readActuals(){
+  const vals = {};
+  FIELDS.forEach(f=>{
+    const v = parseFloat(document.getElementById('actual-'+f.key).value);
+    vals[f.key] = isNaN(v) ? null : v;
+  });
+  return vals;
+}
+
+function updateTotal(){
+  const vals = readActuals();
+  const total = Object.values(vals).reduce((s,v)=>s+(v||0),0);
+  const msg = document.getElementById('total-msg');
+  msg.textContent = total>0 ? `Current total: ${Math.round(total*10)/10} h / 24 h` : '';
+}
+
+function renderResults(){
+  const vals = readActuals();
+  if(FIELDS.some(f=>vals[f.key]===null)){
+    document.getElementById('results').innerHTML = `<p class="validation-msg">Fill in every activity (0 is fine) to see the comparison.</p>`;
+    return;
+  }
+
+  const row = pickBestRow(ROUTINE, profile.sex, {age:profile.age, bmi:profile.bmi, waist:profile.waistCm});
+  if(!row){ document.getElementById('results').innerHTML = `<div class="empty-state">No matching routine found.</div>`; return; }
+
+  const mids = FIELDS.map(f=>{ const [lo,hi]=parseRange(row[f.key]); return (lo+hi)/2; });
+  const total = mids.reduce((a,b)=>a+b,0);
+  const actualTotal = FIELDS.reduce((s,f)=>s+vals[f.key],0) || 1;
+
+  let idealStrip='', actualStrip='', legendHtml='';
+  FIELDS.forEach((f,i)=>{
+    idealStrip += `<div class="day-seg" style="width:${(mids[i]/total)*100}%; background:${f.color};" title="${f.label} (ideal)"></div>`;
+    actualStrip += `<div class="day-seg" style="width:${(vals[f.key]/actualTotal)*100}%; background:${f.color};" title="${f.label} (actual)"></div>`;
+    legendHtml += `<div class="legend-item"><span class="legend-swatch" style="background:${f.color};"></span>${f.label}</div>`;
+  });
+
+  let gaugesHtml = '', callouts = [];
+  FIELDS.forEach(f=>{
+    const [lo,hi] = parseRange(row[f.key]);
+    const niceMax = Math.max(2, Math.ceil((Math.max(hi,vals[f.key])*1.3)*2)/2);
+    gaugesHtml += gaugeBlock(f.label, lo, hi, niceMax, 'h', vals[f.key]);
+    if(vals[f.key] < lo){
+      callouts.push({field:f.label, kind:'under', diff:Math.round((lo-vals[f.key])*10)/10});
+    } else if(vals[f.key] > hi){
+      callouts.push({field:f.label, kind:'over', diff:Math.round((vals[f.key]-hi)*10)/10});
+    }
+  });
+
+  const riskCallouts = callouts.filter(c=>
+    (c.field==='Idle sitting' && c.kind==='over') ||
+    (c.field==='Sleep' && c.kind==='under') ||
+    (c.field==='Exercise' && c.kind==='under') ||
+    (c.field==='Walking' && c.kind==='under')
+  );
+
+  let calloutHtml = callouts.length ? callouts.map(c=>
+    `<li>${c.field} is <b>${c.diff} h</b> ${c.kind==='under'?'below':'above'} the ideal range.</li>`
+  ).join('') : '<li>Every activity falls inside its ideal range today.</li>';
+
+  const matchedSymptomTips = (profile.symptoms || [])
+    .filter(s=>SYMPTOM_ROUTINE_TIPS[s])
+    .slice(0,2);
+
+  const derivedActivity = deriveActivityLevel(vals);
+  const activeHours = Math.round(((vals.walking||0)+(vals.exercise||0)+(vals.yoga||0))*10)/10;
+
+  document.getElementById('results').innerHTML = `
+  <div class="cat-title">Ideal day</div>
+  <div class="day-strip">${idealStrip}</div>
+  <div class="day-strip-labels"><span>00:00</span><span>proportional shape, ideal for your profile</span><span>24:00</span></div>
+  <div class="cat-title">Your day</div>
+  <div class="day-strip">${actualStrip}</div>
+  <div class="day-strip-labels"><span>00:00</span><span>proportional shape, as you logged it</span><span>24:00</span></div>
+  <div class="legend">${legendHtml}</div>
+
+  <div class="cat-title">Where you land against the ideal range</div>
+  <div class="routine-list">${gaugesHtml}</div>
+
+  <div class="note-block ${riskCallouts.length?'':'teal'}">
+    <span class="k">${riskCallouts.length?'Worth adjusting':'Looking good'}</span>
+    <ul style="margin:4px 0 0; padding-left:18px;">${calloutHtml}</ul>
+  </div>
+  ${matchedSymptomTips.map(s=>`<div class="note-block teal"><span class="k">Because you mentioned ${esc(s)}</span>${SYMPTOM_ROUTINE_TIPS[s]}</div>`).join('')}
+
+  <div class="stat-strip" style="margin-top:22px;">
+    <div class="stat-card"><div class="k">Activity level, from this log</div><div class="v" style="font-size:18px;">${derivedActivity}</div><div class="u">${activeHours}h/day walking + exercise + yoga</div></div>
+  </div>
+  <p class="section-sub" style="display:block;margin-top:8px;">Your diet target on the next page uses this instead of a separate self-rating.</p>
+
+  <div class="page-footer-nav">
+    <a href="diagnostics.html" class="btn secondary">&larr; Back</a>
+    <button class="btn" id="continue-btn">Continue to Diet &rarr;</button>
+  </div>
+  `;
+
+  document.getElementById('continue-btn').addEventListener('click', ()=>{
+    const routine = { actual: vals, ideal: FIELDS.reduce((o,f)=>{o[f.key]=row[f.key];return o;},{}), derivedActivity };
+    const next = Object.assign({}, state, {routine});
+    goTo('diet.html', next);
+  });
+}
+
+if(!profile){
+  main.innerHTML = `<div class="empty-state">We need your profile first. <a href="profile.html">Go back and fill it in &rarr;</a></div>`;
+} else {
+  init();
+}
+</script>
+</body>
+</html>

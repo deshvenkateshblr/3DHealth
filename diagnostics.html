@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Diagnostics &mdash; Your Health Profile</title>
+<link rel="stylesheet" href="shared/styles.css">
+</head>
+<body>
+
+<header class="masthead">
+  <div class="masthead-row">
+    <div>
+      <a class="brand-link" href="index.html"><p class="eyebrow">Your Health Profile</p></a>
+      <h1 class="brand">Your <em>diagnostics</em></h1>
+    </div>
+    <p class="tagline">Your risk profile and symptoms, turned into a ranked test list.</p>
+  </div>
+</header>
+
+<nav class="steps">
+  <a class="step done" href="profile.html"><span class="n">&check;</span>Profile</a>
+  <a class="step current" href="diagnostics.html"><span class="n">2</span>Diagnostics</a>
+  <a class="step" href="routine.html"><span class="n">3</span>Routine</a>
+  <a class="step" href="diet.html"><span class="n">4</span>Diet</a>
+  <a class="step" href="summary.html"><span class="n">5</span>Summary</a>
+</nav>
+
+<main id="main-content">
+  <div class="empty-state" id="loading-state">Loading your profile&hellip;</div>
+</main>
+
+<footer>
+  <span>Your Health Profile &mdash; runs entirely in your browser. No data leaves this page.</span>
+  <span>Not a substitute for professional medical advice.</span>
+</footer>
+
+<script src="shared/data.diagnostics.js"></script>
+<script src="shared/utils.js"></script>
+<script>
+const state = loadState();
+const profile = state.profile;
+const main = document.getElementById('main-content');
+
+const GROUP_ORDER = ['Cardiovascular','Metabolic','Mixed','Female Specific','Age Specific','Low Risk'];
+const NO_SYMPTOM_FALLBACK = {
+  'Cardiovascular':'no specific symptom \u2014 risk-based screening',
+  'Metabolic':'no specific symptom \u2014 risk-based screening',
+  'Mixed':'no specific symptom \u2014 risk-based screening',
+  'Female Specific':'no specific symptom \u2014 routine screening',
+  'Age Specific':'no specific symptom \u2014 routine age-based screening',
+  'Low Risk':'no specific symptom \u2014 routine baseline screening'
+};
+const RECENCY_OPTIONS = ['Within 6 months','6\u201312 months ago','1\u20132 years ago','2+ years ago'];
+const RESULT_OPTIONS = ['Within range','Flagged \u2014 needs attention','Not sure'];
+
+/* ---- symptom -> tests index, derived from DIAG itself
+   (single source of truth: each test record owns its own `symptoms` array) ---- */
+const SYMPTOM_TO_TESTS = {};
+DIAG.forEach(d=>{
+  (d.symptoms||[]).forEach(s=>{
+    (SYMPTOM_TO_TESTS[s] = SYMPTOM_TO_TESTS[s] || []).push(d.test);
+  });
+});
+
+/* ---- baseline (category-driven) selection, used to fill any slots symptoms don't cover ---- */
+function selectBaseline(matches, cats, limit, exclude){
+  const groups = {};
+  matches.forEach(d=>{
+    if(exclude.has(d.test)) return;
+    const tokens = d.profile.split(';').map(s=>s.trim());
+    const g = GROUP_ORDER.find(o=>tokens.includes(o) && cats.includes(o)) || 'Low Risk';
+    (groups[g]=groups[g]||[]).push(d);
+  });
+  Object.keys(groups).forEach(g=>groups[g].sort((a,b)=>a.test.localeCompare(b.test)));
+  const present = GROUP_ORDER.filter(g=>groups[g] && groups[g].length);
+  const out = [];
+  let idx = 0;
+  while(out.length<limit && present.some(g=>groups[g].length)){
+    const g = present[idx % present.length];
+    if(groups[g].length) out.push(Object.assign({group:g, viaSymptoms:[], bySymptom:false}, groups[g].shift()));
+    idx++;
+  }
+  return out;
+}
+
+/* ---- symptom-driven selection, ranked highest priority ---- */
+function selectFromSymptoms(matches, cats, selectedSymptomsArr){
+  const byName = {};
+  matches.forEach(d=>{ byName[d.test] = d; });
+  const out = [];
+  const seen = new Set();
+  selectedSymptomsArr.forEach(sym=>{
+    (SYMPTOM_TO_TESTS[sym]||[]).forEach(testName=>{
+      const d = byName[testName];
+      if(!d) return; // not appropriate for this gender/age/profile — skip
+      if(seen.has(testName)){
+        const existing = out.find(t=>t.test===testName);
+        if(existing && !existing.viaSymptoms.includes(sym)) existing.viaSymptoms.push(sym);
+        return;
+      }
+      seen.add(testName);
+      const tokens = d.profile.split(';').map(s=>s.trim());
+      const g = GROUP_ORDER.find(o=>tokens.includes(o) && cats.includes(o)) || tokens[0] || 'Low Risk';
+      out.push(Object.assign({group:g, viaSymptoms:[sym], bySymptom:true}, d));
+    });
+  });
+  return out;
+}
+
+function buildRecommendations(matches, cats, selectedSymptomsArr){
+  const symptomTests = selectFromSymptoms(matches, cats, selectedSymptomsArr)
+    .sort((a,b)=> b.viaSymptoms.length - a.viaSymptoms.length || a.test.localeCompare(b.test))
+    .slice(0,10);
+  const excluded = new Set(symptomTests.map(t=>t.test));
+  const combined = symptomTests.slice();
+  if(combined.length<10){
+    selectBaseline(matches, cats, 10-combined.length, excluded).forEach(t=>combined.push(t));
+  }
+  return combined;
+}
+
+function renderResultsStage(){
+  const symptoms = profile.symptoms || [];
+  const {cats} = activeCategories(profile);
+  const matches = DIAG.filter(d =>
+    genderMatch(d.gender, profile.sex) &&
+    ageRelevancyMatch(d.age, profile.age) &&
+    profileMatch(d.profile, cats)
+  );
+  const top10 = buildRecommendations(matches, cats, symptoms);
+  const prevAnswers = (state.diagnostics && state.diagnostics.answers) || {};
+
+  let cardsHtml = '';
+  top10.forEach((d, i)=>{
+    const watchFor = (d.symptoms && d.symptoms.length) ? d.symptoms.slice(0,4).join(', ') : NO_SYMPTOM_FALLBACK[d.group];
+    const prev = prevAnswers[d.test] || {};
+    const doneYes = prev.done === true;
+    const doneNo = prev.done === false;
+    const recencyOpts = RECENCY_OPTIONS.map(r=>`<option value="${r}" ${prev.recency===r?'selected':''}>${r}</option>`).join('');
+    const resultOpts = RESULT_OPTIONS.map(r=>`<option value="${r}" ${prev.resultStatus===r?'selected':''}>${r}</option>`).join('');
+    const originTag = d.bySymptom
+      ? `<span class="tag ok">Matches: ${esc(d.viaSymptoms.join(', '))}</span>`
+      : `<span class="tag">${esc(d.group)}</span>`;
+    cardsHtml += `
+    <div class="test-card" data-test="${esc(d.test)}">
+      <div class="head">
+        <div>
+          <div class="name">${i+1}. ${esc(d.test)}</div>
+          <div class="symptom"><b>Watch for:</b> ${esc(watchFor)}</div>
+        </div>
+        ${originTag}
+      </div>
+      <div class="answers">
+        <span class="intake-label" style="margin:0;">Already done?</span>
+        <div class="radio-pair">
+          <input type="radio" name="done-${i}" id="done-${i}-yes" value="yes" ${doneYes?'checked':''}>
+          <label for="done-${i}-yes">Yes</label>
+          <input type="radio" name="done-${i}" id="done-${i}-no" value="no" ${doneNo?'checked':''}>
+          <label for="done-${i}-no">No</label>
+        </div>
+        <select class="recency-select" id="recency-${i}" ${doneYes?'':'disabled'}>
+          <option value="">How long ago?</option>
+          ${recencyOpts}
+        </select>
+      </div>
+      <div class="result-row" id="result-row-${i}" style="${doneYes?'':'display:none;'}">
+        <select class="recency-select" id="result-status-${i}">
+          <option value="">Result status (optional, self-reported)</option>
+          ${resultOpts}
+        </select>
+        <input type="text" class="result-note-input" id="result-note-${i}" placeholder="Notes, e.g. &quot;Vitamin D 18 ng/mL&quot;" value="${esc(prev.resultNote||'')}">
+      </div>
+    </div>`;
+  });
+
+  const symptomDrivenCount = top10.filter(d=>d.bySymptom).length;
+  const symptomLine = symptoms.length
+    ? `Based on: ${symptoms.map(esc).join(', ')} &middot; <a href="profile.html">adjust on your profile &rarr;</a>`
+    : `No symptoms on file &mdash; this is your risk-profile baseline. <a href="profile.html">Add symptoms on your profile &rarr;</a>`;
+
+  main.innerHTML = `
+  <div class="section-head">
+    <h2>Your top 10 tests</h2>
+    <span class="section-sub">02 of 05</span>
+  </div>
+  <p class="lede">${symptomLine}</p>
+  <p class="section-sub" style="display:block;margin-bottom:14px;">${matches.length} tests matched your profile &middot; ${symptomDrivenCount} pulled in directly from your symptoms, the rest fill out your baseline risk panel</p>
+  <div id="cards">${cardsHtml}</div>
+  <div class="page-footer-nav">
+    <a href="profile.html" class="btn secondary">&larr; Back</a>
+    <button class="btn" id="continue-btn">Continue to Routine &rarr;</button>
+  </div>`;
+
+  document.querySelectorAll('.test-card').forEach((card, i)=>{
+    const yes = card.querySelector(`#done-${i}-yes`);
+    const no = card.querySelector(`#done-${i}-no`);
+    const sel = card.querySelector(`#recency-${i}`);
+    const resultRow = card.querySelector(`#result-row-${i}`);
+    yes.addEventListener('change', ()=>{ sel.disabled=false; resultRow.style.display=''; });
+    no.addEventListener('change', ()=>{
+      sel.disabled=true; sel.value='';
+      resultRow.style.display='none';
+      card.querySelector(`#result-status-${i}`).value='';
+      card.querySelector(`#result-note-${i}`).value='';
+    });
+  });
+
+  document.getElementById('continue-btn').addEventListener('click', ()=>{
+    const answers = {};
+    document.querySelectorAll('.test-card').forEach((card, i)=>{
+      const testName = card.dataset.test;
+      const yesChecked = card.querySelector(`#done-${i}-yes`).checked;
+      const noChecked = card.querySelector(`#done-${i}-no`).checked;
+      const recency = card.querySelector(`#recency-${i}`).value;
+      const resultStatus = card.querySelector(`#result-status-${i}`).value;
+      const resultNote = card.querySelector(`#result-note-${i}`).value.trim();
+      if(yesChecked || noChecked){
+        answers[testName] = {
+          done: yesChecked,
+          recency: yesChecked ? (recency||null) : null,
+          resultStatus: yesChecked ? (resultStatus||null) : null,
+          resultNote: yesChecked ? (resultNote||null) : null
+        };
+      }
+    });
+    const diagnostics = {
+      topTests: top10.map(d=>({test:d.test, group:d.group, bySymptom:d.bySymptom, viaSymptoms:d.viaSymptoms})),
+      answers
+    };
+    const next = Object.assign({}, state, {diagnostics});
+    goTo('routine.html', next);
+  });
+}
+
+if(!profile){
+  main.innerHTML = `<div class="empty-state">We need your profile first. <a href="profile.html">Go back and fill it in &rarr;</a></div>`;
+} else {
+  renderResultsStage();
+}
+</script>
+</body>
+</html>

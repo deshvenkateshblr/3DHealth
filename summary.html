@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Your Health Profile</title>
+<link rel="stylesheet" href="shared/styles.css">
+</head>
+<body>
+
+<header class="masthead">
+  <div class="masthead-row">
+    <div>
+      <a class="brand-link" href="index.html"><p class="eyebrow">Your Health Profile</p></a>
+      <h1 class="brand">Your <em>Health Profile</em></h1>
+    </div>
+    <p class="tagline">Everything in one place: baseline, fuel, and structure.</p>
+  </div>
+</header>
+
+<nav class="steps">
+  <a class="step done" href="profile.html"><span class="n">&check;</span>Profile</a>
+  <a class="step done" href="diagnostics.html"><span class="n">&check;</span>Diagnostics</a>
+  <a class="step done" href="routine.html"><span class="n">&check;</span>Routine</a>
+  <a class="step done" href="diet.html"><span class="n">&check;</span>Diet</a>
+  <a class="step current" href="summary.html"><span class="n">5</span>Summary</a>
+</nav>
+
+<main id="main-content">
+  <div class="empty-state" id="loading-state">Loading your chart&hellip;</div>
+</main>
+
+<footer>
+  <span>Your Health Profile &mdash; runs entirely in your browser. No data leaves this page.</span>
+  <span>Not a substitute for professional medical advice.</span>
+</footer>
+
+<div class="print-only" id="print-sheet"></div>
+
+<script src="shared/data.videos.sb.js"></script>
+<script src="shared/data.videos.nbs.js"></script>
+<script src="shared/utils.js"></script>
+<script>
+const state = loadState();
+const main = document.getElementById('main-content');
+
+/* ============ Video relevance matching ============ */
+function deriveInterestTags(state){
+  const p = state.profile;
+  const symptomTags = [...(p.symptoms||[])];
+  const contextTags = new Set();
+  if(p.reproStatus==='Perimenopausal' || p.reproStatus==='Post-menopausal') contextTags.add('Menopause');
+  if(p.reproStatus==='Irregular cycle') contextTags.add('Hormones');
+  if(p.pcos) contextTags.add('PCOS');
+  const {cats} = activeCategories(p);
+  if(cats.includes('Metabolic')){ contextTags.add('Insulin Resistance'); contextTags.add('Blood Sugar'); contextTags.add('Diabetes'); contextTags.add('Weight Loss'); }
+  if(cats.includes('Cardiovascular')){ contextTags.add('Blood Pressure'); contextTags.add('Heart Health'); contextTags.add('Cholesterol'); }
+  if(p.bmi>=25) contextTags.add('Weight Loss');
+  if(p.whtr>=0.5) contextTags.add('Belly Fat');
+  if(state.diet){
+    if(state.diet.score<60) contextTags.add('Healthy Eating');
+    if(state.diet.freq){
+      if(state.diet.freq.packaged>=2) contextTags.add('Ultra-Processed Foods');
+      if(state.diet.freq.sugary>=2) contextTags.add('Sugar');
+      if(state.diet.freq.fried>=2) contextTags.add('Fried Food');
+    }
+  }
+  if(state.routine){
+    const [idleLo,idleHi] = parseRange(state.routine.ideal.idle);
+    if(state.routine.actual.idle > idleHi){ contextTags.add('Chair Yoga'); contextTags.add('Stiff Body'); }
+    const [sleepLo] = parseRange(state.routine.ideal.sleep);
+    if(state.routine.actual.sleep < sleepLo){ contextTags.add('Stress Relief'); contextTags.add('Sleep'); }
+    const [exLo] = parseRange(state.routine.ideal.exercise);
+    if(state.routine.actual.exercise < exLo){ contextTags.add('Beginner Workout'); contextTags.add('Fat Burn'); }
+  }
+  return {symptomTags, contextTags:[...contextTags]};
+}
+
+/* Symptom matches count 3x a context-signal match at the same match strength,
+   so when specific symptoms are on file they dominate the ranking rather than
+   being diluted by broader risk-category or routine-derived signals. */
+function scoreVideo(video, symptomTags, contextTags){
+  const titleL = video.title.toLowerCase();
+  const descL = (video.description_short||'').toLowerCase();
+  const tagsL = (video.tags||[]).map(t=>t.toLowerCase());
+
+  function matchStrength(tl){
+    if(tagsL.some(vt=>vt.includes(tl) || tl.includes(vt))) return 3;
+    if(titleL.includes(tl)) return 2;
+    if(descL.includes(tl)) return 1;
+    return 0;
+  }
+
+  let score = 0;
+  const matched = [];
+  symptomTags.forEach(t=>{
+    const s = matchStrength(t.toLowerCase());
+    if(s>0){ score += s*3; matched.push(t); }
+  });
+  contextTags.forEach(t=>{
+    const s = matchStrength(t.toLowerCase());
+    if(s>0){ score += s; if(!matched.includes(t)) matched.push(t); }
+  });
+  return {score, matched};
+}
+
+function pickTopVideos(list, symptomTags, contextTags, n){
+  const scored = (list||[]).map(v=>{
+    const {score, matched} = scoreVideo(v, symptomTags, contextTags);
+    return Object.assign({}, v, {_score:score, _matched:matched});
+  });
+  scored.sort((a,b)=> b._score - a._score || (b.view_count||0) - (a.view_count||0));
+  return scored.slice(0, n);
+}
+
+function fmtDuration(sec){
+  if(!sec && sec!==0) return '';
+  const m = Math.floor(sec/60), s = String(sec%60).padStart(2,'0');
+  return `${m}:${s}`;
+}
+
+function videoCardHtml(v){
+  const tagsHtml = v._matched && v._matched.length
+    ? v._matched.slice(0,3).map(t=>`<span class="tag ok">${esc(t)}</span>`).join('')
+    : `<span class="tag">Popular</span>`;
+  return `
+  <a class="video-card" href="${esc(v.url)}" target="_blank" rel="noopener">
+    <div class="video-thumb-wrap">
+      <img src="${esc(v.thumbnail)}" alt="" loading="lazy" onerror="this.style.display='none';this.parentElement.classList.add('thumb-fallback');">
+      <span class="video-duration">${fmtDuration(v.duration)}</span>
+    </div>
+    <div class="video-title">${esc(v.title)}</div>
+    <div class="video-tags">${tagsHtml}</div>
+  </a>`;
+}
+
+function renderVideoSections(state){
+  const {symptomTags, contextTags} = deriveInterestTags(state);
+  const sbTop = pickTopVideos(window.SB_VIDEOS, symptomTags, contextTags, 3);
+  const nbsTop = pickTopVideos(window.NBS_VIDEOS, symptomTags, contextTags, 3);
+  let html = '';
+  if(sbTop.length){
+    html += `<div class="video-source-title">Saurabh Bothra &middot; Habuild Yoga</div>
+    <div class="video-grid">${sbTop.map(videoCardHtml).join('')}</div>`;
+  }
+  if(nbsTop.length){
+    html += `<div class="video-source-title">Nourished by Science &middot; Mario Kratz, PhD</div>
+    <div class="video-grid">${nbsTop.map(videoCardHtml).join('')}</div>`;
+  }
+  return html || `<div class="empty-state">No video resources loaded.</div>`;
+}
+
+/* ============ AI prompt ============ */
+const NUTRIENT_LABELS = {protein:'Protein', wholeGrains:'Whole grains', healthyFats:'Healthy fats', calciumVitD:'Calcium & Vitamin D'};
+function buildAIPrompt(state, due, ok, routineOff, flagged, lifestyleNotes){
+  const p = state.profile;
+  const activity = (state.routine && state.routine.derivedActivity) || 'unknown';
+  const lines = [];
+  lines.push("I'd like your help creating a personalized health action plan. Here's my current health profile, generated by a self-assessment tool:");
+  lines.push("");
+  lines.push("PROFILE");
+  lines.push(`- Sex: ${p.sex}, Age: ${p.age}`);
+  lines.push(`- BMI: ${p.bmi.toFixed(1)} (${bmiTag(p.bmi)[0]}), Waist-to-height ratio: ${p.whtr.toFixed(2)} (${whtrTag(p.whtr)[0]})`);
+  lines.push(`- Activity level (from daily routine log): ${activity}`);
+  lines.push(`- Smoking: ${p.smoking}, Alcohol: ${p.alcohol}`);
+  if(p.reproStatus) lines.push(`- Menstrual/menopause status: ${p.reproStatus}${p.pcos?' (PCOS diagnosed)':''}`);
+  const famBits = [];
+  if(p.famMetabolic) famBits.push('diabetes/metabolic conditions');
+  if(p.famCardio) famBits.push('heart disease/hypertension');
+  if(famBits.length) lines.push(`- Family history: ${famBits.join(', ')}`);
+  if(p.symptoms && p.symptoms.length) lines.push(`- Symptoms I'm currently experiencing: ${p.symptoms.join(', ')}`);
+  lines.push("");
+  if(state.diagnostics){
+    lines.push("DIAGNOSTICS");
+    lines.push(`- ${due.length} of ${(state.diagnostics.topTests||[]).length} recommended tests are due: ${due.join(', ') || 'none'}`);
+    if(ok.length) lines.push(`- Recently covered: ${ok.join(', ')}`);
+    if(flagged.length){
+      lines.push(`- Previously flagged results (self-reported, not interpreted by this tool):`);
+      flagged.forEach(f=> lines.push(`  - ${f.test}${f.note ? ': '+f.note : ''}`));
+    }
+    lines.push("");
+  }
+  if(state.diet){
+    const d = state.diet;
+    lines.push("DIET");
+    lines.push(`- Dietary preference: ${d.pref}${d.cuisine ? ' ('+d.cuisine+' cuisine)' : ''}`);
+    lines.push(`- Target: ${d.target.cal} kcal/day, carbs ${d.target.carbs}%, fat ${d.target.fat}%, protein ${d.target.protein}%`);
+    lines.push(`- Self-reported diet quality score: ${d.score}/100`);
+    if(d.freq && d.freq.fried>=2) lines.push(`- Deep-fried food: ${d.freq.fried===3?'daily':'3-5x/week'}`);
+    if(d.teaCoffee) lines.push(`- Tea/coffee: ${d.teaCoffee.cups} cups/day, ~${d.teaCoffee.sugarGramsPerDay}g added sugar/day from that alone`);
+    if(d.nutrientFreq){
+      const below = Object.entries(d.nutrientFreq).filter(([k,v])=>v<=1).map(([k])=>NUTRIENT_LABELS[k]||k);
+      if(below.length) lines.push(`- Nutrient sources below target (self-reported): ${below.join(', ')}`);
+    }
+    lines.push("");
+  }
+  if(state.routine){
+    lines.push("DAILY ROUTINE");
+    lines.push(routineOff.length ? `- Outside the ideal range for my profile: ${routineOff.join(', ')}` : `- Every logged activity is within the ideal range for my profile`);
+    lines.push("");
+  }
+  if(lifestyleNotes.length){
+    lines.push("LIFESTYLE FACTORS TO CONSIDER");
+    lifestyleNotes.forEach(n=>lines.push(`- ${n}`));
+    lines.push("");
+  }
+  lines.push("Please help me:");
+  lines.push("1. Identify the 2-3 highest-priority changes given everything above");
+  lines.push("2. Suggest a realistic, specific 2-week starter plan");
+  lines.push("3. Flag anything here that sounds like it needs a doctor's visit rather than a lifestyle change");
+  return lines.join("\n");
+}
+
+/* ============ Printable doctor summary ============ */
+function buildPrintSheetHtml(state, due, ok, routineOff, flagged, lifestyleNotes){
+  const p = state.profile;
+  const activity = (state.routine && state.routine.derivedActivity) || 'unknown';
+  const today = new Date().toLocaleDateString(undefined, {year:'numeric', month:'long', day:'numeric'});
+  return `
+  <div class="print-header">
+    <h1>Health Profile Summary</h1>
+    <p>Prepared ${today} &middot; for clinical discussion, not a diagnosis</p>
+  </div>
+  <table class="print-table">
+    <tr><td>Sex</td><td>${esc(p.sex)}</td><td>Age</td><td>${esc(p.age)}</td></tr>
+    <tr><td>BMI</td><td>${p.bmi.toFixed(1)} (${bmiTag(p.bmi)[0]})</td><td>Waist:Height</td><td>${p.whtr.toFixed(2)} (${whtrTag(p.whtr)[0]})</td></tr>
+    <tr><td>Activity</td><td>${esc(activity)}</td><td>Smoking</td><td>${esc(p.smoking||'\u2014')}</td></tr>
+    <tr><td>Alcohol</td><td>${esc(p.alcohol||'\u2014')}</td><td>${p.reproStatus?'Menstrual/menopause':''}</td><td>${p.reproStatus?esc(p.reproStatus)+(p.pcos?' &middot; PCOS':''):''}</td></tr>
+  </table>
+  ${p.symptoms && p.symptoms.length ? `<p><b>Symptoms reported:</b> ${p.symptoms.map(esc).join(', ')}</p>` : ''}
+  ${(p.famMetabolic||p.famCardio) ? `<p><b>Family history:</b> ${[p.famMetabolic?'diabetes/metabolic':'', p.famCardio?'heart disease/hypertension':''].filter(Boolean).join(', ')}</p>` : ''}
+
+  <h2>Diagnostics</h2>
+  ${state.diagnostics ? `<p><b>Due for review:</b> ${due.map(esc).join(', ')||'none'}</p><p><b>Recently covered:</b> ${ok.map(esc).join(', ')||'none'}</p>` : '<p>Not completed.</p>'}
+  ${flagged.length ? `<p><b>Previously flagged (self-reported):</b></p><ul>${flagged.map(f=>`<li>${esc(f.test)}${f.note?': '+esc(f.note):''}</li>`).join('')}</ul>` : ''}
+
+  <h2>Diet</h2>
+  ${state.diet ? `<p>${esc(state.diet.pref)}${state.diet.cuisine?' &middot; '+esc(state.diet.cuisine):''} &middot; Target ${state.diet.target.cal} kcal/day &middot; carbs ${esc(state.diet.target.carbs)}% &middot; fat ${esc(state.diet.target.fat)}% &middot; protein ${esc(state.diet.target.protein)}% &middot; quality score ${state.diet.score}/100</p>` : '<p>Not completed.</p>'}
+
+  <h2>Daily Routine</h2>
+  ${state.routine ? `<p>${routineOff.length ? 'Outside ideal range: '+routineOff.map(esc).join(', ') : 'All activities within ideal range'}</p>` : '<p>Not completed.</p>'}
+
+  ${lifestyleNotes.length ? `<h2>Lifestyle notes</h2><ul>${lifestyleNotes.map(n=>`<li>${esc(n)}</li>`).join('')}</ul>` : ''}
+
+  <p class="print-footer">Generated by Your Health Profile &mdash; a self-assessment tool, not a substitute for professional medical advice.</p>
+  `;
+}
+
+/* ============ Main render ============ */
+function render(){
+  const p = state.profile;
+  const [bmiLabel] = bmiTag(p.bmi);
+  const [whtrLabel] = whtrTag(p.whtr);
+
+  /* Diagnostics recap */
+  let diagHtml = `<p class="lede">You haven't answered the diagnostics questions yet. <a href="diagnostics.html">Go back &rarr;</a></p>`;
+  let due = [], ok = [], flagged = [];
+  if(state.diagnostics){
+    const answers = state.diagnostics.answers || {};
+    (state.diagnostics.topTests||[]).forEach(t=>{
+      const a = answers[t.test];
+      const isDue = !a || a.done===false || (a.done===true && a.recency==='2+ years ago') || (a.done===true && !a.recency);
+      (isDue ? due : ok).push(t.test);
+      if(a && a.resultStatus === 'Flagged \u2014 needs attention'){
+        flagged.push({test:t.test, note:a.resultNote});
+      }
+    });
+    diagHtml = `
+    <div class="stat-strip">
+      <div class="stat-card ${due.length?'flag':'good'}"><div class="k">Tests due</div><div class="v">${due.length}</div><div class="u">of ${(state.diagnostics.topTests||[]).length} reviewed</div></div>
+      <div class="stat-card good"><div class="k">Up to date</div><div class="v">${ok.length}</div><div class="u">recently covered</div></div>
+      <div class="stat-card ${flagged.length?'flag':''}"><div class="k">Previously flagged</div><div class="v">${flagged.length}</div><div class="u">self-reported</div></div>
+    </div>
+    ${due.length ? `<div class="note-block"><span class="k">Due for a check</span>${due.map(esc).join(', ')}.</div>` : `<div class="note-block teal"><span class="k">All caught up</span>Everything in your top 10 is recently covered.</div>`}
+    ${flagged.length ? `<div class="note-block"><span class="k">Worth discussing with a doctor</span>${flagged.map(f=>esc(f.test)+(f.note?' ('+esc(f.note)+')':'')).join(', ')}. This is what you told us &mdash; we haven't interpreted it.</div>` : ''}
+    `;
+  }
+
+  /* Diet recap */
+  let dietHtml = `<p class="lede">You haven't set your diet pattern yet. <a href="diet.html">Go back &rarr;</a></p>`;
+  if(state.diet){
+    const d = state.diet;
+    dietHtml = `
+    <div class="stat-strip">
+      <div class="stat-card hero"><div class="k">Calories / day</div><div class="v">${d.target.cal}</div><div class="u">kcal target</div></div>
+      <div class="stat-card ${d.score>=75?'good':d.score<50?'flag':''}"><div class="k">Diet quality score</div><div class="v">${d.score}</div><div class="u">${esc(d.pref)}</div></div>
+      ${d.teaCoffee ? `<div class="stat-card${d.teaCoffee.teaspoonsPerDay>=8?' flag':''}"><div class="k">Tea/coffee sugar</div><div class="v">${d.teaCoffee.sugarGramsPerDay} g</div><div class="u">${d.teaCoffee.cups} cups/day</div></div>` : ''}
+    </div>
+    `;
+  }
+
+  /* Routine recap */
+  let routineHtml = `<p class="lede">You haven't logged your routine yet. <a href="routine.html">Go back &rarr;</a></p>`;
+  let routineOff = [];
+  if(state.routine){
+    const FIELDS = [
+      {key:'sleep', label:'Sleep'},{key:'desk', label:'Desk productive'},{key:'idle', label:'Idle sitting'},
+      {key:'standing', label:'Standing light'},{key:'walking', label:'Walking'},{key:'yoga', label:'Yoga'},
+      {key:'exercise', label:'Exercise'},{key:'other', label:'Other'}
+    ];
+    FIELDS.forEach(f=>{
+      const [lo,hi] = parseRange(state.routine.ideal[f.key]);
+      const v = state.routine.actual[f.key];
+      if(v<lo || v>hi) routineOff.push(f.label);
+    });
+    routineHtml = `
+    <div class="stat-strip">
+      <div class="stat-card ${routineOff.length?'flag':'good'}"><div class="k">Outside ideal range</div><div class="v">${routineOff.length}</div><div class="u">of ${FIELDS.length} activities</div></div>
+    </div>
+    ${routineOff.length ? `<div class="note-block"><span class="k">Worth adjusting</span>${routineOff.map(esc).join(', ')}.</div>` : `<div class="note-block teal"><span class="k">Well balanced</span>Every logged activity falls in its ideal range.</div>`}
+    `;
+  }
+
+  /* Lifestyle recommendations, shown only where relevant */
+  const lifestyleNotes = [];
+  if(p.smoking && p.smoking!=='Never'){
+    lifestyleNotes.push('Reducing or quitting smoking is one of the highest-impact changes available for long-term heart, lung, and cancer risk \u2014 worth raising with a doctor if you\u2019re considering it.');
+  }
+  if(p.alcohol==='3-5x/week' || p.alcohol==='Daily'){
+    lifestyleNotes.push('Cutting back on alcohol frequency tends to improve sleep, liver markers, and blood pressure within weeks \u2014 even a modest reduction helps.');
+  }
+  if(state.diet && state.diet.freq && state.diet.freq.fried>=2){
+    lifestyleNotes.push('Deep-fried food is showing up often in your week \u2014 swapping in baked, grilled, or air-fried versions a few times can meaningfully lower this without eliminating the foods you enjoy.');
+  }
+
+  main.innerHTML = `
+  <div class="section-head">
+    <h2>${esc(p.sex)}, age ${esc(p.age)}</h2>
+    <span class="section-sub">05 of 05</span>
+  </div>
+
+  <div class="stat-strip">
+    <div class="stat-card"><div class="k">BMI</div><div class="v">${p.bmi.toFixed(1)}</div><div class="u">${bmiLabel}</div></div>
+    <div class="stat-card"><div class="k">Waist-to-height ratio</div><div class="v">${p.whtr.toFixed(2)}</div><div class="u">${whtrLabel}</div></div>
+    <div class="stat-card"><div class="k">Activity level</div><div class="v" style="font-size:16px;">${esc((state.routine && state.routine.derivedActivity) || '\u2014')}</div><div class="u">from your routine log</div></div>
+  </div>
+  <div class="stat-strip">
+    <div class="stat-card"><div class="k">Smoking</div><div class="v" style="font-size:16px;">${esc(p.smoking||'\u2014')}</div></div>
+    <div class="stat-card"><div class="k">Alcohol</div><div class="v" style="font-size:16px;">${esc(p.alcohol||'\u2014')}</div></div>
+    ${p.reproStatus ? `<div class="stat-card"><div class="k">Menstrual &amp; menopause status</div><div class="v" style="font-size:15px;">${esc(p.reproStatus)}${p.pcos?' &middot; PCOS':''}</div></div>` : ''}
+  </div>
+  ${lifestyleNotes.length ? `<div class="note-block"><span class="k">Worth addressing</span><ul style="margin:4px 0 0; padding-left:18px;">${lifestyleNotes.map(n=>`<li>${n}</li>`).join('')}</ul></div>` : ''}
+  ${p.symptoms && p.symptoms.length ? `<p class="lede">Symptoms you flagged: ${p.symptoms.map(esc).join(', ')}. <a href="profile.html">Adjust &rarr;</a></p>` : ''}
+
+  <div class="cat-title">01 &middot; Diagnostics</div>
+  ${diagHtml}
+
+  <div class="cat-title">02 &middot; Diet</div>
+  ${dietHtml}
+
+  <div class="cat-title">03 &middot; Daily Routine</div>
+  ${routineHtml}
+
+  <div class="cat-title">Next steps</div>
+
+  <div class="next-step-block">
+    <h3 class="next-step-h">1 &middot; Ask an AI coach</h3>
+    <p class="lede">Copy this prompt into Claude, ChatGPT, or your AI assistant of choice to turn this into a concrete action plan.</p>
+    <textarea id="ai-prompt-box" class="prompt-box" rows="9" readonly></textarea>
+    <div class="next-step-actions">
+      <button type="button" class="btn" id="copy-prompt-btn">Copy prompt</button>
+      <span class="copy-feedback" id="copy-feedback"></span>
+    </div>
+  </div>
+
+  <div class="next-step-block">
+    <h3 class="next-step-h">2 &middot; Prepare for your doctor</h3>
+    <p class="lede">A clean one-page version of this summary, ready to print or save as a PDF for your appointment.</p>
+    <div class="next-step-actions">
+      <button type="button" class="btn" id="print-btn">Print / Save as PDF</button>
+    </div>
+  </div>
+
+  <div class="next-step-block">
+    <h3 class="next-step-h">3 &middot; Learn more</h3>
+    <p class="lede">Videos from trusted sources, picked for your profile.</p>
+    ${renderVideoSections(state)}
+  </div>
+
+  <div class="page-footer-nav">
+    <button class="btn secondary" id="restart-btn">Start over</button>
+    <a href="diet.html" class="btn secondary">&larr; Back to Diet</a>
+  </div>
+  `;
+
+  document.getElementById('ai-prompt-box').value = buildAIPrompt(state, due, ok, routineOff, flagged, lifestyleNotes);
+  document.getElementById('print-sheet').innerHTML = buildPrintSheetHtml(state, due, ok, routineOff, flagged, lifestyleNotes);
+
+  document.getElementById('copy-prompt-btn').addEventListener('click', async ()=>{
+    const box = document.getElementById('ai-prompt-box');
+    const feedback = document.getElementById('copy-feedback');
+    try{
+      await navigator.clipboard.writeText(box.value);
+    }catch(e){
+      box.removeAttribute('readonly');
+      box.select();
+      document.execCommand('copy');
+      box.setAttribute('readonly', 'readonly');
+    }
+    feedback.textContent = 'Copied!';
+    setTimeout(()=>{ feedback.textContent=''; }, 2500);
+  });
+
+  document.getElementById('print-btn').addEventListener('click', ()=>{
+    window.print();
+  });
+
+  document.getElementById('restart-btn').addEventListener('click', ()=>{
+    if(confirm('This clears everything you entered. Start a new chart?')){
+      localStorage.removeItem(STATE_KEY);
+      location.href = 'index.html';
+    }
+  });
+}
+
+if(!state.profile){
+  main.innerHTML = `<div class="empty-state">We need your profile first. <a href="profile.html">Go back and fill it in &rarr;</a></div>`;
+} else {
+  render();
+}
+</script>
+</body>
+</html>

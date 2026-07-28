@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>About You &mdash; Your Health Profile</title>
+<link rel="stylesheet" href="shared/styles.css">
+</head>
+<body>
+
+<header class="masthead">
+  <div class="masthead-row">
+    <div>
+      <a class="brand-link" href="index.html"><p class="eyebrow">Your Health Profile</p></a>
+      <h1 class="brand">About <em>you</em></h1>
+    </div>
+    <p class="tagline">Sex, age, body composition, and symptoms &mdash; everything else builds on this.</p>
+  </div>
+</header>
+
+<nav class="steps">
+  <a class="step current" href="profile.html"><span class="n">1</span>Profile</a>
+  <a class="step" href="diagnostics.html"><span class="n">2</span>Diagnostics</a>
+  <a class="step" href="routine.html"><span class="n">3</span>Routine</a>
+  <a class="step" href="diet.html"><span class="n">4</span>Diet</a>
+  <a class="step" href="summary.html"><span class="n">5</span>Summary</a>
+</nav>
+
+<main>
+  <div class="section-head">
+    <h2>Tell us about you</h2>
+    <span class="section-sub">01 of 05</span>
+  </div>
+
+  <form id="profile-form">
+    <div class="field-row" style="margin-bottom:22px;">
+      <div class="field">
+        <label class="intake-label" for="f-sex">Sex</label>
+        <select id="f-sex"><option value="Female">Female</option><option value="Male">Male</option></select>
+      </div>
+      <div class="field">
+        <label class="intake-label" for="f-age">Age</label>
+        <input type="number" id="f-age" min="16" max="100" value="32">
+      </div>
+    </div>
+
+    <div class="field-row" style="margin-bottom:8px;">
+      <div class="field">
+        <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:6px;">
+          <label class="intake-label" style="margin-bottom:0;">Height</label>
+          <div class="unit-toggle small" id="height-unit-toggle">
+            <button type="button" data-unit="cm" class="active">cm</button>
+            <button type="button" data-unit="ftin">ft/in</button>
+          </div>
+        </div>
+        <div id="height-cm-wrap"><input type="number" id="f-height-cm" min="120" max="230" value="168" placeholder="cm" step="any"></div>
+        <div id="height-ftin-wrap" class="unit-pair" style="display:none;">
+          <input type="number" id="f-height-ft" min="3" max="7" placeholder="ft" step="any">
+          <input type="number" id="f-height-in" min="0" max="11.9" step="0.1" placeholder="in">
+        </div>
+      </div>
+      <div class="field">
+        <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:6px;">
+          <label class="intake-label" style="margin-bottom:0;">Weight</label>
+          <div class="unit-toggle small" id="weight-unit-toggle">
+            <button type="button" data-unit="kg" class="active">kg</button>
+            <button type="button" data-unit="lb">lb</button>
+          </div>
+        </div>
+        <div id="weight-kg-wrap"><input type="number" id="f-weight-kg" min="30" max="250" value="68" placeholder="kg" step="any"></div>
+        <div id="weight-lb-wrap" style="display:none;"><input type="number" id="f-weight-lb" min="66" max="550" placeholder="lb" step="any"></div>
+      </div>
+      <div class="field">
+        <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:6px;">
+          <label class="intake-label" style="margin-bottom:0;">Waist</label>
+          <div class="unit-toggle small" id="waist-unit-toggle">
+            <button type="button" data-unit="cm" class="active">cm</button>
+            <button type="button" data-unit="in">in</button>
+          </div>
+        </div>
+        <div id="waist-cm-wrap"><input type="number" id="f-waist-cm" min="50" max="200" value="82" placeholder="cm" step="any"></div>
+        <div id="waist-in-wrap" style="display:none;"><input type="number" id="f-waist-in" min="20" max="80" placeholder="in" step="any"></div>
+      </div>
+    </div>
+
+    <div class="stat-strip" style="margin-top:22px;">
+      <div class="stat-card" id="bmi-card">
+        <div class="k">Body Mass Index</div>
+        <div class="v" id="bmi-val">&mdash;</div>
+        <div class="u" id="bmi-tag-text"></div>
+      </div>
+      <div class="stat-card" id="whtr-card">
+        <div class="k">Waist-to-Height Ratio</div>
+        <div class="v" id="whtr-val">&mdash;</div>
+        <div class="u" id="whtr-tag-text"></div>
+      </div>
+    </div>
+
+    <div class="cat-title">Lifestyle</div>
+    <div class="field-row" style="margin-bottom:22px;">
+      <div class="field">
+        <label class="intake-label" for="f-smoking">Smoking</label>
+        <select id="f-smoking">
+          <option value="Never">Never</option>
+          <option value="Former smoker">Former smoker</option>
+          <option value="Occasionally">Occasionally</option>
+          <option value="Daily">Daily</option>
+        </select>
+      </div>
+      <div class="field">
+        <label class="intake-label" for="f-alcohol">Alcohol</label>
+        <select id="f-alcohol">
+          <option value="Never">Never</option>
+          <option value="Occasional">Occasional / social</option>
+          <option value="1-2x/week">1&ndash;2x / week</option>
+          <option value="3-5x/week">3&ndash;5x / week</option>
+          <option value="Daily">Daily</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="cat-title" id="repro-title" style="display:none;">Reproductive health</div>
+    <div class="field-row" id="repro-field-row" style="display:none; margin-bottom:22px;">
+      <div class="field" style="max-width:280px;">
+        <label class="intake-label" for="f-repro-status">Menstrual &amp; menopause status</label>
+        <select id="f-repro-status">
+          <option value="Regular cycle">Regular cycle</option>
+          <option value="Irregular cycle">Irregular cycle</option>
+          <option value="Currently pregnant">Currently pregnant</option>
+          <option value="Postpartum">Postpartum (within 1 year)</option>
+          <option value="Perimenopausal">Perimenopausal</option>
+          <option value="Post-menopausal">Post-menopausal</option>
+          <option value="Not applicable">Not applicable</option>
+          <option value="Not sure">Not sure</option>
+        </select>
+      </div>
+      <div class="check-field" style="align-self:end; padding-bottom:9px;">
+        <input type="checkbox" id="f-pcos">
+        <label for="f-pcos">Diagnosed with PCOS</label>
+      </div>
+    </div>
+
+    <div class="cat-title">Family history</div>
+    <div class="field-row" style="grid-template-columns:1fr 1fr; margin-bottom:22px;">
+      <div class="check-field">
+        <input type="checkbox" id="f-fam-metabolic">
+        <label for="f-fam-metabolic">Diabetes / metabolic conditions in immediate family</label>
+      </div>
+      <div class="check-field">
+        <input type="checkbox" id="f-fam-cardio">
+        <label for="f-fam-cardio">Heart disease / hypertension in immediate family</label>
+      </div>
+    </div>
+
+    <div class="cat-title">Symptoms</div>
+    <p class="lede" style="margin-bottom:14px;">Search and add anything you're currently experiencing. This shapes your diagnostics test list on the next page, and adds a note or two on your diet and routine pages where relevant. Nothing to add? Skip it &mdash; we'll use your risk profile instead.</p>
+    <div class="symptom-picker">
+      <input type="text" id="symptom-input" class="field" placeholder="Type to search e.g. Fatigue, Headache, Bloating&hellip;" autocomplete="off">
+      <div id="symptom-suggestions" class="suggestions-list"></div>
+    </div>
+    <div class="chips-row" id="symptom-chips"></div>
+    <p class="symptom-empty-hint" id="symptom-hint"></p>
+
+    <div class="page-footer-nav">
+      <span class="validation-msg" id="validation-msg"></span>
+      <button type="submit" class="btn">Continue to Diagnostics &rarr;</button>
+    </div>
+  </form>
+</main>
+
+<footer>
+  <span>Your Health Profile &mdash; runs entirely in your browser. No data leaves this page.</span>
+  <span>Not a substitute for professional medical advice.</span>
+</footer>
+
+<script src="shared/data.diagnostics.js"></script>
+<script src="shared/utils.js"></script>
+<script>
+const state = loadState();
+const p = state.profile || {};
+
+/* ---- restore prior values if present ---- */
+if(p.sex) document.getElementById('f-sex').value = p.sex;
+if(p.age) document.getElementById('f-age').value = p.age;
+if(p.heightCm) document.getElementById('f-height-cm').value = Math.round(p.heightCm*10)/10;
+if(p.weightKg) document.getElementById('f-weight-kg').value = Math.round(p.weightKg*10)/10;
+if(p.waistCm) document.getElementById('f-waist-cm').value = Math.round(p.waistCm*10)/10;
+if(p.famMetabolic) document.getElementById('f-fam-metabolic').checked = true;
+if(p.famCardio) document.getElementById('f-fam-cardio').checked = true;
+if(p.smoking) document.getElementById('f-smoking').value = p.smoking;
+if(p.alcohol) document.getElementById('f-alcohol').value = p.alcohol;
+if(p.reproStatus) document.getElementById('f-repro-status').value = p.reproStatus;
+if(p.pcos) document.getElementById('f-pcos').checked = true;
+
+/* ---- reproductive health section only applies to females ---- */
+function updateReproVisibility(){
+  const show = document.getElementById('f-sex').value === 'Female';
+  document.getElementById('repro-title').style.display = show ? 'flex' : 'none';
+  document.getElementById('repro-field-row').style.display = show ? 'grid' : 'none';
+}
+document.getElementById('f-sex').addEventListener('change', updateReproVisibility);
+updateReproVisibility();
+
+/* ---- per-field unit toggles: height (cm / ft+in), weight (kg / lb), waist (cm / in) ---- */
+let heightUnit = 'cm', weightUnit = 'kg', waistUnit = 'cm';
+
+function wireUnitToggle(toggleId, onChange){
+  document.getElementById(toggleId).addEventListener('click', (e)=>{
+    const btn = e.target.closest('button');
+    if(!btn) return;
+    document.querySelectorAll(`#${toggleId} button`).forEach(b=>b.classList.toggle('active', b===btn));
+    onChange(btn.dataset.unit);
+  });
+}
+
+function getHeightCm(){
+  if(heightUnit==='cm') return parseFloat(document.getElementById('f-height-cm').value);
+  const ft = parseFloat(document.getElementById('f-height-ft').value)||0;
+  const inch = parseFloat(document.getElementById('f-height-in').value)||0;
+  return (ft||inch) ? ftInToCm(ft, inch) : NaN;
+}
+function getWeightKg(){
+  if(weightUnit==='kg') return parseFloat(document.getElementById('f-weight-kg').value);
+  const lb = parseFloat(document.getElementById('f-weight-lb').value);
+  return isNaN(lb) ? NaN : lbToKg(lb);
+}
+function getWaistCm(){
+  if(waistUnit==='cm') return parseFloat(document.getElementById('f-waist-cm').value);
+  const inW = parseFloat(document.getElementById('f-waist-in').value);
+  return isNaN(inW) ? NaN : inFlatToCm(inW);
+}
+
+wireUnitToggle('height-unit-toggle', (target)=>{
+  if(target===heightUnit) return;
+  const cm = getHeightCm();
+  heightUnit = target;
+  if(target==='ftin'){
+    const {ft, inch} = cmToFtIn(cm||0);
+    document.getElementById('f-height-ft').value = cm ? ft : '';
+    document.getElementById('f-height-in').value = cm ? inch : '';
+    document.getElementById('height-cm-wrap').style.display='none';
+    document.getElementById('height-ftin-wrap').style.display='grid';
+  }else{
+    document.getElementById('f-height-cm').value = cm ? Math.round(cm*10)/10 : '';
+    document.getElementById('height-cm-wrap').style.display='block';
+    document.getElementById('height-ftin-wrap').style.display='none';
+  }
+  refreshMetrics();
+});
+wireUnitToggle('weight-unit-toggle', (target)=>{
+  if(target===weightUnit) return;
+  const kg = getWeightKg();
+  weightUnit = target;
+  if(target==='lb'){
+    document.getElementById('f-weight-lb').value = kg ? Math.round(kgToLb(kg)*10)/10 : '';
+    document.getElementById('weight-kg-wrap').style.display='none';
+    document.getElementById('weight-lb-wrap').style.display='block';
+  }else{
+    document.getElementById('f-weight-kg').value = kg ? Math.round(kg*10)/10 : '';
+    document.getElementById('weight-kg-wrap').style.display='block';
+    document.getElementById('weight-lb-wrap').style.display='none';
+  }
+  refreshMetrics();
+});
+wireUnitToggle('waist-unit-toggle', (target)=>{
+  if(target===waistUnit) return;
+  const cm = getWaistCm();
+  waistUnit = target;
+  if(target==='in'){
+    document.getElementById('f-waist-in').value = cm ? Math.round(cmToInFlat(cm)*10)/10 : '';
+    document.getElementById('waist-cm-wrap').style.display='none';
+    document.getElementById('waist-in-wrap').style.display='block';
+  }else{
+    document.getElementById('f-waist-cm').value = cm ? Math.round(cm*10)/10 : '';
+    document.getElementById('waist-cm-wrap').style.display='block';
+    document.getElementById('waist-in-wrap').style.display='none';
+  }
+  refreshMetrics();
+});
+
+function refreshMetrics(){
+  const heightCm = getHeightCm(), weightKg = getWeightKg(), waistCm = getWaistCm();
+  const bmiEl = document.getElementById('bmi-val');
+  const bmiTagEl = document.getElementById('bmi-tag-text');
+  const whtrEl = document.getElementById('whtr-val');
+  const whtrTagEl = document.getElementById('whtr-tag-text');
+
+  if(heightCm>0 && weightKg>0){
+    const bmi = computeBMI(weightKg, heightCm);
+    const [label] = bmiTag(bmi);
+    bmiEl.textContent = bmi.toFixed(1);
+    bmiTagEl.textContent = label;
+  }else{
+    bmiEl.textContent = '\u2014'; bmiTagEl.textContent='';
+  }
+  if(heightCm>0 && waistCm>0){
+    const whtr = computeWHtR(waistCm, heightCm);
+    const [label] = whtrTag(whtr);
+    whtrEl.textContent = whtr.toFixed(2);
+    whtrTagEl.textContent = label;
+  }else{
+    whtrEl.textContent = '\u2014'; whtrTagEl.textContent='';
+  }
+}
+
+['f-height-cm','f-height-ft','f-height-in','f-weight-kg','f-weight-lb','f-waist-cm','f-waist-in'].forEach(id=>{
+  document.getElementById(id).addEventListener('input', refreshMetrics);
+});
+refreshMetrics();
+
+/* ---- symptom typeahead ---- */
+const SYMPTOM_LIST = [...new Set(DIAG.flatMap(d=>d.symptoms||[]))].sort();
+let selectedSymptoms = new Set(p.symptoms || []);
+
+const symptomInput = document.getElementById('symptom-input');
+const symptomSuggestions = document.getElementById('symptom-suggestions');
+const symptomChips = document.getElementById('symptom-chips');
+const symptomHint = document.getElementById('symptom-hint');
+
+function renderChips(){
+  symptomChips.innerHTML = [...selectedSymptoms].map(s=>`<span class="chip">${esc(s)}<button type="button" class="chip-x" data-s="${esc(s)}" aria-label="Remove">&times;</button></span>`).join('');
+  symptomHint.textContent = selectedSymptoms.size ? `${selectedSymptoms.size} symptom${selectedSymptoms.size>1?'s':''} selected.` : 'No symptoms selected yet \u2014 that\u2019s fine, we\u2019ll use your risk profile instead.';
+}
+function renderSuggestions(query){
+  const q = query.trim().toLowerCase();
+  if(!q){ symptomSuggestions.style.display='none'; symptomSuggestions.innerHTML=''; return; }
+  const results = SYMPTOM_LIST.filter(s=>!selectedSymptoms.has(s) && s.toLowerCase().includes(q)).slice(0,8);
+  if(!results.length){ symptomSuggestions.style.display='none'; symptomSuggestions.innerHTML=''; return; }
+  symptomSuggestions.innerHTML = results.map(s=>`<div class="suggestion-item" data-s="${esc(s)}">${esc(s)}</div>`).join('');
+  symptomSuggestions.style.display = 'block';
+}
+symptomInput.addEventListener('input', ()=>renderSuggestions(symptomInput.value));
+symptomInput.addEventListener('focus', ()=>renderSuggestions(symptomInput.value));
+document.addEventListener('click', (e)=>{
+  if(!e.target.closest('.symptom-picker')) symptomSuggestions.style.display='none';
+});
+symptomSuggestions.addEventListener('click', (e)=>{
+  const item = e.target.closest('.suggestion-item');
+  if(!item) return;
+  selectedSymptoms.add(item.dataset.s);
+  symptomInput.value='';
+  symptomSuggestions.style.display='none';
+  renderChips();
+  symptomInput.focus();
+});
+symptomChips.addEventListener('click', (e)=>{
+  const btn = e.target.closest('.chip-x');
+  if(!btn) return;
+  selectedSymptoms.delete(btn.dataset.s);
+  renderChips();
+});
+renderChips();
+
+/* ---- submit ---- */
+document.getElementById('profile-form').addEventListener('submit', (e)=>{
+  e.preventDefault();
+  const sex = document.getElementById('f-sex').value;
+  const age = parseFloat(document.getElementById('f-age').value);
+  const heightCm = getHeightCm(), weightKg = getWeightKg(), waistCm = getWaistCm();
+  const msg = document.getElementById('validation-msg');
+
+  if(isNaN(age) || age<=0 || isNaN(heightCm) || heightCm<=0 || isNaN(weightKg) || weightKg<=0 || isNaN(waistCm) || waistCm<=0){
+    msg.textContent = 'Please fill in every field with a valid, positive number.';
+    return;
+  }
+  msg.textContent = '';
+
+  const bmi = computeBMI(weightKg, heightCm);
+  const whtr = computeWHtR(waistCm, heightCm);
+  const profile = {
+    sex, age, heightCm, weightKg, waistCm, bmi, whtr,
+    famMetabolic: document.getElementById('f-fam-metabolic').checked,
+    famCardio: document.getElementById('f-fam-cardio').checked,
+    smoking: document.getElementById('f-smoking').value,
+    alcohol: document.getElementById('f-alcohol').value,
+    reproStatus: sex==='Female' ? document.getElementById('f-repro-status').value : null,
+    pcos: sex==='Female' ? document.getElementById('f-pcos').checked : false,
+    symptoms: [...selectedSymptoms]
+  };
+  const next = Object.assign({}, state, {profile});
+  goTo('diagnostics.html', next);
+});
+</script>
+</body>
+</html>

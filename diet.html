@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Diet &mdash; Your Health Profile</title>
+<link rel="stylesheet" href="shared/styles.css">
+</head>
+<body>
+
+<header class="masthead">
+  <div class="masthead-row">
+    <div>
+      <a class="brand-link" href="index.html"><p class="eyebrow">Your Health Profile</p></a>
+      <h1 class="brand">Your <em>diet</em></h1>
+    </div>
+    <p class="tagline">Preference, current eating pattern, and your personal fuel target.</p>
+  </div>
+</header>
+
+<nav class="steps">
+  <a class="step done" href="profile.html"><span class="n">&check;</span>Profile</a>
+  <a class="step done" href="diagnostics.html"><span class="n">&check;</span>Diagnostics</a>
+  <a class="step done" href="routine.html"><span class="n">&check;</span>Routine</a>
+  <a class="step current" href="diet.html"><span class="n">4</span>Diet</a>
+  <a class="step" href="summary.html"><span class="n">5</span>Summary</a>
+</nav>
+
+<main id="main-content">
+  <div class="empty-state" id="loading-state">Loading your profile&hellip;</div>
+</main>
+
+<footer>
+  <span>Your Health Profile &mdash; runs entirely in your browser. No data leaves this page.</span>
+  <span>Not a substitute for professional medical advice.</span>
+</footer>
+
+<script src="shared/data.diet.js"></script>
+<script src="shared/data.cuisine.js"></script>
+<script src="shared/utils.js"></script>
+<script>
+const state = loadState();
+const profile = state.profile;
+const main = document.getElementById('main-content');
+
+const FREQ_OPTIONS = [
+  {v:3, label:'Daily'},
+  {v:2, label:'3\u20135x / week'},
+  {v:1, label:'1\u20132x / week'},
+  {v:0, label:'Rarely / never'}
+];
+const HEALTHY_ITEMS = [
+  {key:'fruits', label:'Fruits'},
+  {key:'greens', label:'Green / leafy vegetables'},
+  {key:'legumes', label:'Legumes, lentils & pulses'}
+];
+const JUNK_ITEMS = [
+  {key:'packaged', label:'Packaged / junk food'},
+  {key:'sugary', label:'Sugary drinks & desserts'},
+  {key:'fried', label:'Deep-fried food'}
+];
+const PREF_TIPS = {
+  'Vegan':'Lean on legumes, tofu, tempeh, and fortified plant milk for protein &mdash; B12 and iron are the two nutrients worth watching most closely.',
+  'Vegetarian':'Dairy and legumes cover protein well here; keep an eye on iron and B12 if dairy intake is low.',
+  'Eggetarian':'Eggs plus legumes give a flexible protein base; still track B12 and iron if dairy is limited.',
+  'Jain':'With root vegetables off the table, lean more on legumes, dairy, and nuts for protein, iron, and fibre.',
+  'Non-Vegetarian':'Lean meat, fish, and eggs make the protein target straightforward &mdash; balance with fibre from plants.'
+};
+/* symptoms flagged on the profile page that are worth a diet-specific note here */
+const SYMPTOM_DIET_TIPS = {
+  'Bloating':'Smaller, more frequent meals and cutting back on carbonated drinks often ease bloating &mdash; worth tracking against the fiber target above.',
+  'Gut Health':'Fermented foods (yogurt, kefir) and consistent fiber intake matter as much as total calories for gut health.',
+  'Acid Reflux':'Acid reflux often responds to smaller portions and avoiding lying down within 2&ndash;3 hours of eating, independent of the macro targets above.',
+  'Constipation':'Constipation usually responds to more fiber and more water together &mdash; check the fiber target above.',
+  'Diarrhea':'Persistent diarrhea can affect nutrient absorption &mdash; worth flagging to a clinician alongside these targets.',
+  'Sugar Cravings':'Sugar cravings are worth watching alongside your tea/coffee sugar intake below &mdash; the two often compound.',
+  'Emotional Eating':'If eating tracks with mood more than hunger, that pattern is worth noting &mdash; it isn\u2019t something macros alone fix.',
+  'Fatigue':'Fatigue has many causes, but consistent protein and iron-rich meals can help &mdash; see your diagnostics tests for iron, B12, and thyroid markers.',
+  'Low Energy':'Consistent protein and iron-rich meals can help with low energy &mdash; see your diagnostics tests for iron, B12, and thyroid markers.',
+  'PCOS':'PCOS often responds well to lower glycemic-load eating &mdash; worth being extra mindful of the carb range above.',
+  'High Cholesterol':'Soluble fiber (oats, legumes, beans) has a direct effect on cholesterol &mdash; worth pushing toward the top of your fiber target.',
+  'High Blood Pressure':'Keeping well under the sodium cap below matters more than usual here.'
+};
+
+/* ---- nutrient-source questions, with preference-specific example foods ---- */
+const NUTRIENT_ITEMS = [
+  {key:'protein', label:'Protein-rich foods'},
+  {key:'wholeGrains', label:'Whole grains (rice, roti, oats, millets)'},
+  {key:'healthyFats', label:'Healthy fats (nuts, seeds, oils, fatty fish)'},
+  {key:'calciumVitD', label:'Calcium &amp; Vitamin D sources'}
+];
+const PREF_FOOD_EXAMPLES = {
+  'Vegan':{
+    protein:'tofu, tempeh, lentils, chickpeas, edamame',
+    wholeGrains:'oats, quinoa, brown rice, millets, whole wheat',
+    healthyFats:'walnuts, flaxseed, chia seeds, olive oil, avocado',
+    calciumVitD:'fortified plant milk, calcium-set tofu, sesame seeds, sunlight'
+  },
+  'Vegetarian':{
+    protein:'paneer, curd, lentils, chickpeas, beans',
+    wholeGrains:'oats, brown rice, millets, whole wheat, quinoa',
+    healthyFats:'nuts, seeds, ghee in moderation, olive oil',
+    calciumVitD:'milk, curd, paneer, fortified cereals, sunlight'
+  },
+  'Eggetarian':{
+    protein:'eggs, paneer, curd, lentils, chickpeas',
+    wholeGrains:'oats, brown rice, millets, whole wheat, quinoa',
+    healthyFats:'nuts, seeds, egg yolk, olive oil',
+    calciumVitD:'milk, curd, egg yolk, fortified cereals, sunlight'
+  },
+  'Jain':{
+    protein:'milk, curd, paneer, split lentils, beans (without onion/garlic)',
+    wholeGrains:'rice, whole wheat, millets, oats',
+    healthyFats:'nuts, seeds, ghee, olive oil',
+    calciumVitD:'milk, curd, paneer, sunlight'
+  },
+  'Non-Vegetarian':{
+    protein:'chicken, fish, eggs, lentils, paneer',
+    wholeGrains:'brown rice, whole wheat, oats, millets',
+    healthyFats:'fatty fish, nuts, seeds, olive oil',
+    calciumVitD:'milk, curd, fish with bones, fortified cereals, sunlight'
+  }
+};
+
+const CUISINE_LIST = ['South Indian','North Indian','Mediterranean','East Asian','Western/Continental','Middle Eastern','Latin American','Other'];
+
+function freqRadios(name, itemKey, prevVal){
+  return FREQ_OPTIONS.map(o=>`
+    <input type="radio" name="${name}-${itemKey}" id="${name}-${itemKey}-${o.v}" value="${o.v}" ${prevVal===o.v?'checked':''}>
+    <label for="${name}-${itemKey}-${o.v}">${o.label}</label>`).join('');
+}
+
+function init(){
+  const prevDiet = state.diet || {};
+  const prevFreq = prevDiet.freq || {};
+  const prevNutrient = prevDiet.nutrientFreq || {};
+
+  let healthyRows = HEALTHY_ITEMS.map(item=>`
+    <div class="test-card" style="border-left-color:var(--teal);">
+      <div class="head"><div class="name">${item.label}</div></div>
+      <div class="radio-pair" style="margin-top:10px;">${freqRadios('freq', item.key, prevFreq[item.key])}</div>
+    </div>`).join('');
+
+  let junkRows = JUNK_ITEMS.map(item=>`
+    <div class="test-card" style="border-left-color:var(--rose);">
+      <div class="head"><div class="name">${item.label}</div></div>
+      <div class="radio-pair" style="margin-top:10px;">${freqRadios('freq', item.key, prevFreq[item.key])}</div>
+    </div>`).join('');
+
+  main.innerHTML = `
+  <div class="section-head">
+    <h2>Preference &amp; current pattern</h2>
+    <span class="section-sub">04 of 05</span>
+  </div>
+
+  <div class="field-row" style="max-width:600px; margin-bottom:26px;">
+    <div class="field">
+      <label class="intake-label" for="f-pref">Dietary preference</label>
+      <select id="f-pref">
+        <option value="Non-Vegetarian" ${prevDiet.pref==='Non-Vegetarian'?'selected':''}>Non-vegetarian</option>
+        <option value="Eggetarian" ${prevDiet.pref==='Eggetarian'?'selected':''}>Eggetarian</option>
+        <option value="Vegetarian" ${prevDiet.pref==='Vegetarian'?'selected':''}>Vegetarian</option>
+        <option value="Vegan" ${prevDiet.pref==='Vegan'?'selected':''}>Vegan</option>
+        <option value="Jain" ${prevDiet.pref==='Jain'?'selected':''}>Jain</option>
+      </select>
+    </div>
+    <div class="field">
+      <label class="intake-label" for="f-cuisine">Cuisine / region</label>
+      <select id="f-cuisine">
+        ${CUISINE_LIST.map(c=>`<option value="${c}" ${prevDiet.cuisine===c?'selected':''}>${c}</option>`).join('')}
+      </select>
+    </div>
+  </div>
+
+  <div class="cat-title">How often &mdash; healthy markers</div>
+  ${healthyRows}
+  <div class="cat-title">How often &mdash; things to watch</div>
+  ${junkRows}
+
+  <div class="cat-title">How often &mdash; nutrient sources</div>
+  <p class="lede" style="margin-bottom:14px;">Example foods shown match your dietary preference above.</p>
+  <div id="nutrient-rows"></div>
+
+  <div class="cat-title">Tea &amp; coffee</div>
+  <div class="field-row" style="max-width:420px; margin-bottom:26px;">
+    <div class="field">
+      <label class="intake-label" for="f-teacoffee-cups">Cups / day</label>
+      <input type="number" min="0" max="20" step="1" id="f-teacoffee-cups" value="${prevDiet.teaCoffee ? prevDiet.teaCoffee.cups : ''}">
+    </div>
+    <div class="field">
+      <label class="intake-label" for="f-teacoffee-sugar">Teaspoons of sugar / cup</label>
+      <input type="number" min="0" max="6" step="0.5" id="f-teacoffee-sugar" value="${prevDiet.teaCoffee ? prevDiet.teaCoffee.sugarPerCup : ''}">
+    </div>
+  </div>
+
+  <div class="page-footer-nav" style="border-top:none; padding-top:0; margin-top:10px;">
+    <span></span>
+    <button class="btn" id="calc-btn">Calculate my target &rarr;</button>
+  </div>
+
+  <div id="results" style="margin-top:10px;"></div>
+  `;
+
+  function renderNutrientRows(){
+    const pref = document.getElementById('f-pref').value;
+    const examples = PREF_FOOD_EXAMPLES[pref];
+    document.getElementById('nutrient-rows').innerHTML = NUTRIENT_ITEMS.map(item=>`
+      <div class="test-card" style="border-left-color:var(--amber);">
+        <div class="head"><div class="name">${item.label}</div></div>
+        <div class="symptom" style="margin-top:2px;">e.g. ${examples[item.key]}</div>
+        <div class="radio-pair" style="margin-top:10px;">${freqRadios('nutrient', item.key, prevNutrient[item.key])}</div>
+      </div>`).join('');
+  }
+  renderNutrientRows();
+  document.getElementById('f-pref').addEventListener('change', renderNutrientRows);
+
+  document.getElementById('calc-btn').addEventListener('click', renderResults);
+  if(prevDiet.freq) renderResults(); // pre-populate if returning
+}
+
+function readFreq(name, key){
+  const el = document.querySelector(`input[name="${name}-${key}"]:checked`);
+  return el ? parseInt(el.value,10) : null;
+}
+
+const ADEQUACY_LABEL = {0:['Below target','flag'], 1:['Borderline',''], 2:['Meeting target','good'], 3:['Meeting target','good']};
+
+function scoreGaugeHtml(score, scoreLabel){
+  return `
+  <div class="gauge-block">
+    <div class="gauge-label">
+      <span class="name">Overall pattern</span>
+      <span class="range-val">${score}/100 &middot; ${scoreLabel}</span>
+    </div>
+    <div class="gauge-track score-track">
+      <div class="score-band rose" style="left:0%; width:50%;"></div>
+      <div class="score-band amber" style="left:50%; width:25%;"></div>
+      <div class="score-band teal" style="left:75%; width:25%;"></div>
+      <div class="gauge-marker${score<50?' bad':''}" style="left:${score}%;"></div>
+    </div>
+    <div class="gauge-scale"><span>0 &middot; Needs attention</span><span>50 &middot; Room to improve</span><span>75 &middot; Strong</span><span>100</span></div>
+  </div>`;
+}
+
+function renderResults(){
+  const pref = document.getElementById('f-pref').value;
+  const cuisine = document.getElementById('f-cuisine').value;
+  const freq = {};
+  let anyMissing = false;
+  [...HEALTHY_ITEMS, ...JUNK_ITEMS].forEach(item=>{
+    const v = readFreq('freq', item.key);
+    if(v===null) anyMissing = true;
+    freq[item.key] = v;
+  });
+  const nutrientFreq = {};
+  NUTRIENT_ITEMS.forEach(item=>{
+    const v = readFreq('nutrient', item.key);
+    if(v===null) anyMissing = true;
+    nutrientFreq[item.key] = v;
+  });
+  const cups = parseFloat(document.getElementById('f-teacoffee-cups').value);
+  const sugarPerCup = parseFloat(document.getElementById('f-teacoffee-sugar').value);
+
+  const resultsEl = document.getElementById('results');
+  if(anyMissing){
+    resultsEl.innerHTML = `<p class="validation-msg">Pick a frequency for every item above to calculate your target.</p>`;
+    return;
+  }
+  if(isNaN(cups) || isNaN(sugarPerCup)){
+    resultsEl.innerHTML = `<p class="validation-msg">Fill in cups/day and teaspoons of sugar per cup (0 is fine) to calculate your target.</p>`;
+    return;
+  }
+
+  const teaspoonsPerDay = cups * sugarPerCup;
+  const sugarGramsPerDay = Math.round(teaspoonsPerDay * 4);
+  const sugarKcalPerDay = Math.round(teaspoonsPerDay * 16);
+  const sugarPenalty = Math.min(25, teaspoonsPerDay * 1.8);
+
+  const healthySum = HEALTHY_ITEMS.reduce((s,i)=>s+freq[i.key],0); // 0-9
+  const junkSum = JUNK_ITEMS.reduce((s,i)=>s+freq[i.key],0); // 0-9
+  let score = 50 + healthySum*5 - junkSum*5 - sugarPenalty;
+  score = Math.max(0, Math.min(100, Math.round(score)));
+  const scoreLabel = score>=75 ? 'Strong pattern' : score>=50 ? 'Room to improve' : 'Needs attention';
+  const scoreClass = score>=75 ? 'good' : score>=50 ? '' : 'flag';
+
+  const activity = (state.routine && state.routine.derivedActivity) || 'Moderate';
+  const row = pickBestRow(DIET, profile.sex, {age:profile.age, bmi:profile.bmi, waist:profile.waistCm, activity});
+  if(!row){ resultsEl.innerHTML = `<div class="empty-state">No matching diet target found.</div>`; return; }
+
+  const [cLo,cHi] = parseRange(row.carbs);
+  const [fLo,fHi] = parseRange(row.fat);
+  const [pLo,pHi] = parseRange(row.protein);
+
+  const matchedSymptomTips = (profile.symptoms || [])
+    .filter(s=>SYMPTOM_DIET_TIPS[s])
+    .slice(0,2);
+
+  /* nutrient adequacy, self-reported only */
+  const examples = PREF_FOOD_EXAMPLES[pref];
+  const adequacyHtml = NUTRIENT_ITEMS.map(item=>{
+    const v = nutrientFreq[item.key];
+    const [label, cls] = ADEQUACY_LABEL[v];
+    return `<div class="micro-card${cls==='flag'?' flag':''}">
+      <div class="k">${item.label.replace(/&amp;/g,'&')}</div>
+      <div class="v" style="font-size:13px; color:${cls==='flag'?'var(--rose)':cls==='good'?'var(--teal)':'var(--ink)'};">${label}</div>
+    </div>`;
+  }).join('');
+
+  /* cuisine-based food ideas, filtered by dietary preference */
+  const dishSource = (CUISINE_DISHES[cuisine] && CUISINE_DISHES[cuisine].length) ? CUISINE_DISHES[cuisine] : CUISINE_DISHES['General'];
+  const dishes = dishSource.filter(d=>d.diet.includes(pref)).slice(0,6);
+
+  resultsEl.innerHTML = `
+  <div class="cat-title">Your fuel target</div>
+  <div class="stat-strip">
+    <div class="stat-card hero"><div class="k">Calories / day</div><div class="v">${row.cal}</div><div class="u">kcal target</div></div>
+    <div class="stat-card${teaspoonsPerDay>=8?' flag':''}"><div class="k">Tea/coffee sugar</div><div class="v">${sugarGramsPerDay} g</div><div class="u">~${sugarKcalPerDay} kcal / day</div></div>
+    <div class="stat-card"><div class="k">Sodium cap</div><div class="v">${row.sodium}</div><div class="u">mg / day</div></div>
+    <div class="stat-card"><div class="k">Activity used</div><div class="v" style="font-size:16px;">${esc(activity)}</div><div class="u">from your routine log</div></div>
+  </div>
+  ${teaspoonsPerDay>=8 ? `<div class="note-block"><span class="k">Added sugar</span>${cups} cups &times; ${sugarPerCup} tsp works out to <b>${teaspoonsPerDay} teaspoons</b> of sugar a day from tea/coffee alone &mdash; that's already a meaningful share of a healthy daily sugar allowance.</div>` : ''}
+
+  <div class="cat-title">Diet quality score</div>
+  ${scoreGaugeHtml(score, scoreLabel)}
+
+  <div class="cat-title">Macronutrient split</div>
+  ${gaugeBlock('Carbohydrates', cLo, cHi, 70, '%')}
+  ${gaugeBlock('Fat', fLo, fHi, 45, '%')}
+  ${gaugeBlock('Protein', pLo, pHi, 35, '%')}
+
+  <div class="cat-title">Micronutrients (targets)</div>
+  <div class="micro-grid">
+    <div class="micro-card"><div class="k">Fiber</div><div class="v">${row.fiber} g</div></div>
+    <div class="micro-card"><div class="k">Calcium</div><div class="v">${row.calcium} mg</div></div>
+    <div class="micro-card"><div class="k">Iron</div><div class="v">${row.iron} mg</div></div>
+    <div class="micro-card"><div class="k">Vitamin D</div><div class="v">${row.vitd} IU</div></div>
+    <div class="micro-card"><div class="k">Vitamin B12</div><div class="v">${row.b12} mcg</div></div>
+  </div>
+
+  <div class="cat-title">Are you meeting these? (self-reported)</div>
+  <div class="micro-grid">${adequacyHtml}</div>
+
+  <div class="note-block"><span class="k">Target note</span>${esc(row.note)}.</div>
+  <div class="note-block teal"><span class="k">${esc(pref)} tip</span>${PREF_TIPS[pref]}</div>
+  ${matchedSymptomTips.map(s=>`<div class="note-block teal"><span class="k">Because you mentioned ${esc(s)}</span>${SYMPTOM_DIET_TIPS[s]}</div>`).join('')}
+
+  ${dishes.length ? `
+  <div class="cat-title">Food ideas &mdash; ${esc(cuisine)} &middot; ${esc(pref)}</div>
+  <div class="dish-grid">
+    ${dishes.map(d=>`<div class="dish-card"><div class="meal">${esc(d.meal)}</div><div class="name">${esc(d.name)}</div><div class="kcal">~${d.kcal} kcal</div></div>`).join('')}
+  </div>
+  <p class="cuisine-note">Illustrative examples only, roughly sized to a single meal &mdash; not a precise meal plan, and worth adjusting for personal rules (e.g. onion/garlic for Jain).</p>
+  ` : ''}
+
+  <div class="page-footer-nav">
+    <a href="routine.html" class="btn secondary">&larr; Back</a>
+    <button class="btn" id="continue-btn">Continue to Summary &rarr;</button>
+  </div>
+  `;
+
+  document.getElementById('continue-btn').addEventListener('click', ()=>{
+    const diet = {
+      pref, cuisine, freq, nutrientFreq, score,
+      teaCoffee: {cups, sugarPerCup, teaspoonsPerDay, sugarGramsPerDay},
+      target: {cal:row.cal, carbs:row.carbs, fat:row.fat, protein:row.protein}
+    };
+    const next = Object.assign({}, state, {diet});
+    goTo('summary.html', next);
+  });
+}
+
+if(!profile){
+  main.innerHTML = `<div class="empty-state">We need your profile first. <a href="profile.html">Go back and fill it in &rarr;</a></div>`;
+} else if(!state.routine){
+  main.innerHTML = `<div class="empty-state">We need your daily routine log first, so we can use your actual activity level. <a href="routine.html">Go back and fill it in &rarr;</a></div>`;
+} else {
+  init();
+}
+</script>
+</body>
+</html>
