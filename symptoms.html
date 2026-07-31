@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Symptoms &mdash; Your Health Profile</title>
+<link rel="stylesheet" href="shared/styles.css">
+</head>
+<body>
+
+<header class="masthead">
+  <div class="masthead-row">
+    <div>
+      <a class="brand-link" href="index.html"><p class="eyebrow">Your Health Profile</p></a>
+      <h1 class="brand">What are you <em>noticing</em>?</h1>
+    </div>
+    <p class="tagline">Browse by category, or search if you know what you're looking for.</p>
+  </div>
+</header>
+
+<nav class="steps">
+  <a class="step done" href="profile.html"><span class="n">&check;</span>Profile</a>
+  <a class="step current" href="symptoms.html"><span class="n">2</span>Symptoms</a>
+  <a class="step" href="diagnostics.html"><span class="n">3</span>Diagnostics</a>
+  <a class="step" href="routine.html"><span class="n">4</span>Routine</a>
+  <a class="step" href="diet.html"><span class="n">5</span>Diet</a>
+  <a class="step" href="summary.html"><span class="n">6</span>Summary</a>
+</nav>
+
+<main id="main-content">
+  <div class="empty-state" id="loading-state">Loading your profile&hellip;</div>
+</main>
+
+<footer>
+  <span>Your Health Profile &mdash; runs entirely in your browser. No data leaves this page.</span>
+  <span>Not a substitute for professional medical advice.</span>
+</footer>
+
+<script src="shared/data.diagnostics.js"></script>
+<script src="shared/utils.js"></script>
+<script>
+const state = loadState();
+const profile = state.profile;
+const main = document.getElementById('main-content');
+
+/* Symptom categories, validated to cover the full vocabulary derived from DIAG with
+   no gaps and no duplicates (each test's symptoms[] array is the single source of truth). */
+const CATEGORIES = [
+  {name:'Energy, Sleep & Mood', items:['Insomnia','Fatigue','Low Energy','Restlessness','Stress','Anxiety','Depression','Mood Swings','Irritability','Burnout','Snoring']},
+  {name:'Musculoskeletal & Joints', items:['Back Pain','Neck Pain','Shoulder Pain','Knee Pain','Hip Pain','Leg Pain','Leg Cramps','Sciatica','Arthritis','Osteoporosis','Carpal Tunnel','Frozen Shoulder','Joint Stiffness','Poor Posture','Slouching','Weak Core','Muscle Weakness','Balance Issues','Sports Injury','Sprain','Strain','Recovery Fatigue','Overtraining']},
+  {name:'Digestive', items:['Indigestion','Acid Reflux','Constipation','Diarrhea','Bloating','Irritable Bowel Syndrome','Gastritis','Ulcer','Nausea','Vomiting','Gut Health','Hemorrhoids','Loss of Appetite']},
+  {name:'Heart & Circulation', items:['High Blood Pressure','Low Blood Pressure','Heart Palpitations','Chest Pain','Poor Circulation','Varicose Veins','Edema','Swelling']},
+  {name:'Weight & Metabolic', items:['Obesity','Overweight','Underweight','Weight Loss','Diabetes','High Cholesterol','Sugar Cravings','Emotional Eating','Excessive Thirst']},
+  {name:'Hormonal & Reproductive', items:['Thyroid Disorder','PCOS','Menstrual Pain','Menopause Symptoms','Hot Flashes','Night Sweats','Infertility','Pregnancy Discomfort','Postpartum Recovery']},
+  {name:'Head & Neurological', items:['Migraine','Headache','Vertigo','Memory Loss','Poor Concentration','Brain Fog','Cognitive Decline','Parkinson\u2019s Symptoms','Numbness or Tingling']},
+  {name:'Respiratory & Allergy', items:['Asthma','Bronchitis','Shortness of Breath','Allergies','Cold','Sinus Congestion']},
+  {name:'Skin & Hair', items:['Skin Acne','Eczema','Psoriasis','Dry Skin','Hair Loss','Dandruff','Itching','Skin Rash','Bruising Easily']},
+  {name:'Urinary, Liver & Kidney', items:['Urinary Tract Infection','Kidney Stones','Frequent Urination','Liver Disorder','Fatty Liver','Gallstones','Pancreatitis']},
+  {name:'Eyes, Ears & Mouth', items:['Eye Strain','Eye Dryness','Hearing Loss','Dental Pain','Jaw Pain']},
+  {name:'Immune & General', items:['Immune Weakness','Frequent Infections','Fever','Inflammation','Cold Intolerance','Heat Intolerance','Palpable Lump']}
+];
+const SYMPTOM_LIST = [...new Set(DIAG.flatMap(d=>d.symptoms||[]))].sort();
+
+let selectedSymptoms = new Set((profile && profile.symptoms) || []);
+let activeCat = 'All';
+let searchQuery = '';
+
+function init(){
+  main.innerHTML = `
+  <div class="section-head">
+    <h2>Search or browse</h2>
+    <span class="section-sub">02 of 06</span>
+  </div>
+  <p class="lede">Add anything you're currently experiencing. This shapes your diagnostics test list, and adds a note or two on your diet and routine pages where relevant. Nothing to add? Skip it &mdash; we'll use your risk profile instead.</p>
+
+  <div class="symptom-picker" style="max-width:480px;">
+    <input type="text" id="symptom-input" class="field" placeholder="Search all categories&hellip;" autocomplete="off">
+  </div>
+
+  <div class="cat-tabs" id="cat-tabs">
+    <button type="button" class="cat-tab active" data-cat="All">All</button>
+    ${CATEGORIES.map(c=>`<button type="button" class="cat-tab" data-cat="${esc(c.name)}">${esc(c.name)}</button>`).join('')}
+  </div>
+
+  <div class="browse-grid" id="browse-grid"></div>
+
+  <div class="cat-title">Selected</div>
+  <div class="chips-row" id="symptom-chips"></div>
+  <p class="symptom-empty-hint" id="symptom-hint"></p>
+
+  <div class="page-footer-nav">
+    <a href="profile.html" class="btn secondary">&larr; Back</a>
+    <button type="button" class="btn" id="continue-btn">Continue to Diagnostics &rarr;</button>
+  </div>
+  `;
+
+  const input = document.getElementById('symptom-input');
+  const catTabs = document.getElementById('cat-tabs');
+  const browseGrid = document.getElementById('browse-grid');
+  const chips = document.getElementById('symptom-chips');
+  const hint = document.getElementById('symptom-hint');
+
+  function renderBrowseGrid(){
+    let items;
+    if(searchQuery.trim()){
+      const q = searchQuery.trim().toLowerCase();
+      items = SYMPTOM_LIST.filter(s=>s.toLowerCase().includes(q));
+    } else if(activeCat==='All'){
+      items = SYMPTOM_LIST;
+    } else {
+      items = CATEGORIES.find(c=>c.name===activeCat).items;
+    }
+    browseGrid.innerHTML = items.length ? items.map(s=>
+      `<button type="button" class="browse-chip${selectedSymptoms.has(s)?' selected':''}" data-s="${esc(s)}">${esc(s)}</button>`
+    ).join('') : `<span class="symptom-empty-hint">No matches.</span>`;
+  }
+
+  function renderChips(){
+    chips.innerHTML = [...selectedSymptoms].map(s=>`<span class="chip">${esc(s)}<button type="button" class="chip-x" data-s="${esc(s)}" aria-label="Remove">&times;</button></span>`).join('');
+    hint.textContent = selectedSymptoms.size ? `${selectedSymptoms.size} symptom${selectedSymptoms.size>1?'s':''} selected.` : 'No symptoms selected yet \u2014 that\u2019s fine, we\u2019ll use your risk profile instead.';
+  }
+
+  catTabs.addEventListener('click', (e)=>{
+    const btn = e.target.closest('.cat-tab');
+    if(!btn) return;
+    activeCat = btn.dataset.cat;
+    input.value = '';
+    searchQuery = '';
+    catTabs.querySelectorAll('.cat-tab').forEach(b=>b.classList.toggle('active', b===btn));
+    renderBrowseGrid();
+  });
+
+  input.addEventListener('input', ()=>{
+    searchQuery = input.value;
+    renderBrowseGrid();
+  });
+
+  browseGrid.addEventListener('click', (e)=>{
+    const btn = e.target.closest('.browse-chip');
+    if(!btn) return;
+    const s = btn.dataset.s;
+    if(selectedSymptoms.has(s)){ selectedSymptoms.delete(s); btn.classList.remove('selected'); }
+    else { selectedSymptoms.add(s); btn.classList.add('selected'); }
+    renderChips();
+  });
+
+  chips.addEventListener('click', (e)=>{
+    const btn = e.target.closest('.chip-x');
+    if(!btn) return;
+    selectedSymptoms.delete(btn.dataset.s);
+    renderChips();
+    renderBrowseGrid();
+  });
+
+  renderBrowseGrid();
+  renderChips();
+
+  document.getElementById('continue-btn').addEventListener('click', ()=>{
+    const nextProfile = Object.assign({}, profile, {symptoms: [...selectedSymptoms]});
+    const next = Object.assign({}, state, {profile: nextProfile});
+    goTo('diagnostics.html', next);
+  });
+}
+
+if(!profile){
+  main.innerHTML = `<div class="empty-state">We need your profile first. <a href="profile.html">Go back and fill it in &rarr;</a></div>`;
+} else {
+  init();
+}
+</script>
+</body>
+</html>

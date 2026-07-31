@@ -20,10 +20,11 @@
 
 <nav class="steps">
   <a class="step done" href="profile.html"><span class="n">&check;</span>Profile</a>
-  <a class="step current" href="diagnostics.html"><span class="n">2</span>Diagnostics</a>
-  <a class="step" href="routine.html"><span class="n">3</span>Routine</a>
-  <a class="step" href="diet.html"><span class="n">4</span>Diet</a>
-  <a class="step" href="summary.html"><span class="n">5</span>Summary</a>
+  <a class="step done" href="symptoms.html"><span class="n">&check;</span>Symptoms</a>
+  <a class="step current" href="diagnostics.html"><span class="n">3</span>Diagnostics</a>
+  <a class="step" href="routine.html"><span class="n">4</span>Routine</a>
+  <a class="step" href="diet.html"><span class="n">5</span>Diet</a>
+  <a class="step" href="summary.html"><span class="n">6</span>Summary</a>
 </nav>
 
 <main id="main-content">
@@ -147,6 +148,7 @@ function renderResultsStage(){
       <div class="head">
         <div>
           <div class="name">${i+1}. ${esc(d.test)}</div>
+          <div class="test-desc">${esc(d.note)}.</div>
           <div class="symptom"><b>Watch for:</b> ${esc(watchFor)}</div>
         </div>
         ${originTag}
@@ -176,19 +178,19 @@ function renderResultsStage(){
 
   const symptomDrivenCount = top10.filter(d=>d.bySymptom).length;
   const symptomLine = symptoms.length
-    ? `Based on: ${symptoms.map(esc).join(', ')} &middot; <a href="profile.html">adjust on your profile &rarr;</a>`
-    : `No symptoms on file &mdash; this is your risk-profile baseline. <a href="profile.html">Add symptoms on your profile &rarr;</a>`;
+    ? `Based on: ${symptoms.map(esc).join(', ')} &middot; <a href="symptoms.html">adjust on your symptoms &rarr;</a>`
+    : `No symptoms on file &mdash; this is your risk-profile baseline. <a href="symptoms.html">Add symptoms &rarr;</a>`;
 
   main.innerHTML = `
   <div class="section-head">
     <h2>Your top 10 tests</h2>
-    <span class="section-sub">02 of 05</span>
+    <span class="section-sub">03 of 06</span>
   </div>
   <p class="lede">${symptomLine}</p>
   <p class="section-sub" style="display:block;margin-bottom:14px;">${matches.length} tests matched your profile &middot; ${symptomDrivenCount} pulled in directly from your symptoms, the rest fill out your baseline risk panel</p>
   <div id="cards">${cardsHtml}</div>
   <div class="page-footer-nav">
-    <a href="profile.html" class="btn secondary">&larr; Back</a>
+    <a href="symptoms.html" class="btn secondary">&larr; Back</a>
     <button class="btn" id="continue-btn">Continue to Routine &rarr;</button>
   </div>`;
 

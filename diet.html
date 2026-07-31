@@ -20,10 +20,11 @@
 
 <nav class="steps">
   <a class="step done" href="profile.html"><span class="n">&check;</span>Profile</a>
+  <a class="step done" href="symptoms.html"><span class="n">&check;</span>Symptoms</a>
   <a class="step done" href="diagnostics.html"><span class="n">&check;</span>Diagnostics</a>
   <a class="step done" href="routine.html"><span class="n">&check;</span>Routine</a>
-  <a class="step current" href="diet.html"><span class="n">4</span>Diet</a>
-  <a class="step" href="summary.html"><span class="n">5</span>Summary</a>
+  <a class="step current" href="diet.html"><span class="n">5</span>Diet</a>
+  <a class="step" href="summary.html"><span class="n">6</span>Summary</a>
 </nav>
 
 <main id="main-content">
@@ -36,7 +37,6 @@
 </footer>
 
 <script src="shared/data.diet.js"></script>
-<script src="shared/data.cuisine.js"></script>
 <script src="shared/utils.js"></script>
 <script>
 const state = loadState();
@@ -84,7 +84,6 @@ const SYMPTOM_DIET_TIPS = {
 
 /* ---- nutrient-source questions, with preference-specific example foods ---- */
 const NUTRIENT_ITEMS = [
-  {key:'protein', label:'Protein-rich foods'},
   {key:'wholeGrains', label:'Whole grains (rice, roti, oats, millets)'},
   {key:'healthyFats', label:'Healthy fats (nuts, seeds, oils, fatty fish)'},
   {key:'calciumVitD', label:'Calcium &amp; Vitamin D sources'}
@@ -150,7 +149,7 @@ function init(){
   main.innerHTML = `
   <div class="section-head">
     <h2>Preference &amp; current pattern</h2>
-    <span class="section-sub">04 of 05</span>
+    <span class="section-sub">05 of 06</span>
   </div>
 
   <div class="field-row" style="max-width:600px; margin-bottom:26px;">
@@ -177,7 +176,16 @@ function init(){
   <div class="cat-title">How often &mdash; things to watch</div>
   ${junkRows}
 
-  <div class="cat-title">How often &mdash; nutrient sources</div>
+  <div class="cat-title">Protein intake</div>
+  <div class="test-card" style="border-left-color:var(--amber);">
+    <div class="head"><div class="name">Protein servings per day</div></div>
+    <div class="symptom" style="margin-top:2px;" id="protein-hint"></div>
+    <div class="field" style="max-width:180px; margin-top:10px;">
+      <input type="number" id="f-protein-servings" min="0" max="10" step="0.5" value="${prevDiet.proteinServings!==undefined?prevDiet.proteinServings:''}">
+    </div>
+  </div>
+
+  <div class="cat-title">How often &mdash; other nutrient sources</div>
   <p class="lede" style="margin-bottom:14px;">Example foods shown match your dietary preference above.</p>
   <div id="nutrient-rows"></div>
 
@@ -204,6 +212,7 @@ function init(){
   function renderNutrientRows(){
     const pref = document.getElementById('f-pref').value;
     const examples = PREF_FOOD_EXAMPLES[pref];
+    document.getElementById('protein-hint').textContent = `~20\u201325g protein per serving, e.g. ${examples.protein}. A palm-sized portion is roughly 1 serving.`;
     document.getElementById('nutrient-rows').innerHTML = NUTRIENT_ITEMS.map(item=>`
       <div class="test-card" style="border-left-color:var(--amber);">
         <div class="head"><div class="name">${item.label}</div></div>
@@ -258,12 +267,17 @@ function renderResults(){
     if(v===null) anyMissing = true;
     nutrientFreq[item.key] = v;
   });
+  const proteinServings = parseFloat(document.getElementById('f-protein-servings').value);
   const cups = parseFloat(document.getElementById('f-teacoffee-cups').value);
   const sugarPerCup = parseFloat(document.getElementById('f-teacoffee-sugar').value);
 
   const resultsEl = document.getElementById('results');
   if(anyMissing){
     resultsEl.innerHTML = `<p class="validation-msg">Pick a frequency for every item above to calculate your target.</p>`;
+    return;
+  }
+  if(isNaN(proteinServings)){
+    resultsEl.innerHTML = `<p class="validation-msg">Fill in protein servings/day (0 is fine) to calculate your target.</p>`;
     return;
   }
   if(isNaN(cups) || isNaN(sugarPerCup)){
@@ -276,13 +290,6 @@ function renderResults(){
   const sugarKcalPerDay = Math.round(teaspoonsPerDay * 16);
   const sugarPenalty = Math.min(25, teaspoonsPerDay * 1.8);
 
-  const healthySum = HEALTHY_ITEMS.reduce((s,i)=>s+freq[i.key],0); // 0-9
-  const junkSum = JUNK_ITEMS.reduce((s,i)=>s+freq[i.key],0); // 0-9
-  let score = 50 + healthySum*5 - junkSum*5 - sugarPenalty;
-  score = Math.max(0, Math.min(100, Math.round(score)));
-  const scoreLabel = score>=75 ? 'Strong pattern' : score>=50 ? 'Room to improve' : 'Needs attention';
-  const scoreClass = score>=75 ? 'good' : score>=50 ? '' : 'flag';
-
   const activity = (state.routine && state.routine.derivedActivity) || 'Moderate';
   const row = pickBestRow(DIET, profile.sex, {age:profile.age, bmi:profile.bmi, waist:profile.waistCm, activity});
   if(!row){ resultsEl.innerHTML = `<div class="empty-state">No matching diet target found.</div>`; return; }
@@ -290,6 +297,38 @@ function renderResults(){
   const [cLo,cHi] = parseRange(row.carbs);
   const [fLo,fHi] = parseRange(row.fat);
   const [pLo,pHi] = parseRange(row.protein);
+
+  /* Protein: estimate grams/day from self-reported servings (~22g/serving is a rough
+     average across sources) and compare against the target range derived from the
+     protein %-of-calories target. */
+  const proteinGramsEstimate = Math.round(proteinServings * 22);
+  const proteinGramsLo = Math.round((pLo/100 * row.cal)/4);
+  const proteinGramsHi = Math.round((pHi/100 * row.cal)/4);
+  const proteinContribution = Math.min(9, Math.round(9 * proteinGramsEstimate / Math.max(1,proteinGramsLo)));
+
+  const healthySum = HEALTHY_ITEMS.reduce((s,i)=>s+freq[i.key],0); // 0-9, weight 5 => max 45
+  const junkSum = JUNK_ITEMS.reduce((s,i)=>s+freq[i.key],0); // 0-9, weight 5 => max 45
+  const nutrientSum = NUTRIENT_ITEMS.reduce((s,i)=>s+nutrientFreq[i.key],0); // 0-9, weight 3 => max 27
+  const healthyPts = healthySum*5;
+  const nutrientPts = nutrientSum*3;
+  const junkPts = junkSum*5;
+  let score = 50 + healthyPts + nutrientPts + proteinContribution - junkPts - sugarPenalty;
+  score = Math.max(0, Math.min(100, Math.round(score)));
+  const scoreLabel = score>=75 ? 'Strong pattern' : score>=50 ? 'Room to improve' : 'Needs attention';
+
+  const scoreBreakdown = [
+    {label:'Healthy foods', val:healthyPts, max:45, sign:'+', cls:'teal'},
+    {label:'Protein target', val:proteinContribution, max:9, sign:'+', cls:'teal'},
+    {label:'Other nutrients', val:nutrientPts, max:27, sign:'+', cls:'teal'},
+    {label:'Junk food', val:junkPts, max:45, sign:'-', cls:'rose'},
+    {label:'Added sugar', val:Math.round(sugarPenalty), max:25, sign:'-', cls:'rose'}
+  ];
+  const scoreBreakdownHtml = scoreBreakdown.map(b=>`
+    <div class="score-item">
+      <span>${b.label}</span>
+      <div class="score-item-bar"><div class="score-item-fill ${b.cls}" style="width:${Math.min(100,(b.val/b.max)*100)}%;"></div></div>
+      <span class="score-item-val">${b.sign}${b.val}</span>
+    </div>`).join('');
 
   const matchedSymptomTips = (profile.symptoms || [])
     .filter(s=>SYMPTOM_DIET_TIPS[s])
@@ -306,9 +345,7 @@ function renderResults(){
     </div>`;
   }).join('');
 
-  /* cuisine-based food ideas, filtered by dietary preference */
-  const dishSource = (CUISINE_DISHES[cuisine] && CUISINE_DISHES[cuisine].length) ? CUISINE_DISHES[cuisine] : CUISINE_DISHES['General'];
-  const dishes = dishSource.filter(d=>d.diet.includes(pref)).slice(0,6);
+  /* cuisine + preference are still captured for the AI-prompt request on the summary page */
 
   resultsEl.innerHTML = `
   <div class="cat-title">Your fuel target</div>
@@ -319,14 +356,17 @@ function renderResults(){
     <div class="stat-card"><div class="k">Activity used</div><div class="v" style="font-size:16px;">${esc(activity)}</div><div class="u">from your routine log</div></div>
   </div>
   ${teaspoonsPerDay>=8 ? `<div class="note-block"><span class="k">Added sugar</span>${cups} cups &times; ${sugarPerCup} tsp works out to <b>${teaspoonsPerDay} teaspoons</b> of sugar a day from tea/coffee alone &mdash; that's already a meaningful share of a healthy daily sugar allowance.</div>` : ''}
+  ${state.routine && state.routine.estimatedCalories ? `<div class="note-block teal"><span class="k">Burn vs. target</span>Your logged day burns an estimated ~${state.routine.estimatedCalories} kcal, against a ${row.cal} kcal target above &mdash; both are rough estimates, but a large, consistent gap either way is worth a second look.</div>` : ''}
 
   <div class="cat-title">Diet quality score</div>
   ${scoreGaugeHtml(score, scoreLabel)}
+  <div class="score-breakdown">${scoreBreakdownHtml}</div>
 
   <div class="cat-title">Macronutrient split</div>
   ${gaugeBlock('Carbohydrates', cLo, cHi, 70, '%')}
   ${gaugeBlock('Fat', fLo, fHi, 45, '%')}
-  ${gaugeBlock('Protein', pLo, pHi, 35, '%')}
+  ${gaugeBlock('Protein (% of calories)', pLo, pHi, 35, '%')}
+  ${gaugeBlock('Protein (estimated intake)', proteinGramsLo, proteinGramsHi, Math.max(proteinGramsHi,proteinGramsEstimate)*1.3, 'g', proteinGramsEstimate)}
 
   <div class="cat-title">Micronutrients (targets)</div>
   <div class="micro-grid">
@@ -343,14 +383,7 @@ function renderResults(){
   <div class="note-block"><span class="k">Target note</span>${esc(row.note)}.</div>
   <div class="note-block teal"><span class="k">${esc(pref)} tip</span>${PREF_TIPS[pref]}</div>
   ${matchedSymptomTips.map(s=>`<div class="note-block teal"><span class="k">Because you mentioned ${esc(s)}</span>${SYMPTOM_DIET_TIPS[s]}</div>`).join('')}
-
-  ${dishes.length ? `
-  <div class="cat-title">Food ideas &mdash; ${esc(cuisine)} &middot; ${esc(pref)}</div>
-  <div class="dish-grid">
-    ${dishes.map(d=>`<div class="dish-card"><div class="meal">${esc(d.meal)}</div><div class="name">${esc(d.name)}</div><div class="kcal">~${d.kcal} kcal</div></div>`).join('')}
-  </div>
-  <p class="cuisine-note">Illustrative examples only, roughly sized to a single meal &mdash; not a precise meal plan, and worth adjusting for personal rules (e.g. onion/garlic for Jain).</p>
-  ` : ''}
+  <p class="cuisine-note">Want specific ${esc(cuisine)} meal ideas that fit these targets? The AI coach prompt on your summary page is built to ask for exactly that.</p>
 
   <div class="page-footer-nav">
     <a href="routine.html" class="btn secondary">&larr; Back</a>
@@ -360,7 +393,9 @@ function renderResults(){
 
   document.getElementById('continue-btn').addEventListener('click', ()=>{
     const diet = {
-      pref, cuisine, freq, nutrientFreq, score,
+      pref, cuisine, freq, nutrientFreq, proteinServings, score,
+      scoreBreakdown: {healthyPts, nutrientPts, proteinContribution, junkPts, sugarPenalty: Math.round(sugarPenalty)},
+      protein: {estimateGrams: proteinGramsEstimate, targetLo: proteinGramsLo, targetHi: proteinGramsHi},
       teaCoffee: {cups, sugarPerCup, teaspoonsPerDay, sugarGramsPerDay},
       target: {cal:row.cal, carbs:row.carbs, fat:row.fat, protein:row.protein}
     };

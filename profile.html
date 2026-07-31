@@ -20,16 +20,17 @@
 
 <nav class="steps">
   <a class="step current" href="profile.html"><span class="n">1</span>Profile</a>
-  <a class="step" href="diagnostics.html"><span class="n">2</span>Diagnostics</a>
-  <a class="step" href="routine.html"><span class="n">3</span>Routine</a>
-  <a class="step" href="diet.html"><span class="n">4</span>Diet</a>
-  <a class="step" href="summary.html"><span class="n">5</span>Summary</a>
+  <a class="step" href="symptoms.html"><span class="n">2</span>Symptoms</a>
+  <a class="step" href="diagnostics.html"><span class="n">3</span>Diagnostics</a>
+  <a class="step" href="routine.html"><span class="n">4</span>Routine</a>
+  <a class="step" href="diet.html"><span class="n">5</span>Diet</a>
+  <a class="step" href="summary.html"><span class="n">6</span>Summary</a>
 </nav>
 
 <main>
   <div class="section-head">
     <h2>Tell us about you</h2>
-    <span class="section-sub">01 of 05</span>
+    <span class="section-sub">01 of 06</span>
   </div>
 
   <form id="profile-form">
@@ -49,14 +50,14 @@
         <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:6px;">
           <label class="intake-label" style="margin-bottom:0;">Height</label>
           <div class="unit-toggle small" id="height-unit-toggle">
-            <button type="button" data-unit="cm" class="active">cm</button>
-            <button type="button" data-unit="ftin">ft/in</button>
+            <button type="button" data-unit="cm">cm</button>
+            <button type="button" data-unit="ftin" class="active">ft/in</button>
           </div>
         </div>
-        <div id="height-cm-wrap"><input type="number" id="f-height-cm" min="120" max="230" value="168" placeholder="cm" step="any"></div>
-        <div id="height-ftin-wrap" class="unit-pair" style="display:none;">
-          <input type="number" id="f-height-ft" min="3" max="7" placeholder="ft" step="any">
-          <input type="number" id="f-height-in" min="0" max="11.9" step="0.1" placeholder="in">
+        <div id="height-cm-wrap" style="display:none;"><input type="number" id="f-height-cm" min="120" max="230" value="168" placeholder="cm" step="any"></div>
+        <div id="height-ftin-wrap" class="unit-pair">
+          <input type="number" id="f-height-ft" min="3" max="7" value="5" placeholder="ft" step="any">
+          <input type="number" id="f-height-in" min="0" max="11.9" value="6.1" step="0.1" placeholder="in">
         </div>
       </div>
       <div class="field">
@@ -74,12 +75,12 @@
         <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:6px;">
           <label class="intake-label" style="margin-bottom:0;">Waist</label>
           <div class="unit-toggle small" id="waist-unit-toggle">
-            <button type="button" data-unit="cm" class="active">cm</button>
-            <button type="button" data-unit="in">in</button>
+            <button type="button" data-unit="cm">cm</button>
+            <button type="button" data-unit="in" class="active">in</button>
           </div>
         </div>
-        <div id="waist-cm-wrap"><input type="number" id="f-waist-cm" min="50" max="200" value="82" placeholder="cm" step="any"></div>
-        <div id="waist-in-wrap" style="display:none;"><input type="number" id="f-waist-in" min="20" max="80" placeholder="in" step="any"></div>
+        <div id="waist-cm-wrap" style="display:none;"><input type="number" id="f-waist-cm" min="50" max="200" value="82" placeholder="cm" step="any"></div>
+        <div id="waist-in-wrap"><input type="number" id="f-waist-in" min="20" max="80" value="32.3" placeholder="in" step="any"></div>
       </div>
     </div>
 
@@ -152,18 +153,9 @@
       </div>
     </div>
 
-    <div class="cat-title">Symptoms</div>
-    <p class="lede" style="margin-bottom:14px;">Search and add anything you're currently experiencing. This shapes your diagnostics test list on the next page, and adds a note or two on your diet and routine pages where relevant. Nothing to add? Skip it &mdash; we'll use your risk profile instead.</p>
-    <div class="symptom-picker">
-      <input type="text" id="symptom-input" class="field" placeholder="Type to search e.g. Fatigue, Headache, Bloating&hellip;" autocomplete="off">
-      <div id="symptom-suggestions" class="suggestions-list"></div>
-    </div>
-    <div class="chips-row" id="symptom-chips"></div>
-    <p class="symptom-empty-hint" id="symptom-hint"></p>
-
     <div class="page-footer-nav">
       <span class="validation-msg" id="validation-msg"></span>
-      <button type="submit" class="btn">Continue to Diagnostics &rarr;</button>
+      <button type="submit" class="btn">Continue to Symptoms &rarr;</button>
     </div>
   </form>
 </main>
@@ -173,7 +165,6 @@
   <span>Not a substitute for professional medical advice.</span>
 </footer>
 
-<script src="shared/data.diagnostics.js"></script>
 <script src="shared/utils.js"></script>
 <script>
 const state = loadState();
@@ -182,9 +173,17 @@ const p = state.profile || {};
 /* ---- restore prior values if present ---- */
 if(p.sex) document.getElementById('f-sex').value = p.sex;
 if(p.age) document.getElementById('f-age').value = p.age;
-if(p.heightCm) document.getElementById('f-height-cm').value = Math.round(p.heightCm*10)/10;
+if(p.heightCm){
+  document.getElementById('f-height-cm').value = Math.round(p.heightCm*10)/10;
+  const {ft, inch} = cmToFtIn(p.heightCm);
+  document.getElementById('f-height-ft').value = ft;
+  document.getElementById('f-height-in').value = inch;
+}
 if(p.weightKg) document.getElementById('f-weight-kg').value = Math.round(p.weightKg*10)/10;
-if(p.waistCm) document.getElementById('f-waist-cm').value = Math.round(p.waistCm*10)/10;
+if(p.waistCm){
+  document.getElementById('f-waist-cm').value = Math.round(p.waistCm*10)/10;
+  document.getElementById('f-waist-in').value = Math.round(cmToInFlat(p.waistCm)*10)/10;
+}
 if(p.famMetabolic) document.getElementById('f-fam-metabolic').checked = true;
 if(p.famCardio) document.getElementById('f-fam-cardio').checked = true;
 if(p.smoking) document.getElementById('f-smoking').value = p.smoking;
@@ -202,7 +201,7 @@ document.getElementById('f-sex').addEventListener('change', updateReproVisibilit
 updateReproVisibility();
 
 /* ---- per-field unit toggles: height (cm / ft+in), weight (kg / lb), waist (cm / in) ---- */
-let heightUnit = 'cm', weightUnit = 'kg', waistUnit = 'cm';
+let heightUnit = 'ftin', weightUnit = 'kg', waistUnit = 'in';
 
 function wireUnitToggle(toggleId, onChange){
   document.getElementById(toggleId).addEventListener('click', (e)=>{
@@ -308,49 +307,6 @@ function refreshMetrics(){
 });
 refreshMetrics();
 
-/* ---- symptom typeahead ---- */
-const SYMPTOM_LIST = [...new Set(DIAG.flatMap(d=>d.symptoms||[]))].sort();
-let selectedSymptoms = new Set(p.symptoms || []);
-
-const symptomInput = document.getElementById('symptom-input');
-const symptomSuggestions = document.getElementById('symptom-suggestions');
-const symptomChips = document.getElementById('symptom-chips');
-const symptomHint = document.getElementById('symptom-hint');
-
-function renderChips(){
-  symptomChips.innerHTML = [...selectedSymptoms].map(s=>`<span class="chip">${esc(s)}<button type="button" class="chip-x" data-s="${esc(s)}" aria-label="Remove">&times;</button></span>`).join('');
-  symptomHint.textContent = selectedSymptoms.size ? `${selectedSymptoms.size} symptom${selectedSymptoms.size>1?'s':''} selected.` : 'No symptoms selected yet \u2014 that\u2019s fine, we\u2019ll use your risk profile instead.';
-}
-function renderSuggestions(query){
-  const q = query.trim().toLowerCase();
-  if(!q){ symptomSuggestions.style.display='none'; symptomSuggestions.innerHTML=''; return; }
-  const results = SYMPTOM_LIST.filter(s=>!selectedSymptoms.has(s) && s.toLowerCase().includes(q)).slice(0,8);
-  if(!results.length){ symptomSuggestions.style.display='none'; symptomSuggestions.innerHTML=''; return; }
-  symptomSuggestions.innerHTML = results.map(s=>`<div class="suggestion-item" data-s="${esc(s)}">${esc(s)}</div>`).join('');
-  symptomSuggestions.style.display = 'block';
-}
-symptomInput.addEventListener('input', ()=>renderSuggestions(symptomInput.value));
-symptomInput.addEventListener('focus', ()=>renderSuggestions(symptomInput.value));
-document.addEventListener('click', (e)=>{
-  if(!e.target.closest('.symptom-picker')) symptomSuggestions.style.display='none';
-});
-symptomSuggestions.addEventListener('click', (e)=>{
-  const item = e.target.closest('.suggestion-item');
-  if(!item) return;
-  selectedSymptoms.add(item.dataset.s);
-  symptomInput.value='';
-  symptomSuggestions.style.display='none';
-  renderChips();
-  symptomInput.focus();
-});
-symptomChips.addEventListener('click', (e)=>{
-  const btn = e.target.closest('.chip-x');
-  if(!btn) return;
-  selectedSymptoms.delete(btn.dataset.s);
-  renderChips();
-});
-renderChips();
-
 /* ---- submit ---- */
 document.getElementById('profile-form').addEventListener('submit', (e)=>{
   e.preventDefault();
@@ -375,10 +331,10 @@ document.getElementById('profile-form').addEventListener('submit', (e)=>{
     alcohol: document.getElementById('f-alcohol').value,
     reproStatus: sex==='Female' ? document.getElementById('f-repro-status').value : null,
     pcos: sex==='Female' ? document.getElementById('f-pcos').checked : false,
-    symptoms: [...selectedSymptoms]
+    symptoms: p.symptoms || []
   };
   const next = Object.assign({}, state, {profile});
-  goTo('diagnostics.html', next);
+  goTo('symptoms.html', next);
 });
 </script>
 </body>

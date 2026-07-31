@@ -20,10 +20,11 @@
 
 <nav class="steps">
   <a class="step done" href="profile.html"><span class="n">&check;</span>Profile</a>
+  <a class="step done" href="symptoms.html"><span class="n">&check;</span>Symptoms</a>
   <a class="step done" href="diagnostics.html"><span class="n">&check;</span>Diagnostics</a>
   <a class="step done" href="routine.html"><span class="n">&check;</span>Routine</a>
   <a class="step done" href="diet.html"><span class="n">&check;</span>Diet</a>
-  <a class="step current" href="summary.html"><span class="n">5</span>Summary</a>
+  <a class="step current" href="summary.html"><span class="n">6</span>Summary</a>
 </nav>
 
 <main id="main-content">
@@ -78,15 +79,18 @@ function deriveInterestTags(state){
 
 /* Symptom matches count 3x a context-signal match at the same match strength,
    so when specific symptoms are on file they dominate the ranking rather than
-   being diluted by broader risk-category or routine-derived signals. */
+   being diluted by broader risk-category or routine-derived signals.
+   Within a single tag, a title match is the strongest signal (a video titled
+   "PCOS Diet Plan" is unambiguously about PCOS), tags/keywords second, and a
+   plain-text hit in the description third. */
 function scoreVideo(video, symptomTags, contextTags){
   const titleL = video.title.toLowerCase();
   const descL = (video.description_short||'').toLowerCase();
   const tagsL = (video.tags||[]).map(t=>t.toLowerCase());
 
   function matchStrength(tl){
-    if(tagsL.some(vt=>vt.includes(tl) || tl.includes(vt))) return 3;
-    if(titleL.includes(tl)) return 2;
+    if(titleL.includes(tl)) return 3;
+    if(tagsL.some(vt=>vt.includes(tl) || tl.includes(vt))) return 2;
     if(descL.includes(tl)) return 1;
     return 0;
   }
@@ -134,24 +138,49 @@ function videoCardHtml(v){
   </a>`;
 }
 
+function videoSourceBlockHtml(title, videos, idPrefix){
+  if(!videos.length) return '';
+  const top = videos.slice(0,3);
+  const rest = videos.slice(3,15);
+  return `
+  <div class="video-source-title">${title}</div>
+  <div class="video-grid">${top.map(videoCardHtml).join('')}</div>
+  ${rest.length ? `
+  <div class="video-grid video-grid-extra" id="${idPrefix}-extra" style="display:none;">${rest.map(videoCardHtml).join('')}</div>
+  <button type="button" class="btn secondary" id="${idPrefix}-more-btn" data-count="${rest.length}">Show ${rest.length} more, sorted by relevance &darr;</button>
+  ` : ''}
+  `;
+}
+
 function renderVideoSections(state){
   const {symptomTags, contextTags} = deriveInterestTags(state);
-  const sbTop = pickTopVideos(window.SB_VIDEOS, symptomTags, contextTags, 3);
-  const nbsTop = pickTopVideos(window.NBS_VIDEOS, symptomTags, contextTags, 3);
-  let html = '';
-  if(sbTop.length){
-    html += `<div class="video-source-title">Saurabh Bothra &middot; Habuild Yoga</div>
-    <div class="video-grid">${sbTop.map(videoCardHtml).join('')}</div>`;
-  }
-  if(nbsTop.length){
-    html += `<div class="video-source-title">Nourished by Science &middot; Mario Kratz, PhD</div>
-    <div class="video-grid">${nbsTop.map(videoCardHtml).join('')}</div>`;
-  }
+  const sbAll = pickTopVideos(window.SB_VIDEOS, symptomTags, contextTags, 15);
+  const nbsAll = pickTopVideos(window.NBS_VIDEOS, symptomTags, contextTags, 15);
+  const html = videoSourceBlockHtml('Saurabh Bothra &middot; Habuild Yoga', sbAll, 'sb')
+    + videoSourceBlockHtml('Nourished by Science &middot; Mario Kratz, PhD', nbsAll, 'nbs');
   return html || `<div class="empty-state">No video resources loaded.</div>`;
 }
 
+function wireVideoShowMore(){
+  ['sb','nbs'].forEach(idPrefix=>{
+    const btn = document.getElementById(idPrefix+'-more-btn');
+    if(!btn) return;
+    btn.addEventListener('click', ()=>{
+      const extra = document.getElementById(idPrefix+'-extra');
+      const showing = extra.style.display !== 'none';
+      extra.style.display = showing ? 'none' : 'grid';
+      btn.textContent = showing ? `Show ${btn.dataset.count} more, sorted by relevance \u2193` : 'Show fewer \u2191';
+    });
+  });
+}
+
 /* ============ AI prompt ============ */
-const NUTRIENT_LABELS = {protein:'Protein', wholeGrains:'Whole grains', healthyFats:'Healthy fats', calciumVitD:'Calcium & Vitamin D'};
+const NUTRIENT_LABELS = {wholeGrains:'Whole grains', healthyFats:'Healthy fats', calciumVitD:'Calcium & Vitamin D'};
+const ROUTINE_GAUGE_FIELDS = [
+  {key:'sleep', label:'Sleep'},{key:'desk', label:'Desk productive'},{key:'idle', label:'Idle sitting'},
+  {key:'standing', label:'Standing light'},{key:'walking', label:'Walking'},{key:'yoga', label:'Yoga'},
+  {key:'exercise', label:'Exercise'},{key:'other', label:'Other'}
+];
 function buildAIPrompt(state, due, ok, routineOff, flagged, lifestyleNotes){
   const p = state.profile;
   const activity = (state.routine && state.routine.derivedActivity) || 'unknown';
@@ -185,6 +214,7 @@ function buildAIPrompt(state, due, ok, routineOff, flagged, lifestyleNotes){
     lines.push("DIET");
     lines.push(`- Dietary preference: ${d.pref}${d.cuisine ? ' ('+d.cuisine+' cuisine)' : ''}`);
     lines.push(`- Target: ${d.target.cal} kcal/day, carbs ${d.target.carbs}%, fat ${d.target.fat}%, protein ${d.target.protein}%`);
+    if(d.protein) lines.push(`- Protein: ~${d.protein.estimateGrams}g/day estimated intake vs a ${d.protein.targetLo===d.protein.targetHi ? d.protein.targetLo+'g' : d.protein.targetLo+'\u2013'+d.protein.targetHi+'g'} target`);
     lines.push(`- Self-reported diet quality score: ${d.score}/100`);
     if(d.freq && d.freq.fried>=2) lines.push(`- Deep-fried food: ${d.freq.fried===3?'daily':'3-5x/week'}`);
     if(d.teaCoffee) lines.push(`- Tea/coffee: ${d.teaCoffee.cups} cups/day, ~${d.teaCoffee.sugarGramsPerDay}g added sugar/day from that alone`);
@@ -196,7 +226,22 @@ function buildAIPrompt(state, due, ok, routineOff, flagged, lifestyleNotes){
   }
   if(state.routine){
     lines.push("DAILY ROUTINE");
-    lines.push(routineOff.length ? `- Outside the ideal range for my profile: ${routineOff.join(', ')}` : `- Every logged activity is within the ideal range for my profile`);
+    lines.push(`- Activity level (derived from this log): ${activity}`);
+    if(state.routine.estimatedCalories) lines.push(`- Estimated calories burned: ~${state.routine.estimatedCalories} kcal/day`);
+    lines.push(`- Hours logged vs. ideal range for my profile:`);
+    ROUTINE_GAUGE_FIELDS.forEach(f=>{
+      const actual = state.routine.actual[f.key];
+      const ideal = state.routine.ideal[f.key];
+      if(actual!==undefined && ideal!==undefined) lines.push(`  - ${f.label}: ${fmtNum(actual)}h logged (ideal ${ideal}h)`);
+    });
+    if(state.routine.detail){
+      const rd = state.routine.detail;
+      const extras = [];
+      if(rd.gym) extras.push(`gym ~${fmtNum(rd.gym)}h/day averaged from weekly sessions`);
+      if(rd.sports) extras.push(`sports ~${fmtNum(rd.sports)}h/day averaged from weekly sessions`);
+      if(extras.length) lines.push(`- Includes: ${extras.join(', ')}`);
+    }
+    lines.push(routineOff.length ? `- Outside the ideal range: ${routineOff.join(', ')}` : `- Every logged activity is within the ideal range`);
     lines.push("");
   }
   if(lifestyleNotes.length){
@@ -208,6 +253,9 @@ function buildAIPrompt(state, due, ok, routineOff, flagged, lifestyleNotes){
   lines.push("1. Identify the 2-3 highest-priority changes given everything above");
   lines.push("2. Suggest a realistic, specific 2-week starter plan");
   lines.push("3. Flag anything here that sounds like it needs a doctor's visit rather than a lifestyle change");
+  if(state.diet && state.diet.cuisine){
+    lines.push(`4. Suggest 2-3 sample ${state.diet.cuisine} meal ideas (breakfast/lunch/dinner) that fit within my calorie and macro targets above and suit my dietary preference`);
+  }
   return lines.join("\n");
 }
 
@@ -293,19 +341,14 @@ function render(){
   let routineHtml = `<p class="lede">You haven't logged your routine yet. <a href="routine.html">Go back &rarr;</a></p>`;
   let routineOff = [];
   if(state.routine){
-    const FIELDS = [
-      {key:'sleep', label:'Sleep'},{key:'desk', label:'Desk productive'},{key:'idle', label:'Idle sitting'},
-      {key:'standing', label:'Standing light'},{key:'walking', label:'Walking'},{key:'yoga', label:'Yoga'},
-      {key:'exercise', label:'Exercise'},{key:'other', label:'Other'}
-    ];
-    FIELDS.forEach(f=>{
+    ROUTINE_GAUGE_FIELDS.forEach(f=>{
       const [lo,hi] = parseRange(state.routine.ideal[f.key]);
       const v = state.routine.actual[f.key];
       if(v<lo || v>hi) routineOff.push(f.label);
     });
     routineHtml = `
     <div class="stat-strip">
-      <div class="stat-card ${routineOff.length?'flag':'good'}"><div class="k">Outside ideal range</div><div class="v">${routineOff.length}</div><div class="u">of ${FIELDS.length} activities</div></div>
+      <div class="stat-card ${routineOff.length?'flag':'good'}"><div class="k">Outside ideal range</div><div class="v">${routineOff.length}</div><div class="u">of ${ROUTINE_GAUGE_FIELDS.length} activities</div></div>
     </div>
     ${routineOff.length ? `<div class="note-block"><span class="k">Worth adjusting</span>${routineOff.map(esc).join(', ')}.</div>` : `<div class="note-block teal"><span class="k">Well balanced</span>Every logged activity falls in its ideal range.</div>`}
     `;
@@ -326,7 +369,7 @@ function render(){
   main.innerHTML = `
   <div class="section-head">
     <h2>${esc(p.sex)}, age ${esc(p.age)}</h2>
-    <span class="section-sub">05 of 05</span>
+    <span class="section-sub">06 of 06</span>
   </div>
 
   <div class="stat-strip">
@@ -340,7 +383,7 @@ function render(){
     ${p.reproStatus ? `<div class="stat-card"><div class="k">Menstrual &amp; menopause status</div><div class="v" style="font-size:15px;">${esc(p.reproStatus)}${p.pcos?' &middot; PCOS':''}</div></div>` : ''}
   </div>
   ${lifestyleNotes.length ? `<div class="note-block"><span class="k">Worth addressing</span><ul style="margin:4px 0 0; padding-left:18px;">${lifestyleNotes.map(n=>`<li>${n}</li>`).join('')}</ul></div>` : ''}
-  ${p.symptoms && p.symptoms.length ? `<p class="lede">Symptoms you flagged: ${p.symptoms.map(esc).join(', ')}. <a href="profile.html">Adjust &rarr;</a></p>` : ''}
+  ${p.symptoms && p.symptoms.length ? `<p class="lede">Symptoms you flagged: ${p.symptoms.map(esc).join(', ')}. <a href="symptoms.html">Adjust &rarr;</a></p>` : ''}
 
   <div class="cat-title">01 &middot; Diagnostics</div>
   ${diagHtml}
@@ -404,6 +447,8 @@ function render(){
   document.getElementById('print-btn').addEventListener('click', ()=>{
     window.print();
   });
+
+  wireVideoShowMore();
 
   document.getElementById('restart-btn').addEventListener('click', ()=>{
     if(confirm('This clears everything you entered. Start a new chart?')){
