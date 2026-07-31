@@ -191,11 +191,12 @@ function gaugeBlock(name, lo, hi, max, unit, markerVal){
     const bad = markerVal<lo || markerVal>hi;
     markerHtml = `<div class="gauge-marker${bad?' bad':''}" style="left:${mPct}%;" title="Your value: ${fmtNum(markerVal)} ${unit}"></div>`;
   }
+  const rangeText = fmtNum(lo)===fmtNum(hi) ? `${fmtNum(lo)} ${unit}` : `${fmtNum(lo)}&ndash;${fmtNum(hi)} ${unit}`;
   return `
   <div class="gauge-block">
     <div class="gauge-label">
       <span class="name">${name}</span>
-      <span class="range-val">${fmtNum(lo)}&ndash;${fmtNum(hi)} ${unit}${markerVal!==undefined && markerVal!==null && !isNaN(markerVal) ? ` &middot; you: ${fmtNum(markerVal)} ${unit}` : ''}</span>
+      <span class="range-val">${rangeText}${markerVal!==undefined && markerVal!==null && !isNaN(markerVal) ? ` &middot; you: ${fmtNum(markerVal)} ${unit}` : ''}</span>
     </div>
     <div class="gauge-track">
       <div class="gauge-band" style="left:${leftPct}%; width:${widthPct}%;"></div>

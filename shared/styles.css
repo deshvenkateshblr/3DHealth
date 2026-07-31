@@ -202,7 +202,8 @@ legend{ padding:0; }
 }
 .test-card .head{ display:flex; justify-content:space-between; gap:12px; align-items:baseline; flex-wrap:wrap; }
 .test-card .name{ font-weight:600; font-size:14.5px; }
-.test-card .symptom{ font-size:12.5px; color:var(--muted); margin-top:3px; }
+.test-card .test-desc{ font-size:12.5px; color:var(--ink-soft); margin-top:3px; }
+.test-card .symptom{ font-size:12.5px; color:var(--muted); margin-top:2px; }
 .test-card .symptom b{ color:var(--ink-soft); font-weight:600; }
 .test-card .answers{ display:flex; gap:14px; margin-top:12px; flex-wrap:wrap; align-items:center; }
 .result-row{ display:flex; gap:10px; margin-top:10px; flex-wrap:wrap; }
@@ -346,6 +347,34 @@ footer{
 }
 .chip .chip-x:hover{ opacity:1; }
 .symptom-empty-hint{ font-family:var(--mono); font-size:11px; color:var(--muted); margin-top:8px; }
+
+/* ---------- Symptom browse panel (category tabs + toggle chips) ---------- */
+.cat-tabs{ display:flex; flex-wrap:wrap; gap:8px; margin-bottom:20px; }
+.cat-tab{
+  font-family:var(--mono); font-size:10.5px; letter-spacing:.04em; text-transform:uppercase;
+  padding:7px 12px; border:1px solid var(--line); background:var(--panel); color:var(--ink-soft); cursor:pointer;
+}
+.cat-tab.active{ background:var(--ink); color:var(--paper); border-color:var(--ink); }
+.browse-grid{ display:flex; flex-wrap:wrap; gap:8px; margin-bottom:30px; min-height:40px; }
+.browse-chip{
+  font-family:var(--mono); font-size:11.5px; padding:8px 13px; border:1px solid var(--line);
+  background:var(--panel); color:var(--ink); cursor:pointer; transition:border-color .15s ease; text-align:left;
+}
+.browse-chip:hover{ border-color:var(--teal); }
+.browse-chip.selected{ background:var(--teal-soft); border-color:var(--teal); color:#123f37; }
+.browse-chip.selected::before{ content:"\2713 "; color:var(--teal); }
+
+/* ---------- Diet score breakdown ---------- */
+.score-breakdown{ margin:6px 0 22px; }
+.score-item{ display:grid; grid-template-columns:150px 1fr 44px; align-items:center; gap:10px; margin-bottom:9px; font-family:var(--mono); font-size:11px; }
+.score-item-bar{ height:8px; background:var(--line); position:relative; }
+.score-item-fill{ position:absolute; top:0; bottom:0; left:0; }
+.score-item-fill.teal{ background:var(--teal); }
+.score-item-fill.rose{ background:var(--rose); }
+.score-item-val{ text-align:right; }
+
+/* ---------- Video "show more" ---------- */
+.video-grid-extra{ margin-top:14px; }
 
 @media (max-width:560px){
   .test-card .head{ flex-direction:column; align-items:flex-start; }
