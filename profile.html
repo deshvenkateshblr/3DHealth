@@ -37,11 +37,11 @@
     <div class="field-row" style="margin-bottom:22px;">
       <div class="field">
         <label class="intake-label" for="f-sex">Sex</label>
-        <select id="f-sex"><option value="Female">Female</option><option value="Male">Male</option></select>
+        <select id="f-sex"><option value="" selected disabled>&mdash; Select &mdash;</option><option value="Female">Female</option><option value="Male">Male</option></select>
       </div>
       <div class="field">
         <label class="intake-label" for="f-age">Age</label>
-        <input type="number" id="f-age" min="16" max="100" value="32">
+        <input type="number" id="f-age" min="16" max="100" placeholder="years">
       </div>
     </div>
 
@@ -54,10 +54,10 @@
             <button type="button" data-unit="ftin" class="active">ft/in</button>
           </div>
         </div>
-        <div id="height-cm-wrap" style="display:none;"><input type="number" id="f-height-cm" min="120" max="230" value="168" placeholder="cm" step="any"></div>
+        <div id="height-cm-wrap" style="display:none;"><input type="number" id="f-height-cm" min="120" max="230" placeholder="cm" step="any"></div>
         <div id="height-ftin-wrap" class="unit-pair">
-          <input type="number" id="f-height-ft" min="3" max="7" value="5" placeholder="ft" step="any">
-          <input type="number" id="f-height-in" min="0" max="11.9" value="6.1" step="0.1" placeholder="in">
+          <input type="number" id="f-height-ft" min="3" max="7" placeholder="ft" step="any">
+          <input type="number" id="f-height-in" min="0" max="11.9" step="0.1" placeholder="in">
         </div>
       </div>
       <div class="field">
@@ -68,7 +68,7 @@
             <button type="button" data-unit="lb">lb</button>
           </div>
         </div>
-        <div id="weight-kg-wrap"><input type="number" id="f-weight-kg" min="30" max="250" value="68" placeholder="kg" step="any"></div>
+        <div id="weight-kg-wrap"><input type="number" id="f-weight-kg" min="30" max="250" placeholder="kg" step="any"></div>
         <div id="weight-lb-wrap" style="display:none;"><input type="number" id="f-weight-lb" min="66" max="550" placeholder="lb" step="any"></div>
       </div>
       <div class="field">
@@ -79,8 +79,8 @@
             <button type="button" data-unit="in" class="active">in</button>
           </div>
         </div>
-        <div id="waist-cm-wrap" style="display:none;"><input type="number" id="f-waist-cm" min="50" max="200" value="82" placeholder="cm" step="any"></div>
-        <div id="waist-in-wrap"><input type="number" id="f-waist-in" min="20" max="80" value="32.3" placeholder="in" step="any"></div>
+        <div id="waist-cm-wrap" style="display:none;"><input type="number" id="f-waist-cm" min="50" max="200" placeholder="cm" step="any"></div>
+        <div id="waist-in-wrap"><input type="number" id="f-waist-in" min="20" max="80" placeholder="in" step="any"></div>
       </div>
     </div>
 
@@ -102,6 +102,7 @@
       <div class="field">
         <label class="intake-label" for="f-smoking">Smoking</label>
         <select id="f-smoking">
+          <option value="" selected disabled>&mdash; Select &mdash;</option>
           <option value="Never">Never</option>
           <option value="Former smoker">Former smoker</option>
           <option value="Occasionally">Occasionally</option>
@@ -111,6 +112,7 @@
       <div class="field">
         <label class="intake-label" for="f-alcohol">Alcohol</label>
         <select id="f-alcohol">
+          <option value="" selected disabled>&mdash; Select &mdash;</option>
           <option value="Never">Never</option>
           <option value="Occasional">Occasional / social</option>
           <option value="1-2x/week">1&ndash;2x / week</option>
@@ -125,6 +127,7 @@
       <div class="field" style="max-width:280px;">
         <label class="intake-label" for="f-repro-status">Menstrual &amp; menopause status</label>
         <select id="f-repro-status">
+          <option value="" selected disabled>&mdash; Select &mdash;</option>
           <option value="Regular cycle">Regular cycle</option>
           <option value="Irregular cycle">Irregular cycle</option>
           <option value="Currently pregnant">Currently pregnant</option>
@@ -313,10 +316,17 @@ document.getElementById('profile-form').addEventListener('submit', (e)=>{
   const sex = document.getElementById('f-sex').value;
   const age = parseFloat(document.getElementById('f-age').value);
   const heightCm = getHeightCm(), weightKg = getWeightKg(), waistCm = getWaistCm();
+  const smoking = document.getElementById('f-smoking').value;
+  const alcohol = document.getElementById('f-alcohol').value;
+  const reproStatus = document.getElementById('f-repro-status').value;
   const msg = document.getElementById('validation-msg');
 
-  if(isNaN(age) || age<=0 || isNaN(heightCm) || heightCm<=0 || isNaN(weightKg) || weightKg<=0 || isNaN(waistCm) || waistCm<=0){
-    msg.textContent = 'Please fill in every field with a valid, positive number.';
+  if(!sex || isNaN(age) || age<=0 || isNaN(heightCm) || heightCm<=0 || isNaN(weightKg) || weightKg<=0 || isNaN(waistCm) || waistCm<=0 || !smoking || !alcohol){
+    msg.textContent = 'Please fill in every field above before continuing.';
+    return;
+  }
+  if(sex==='Female' && !reproStatus){
+    msg.textContent = 'Please select your menstrual & menopause status before continuing.';
     return;
   }
   msg.textContent = '';
@@ -327,9 +337,8 @@ document.getElementById('profile-form').addEventListener('submit', (e)=>{
     sex, age, heightCm, weightKg, waistCm, bmi, whtr,
     famMetabolic: document.getElementById('f-fam-metabolic').checked,
     famCardio: document.getElementById('f-fam-cardio').checked,
-    smoking: document.getElementById('f-smoking').value,
-    alcohol: document.getElementById('f-alcohol').value,
-    reproStatus: sex==='Female' ? document.getElementById('f-repro-status').value : null,
+    smoking, alcohol,
+    reproStatus: sex==='Female' ? reproStatus : null,
     pcos: sex==='Female' ? document.getElementById('f-pcos').checked : false,
     symptoms: p.symptoms || []
   };
