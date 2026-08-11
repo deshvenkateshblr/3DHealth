@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Diagnostics &mdash; Your Health Profile</title>
+<title>Diagnostics &mdash; Vital Framework</title>
 <link rel="stylesheet" href="shared/styles.css">
 </head>
 <body>
@@ -11,10 +11,31 @@
 <header class="masthead">
   <div class="masthead-row">
     <div>
-      <a class="brand-link" href="index.html"><p class="eyebrow">Your Health Profile</p></a>
+      <a class="brand-link" href="index.html">
+        <div class="brand-lockup">
+          <svg class="brand-mark" width="20" height="20" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+            <path d="M20 5 L27 16 L13 16 Z" fill="var(--teal)"/>
+            <path d="M10 19 L30 19 L34 28 L6 28 Z" fill="var(--amber)"/>
+            <path d="M4 31 L36 31 L39 38 L1 38 Z" fill="var(--ink)"/>
+          </svg>
+          <span class="brand-word"><em>Vital</em> Framework</span>
+        </div>
+      </a>
       <h1 class="brand">Your <em>diagnostics</em></h1>
     </div>
     <p class="tagline">Your risk profile and symptoms, turned into a ranked test list.</p>
+  </div>
+  <div class="quote-block in-header">
+    <svg class="quote-icon" width="34" height="34" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="60" cy="60" r="58" fill="var(--teal-soft)"/>
+      <path d="M30 66c6-22 10-28 14-6 4 20 8 14 12-4 3-14 6-10 9 2 2 8 4 6 6-2"
+        fill="none" stroke="var(--teal)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="60" cy="60" r="58" fill="none" stroke="var(--ink)" stroke-width="2"/>
+    </svg>
+    <div>
+      <p class="quote-text"><span class="mark">&ldquo;</span>A number you’re afraid to check is still a number. Might as well know it.<span class="mark">&rdquo;</span></p>
+      <p class="quote-sub">Today's nudge</p>
+    </div>
   </div>
 </header>
 
@@ -27,12 +48,13 @@
   <a class="step" href="summary.html"><span class="n">6</span>Summary</a>
 </nav>
 
+
 <main id="main-content">
   <div class="empty-state" id="loading-state">Loading your profile&hellip;</div>
 </main>
 
 <footer>
-  <span>Your Health Profile &mdash; runs entirely in your browser. No data leaves this page.</span>
+  <span>Vital Framework &mdash; runs entirely in your browser. No data leaves this page.</span>
   <span>Not a substitute for professional medical advice.</span>
 </footer>
 

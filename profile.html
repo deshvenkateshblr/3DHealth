@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>About You &mdash; Your Health Profile</title>
+<title>About You &mdash; Vital Framework</title>
 <link rel="stylesheet" href="shared/styles.css">
 </head>
 <body>
@@ -11,10 +11,31 @@
 <header class="masthead">
   <div class="masthead-row">
     <div>
-      <a class="brand-link" href="index.html"><p class="eyebrow">Your Health Profile</p></a>
+      <a class="brand-link" href="index.html">
+        <div class="brand-lockup">
+          <svg class="brand-mark" width="20" height="20" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+            <path d="M20 5 L27 16 L13 16 Z" fill="var(--teal)"/>
+            <path d="M10 19 L30 19 L34 28 L6 28 Z" fill="var(--amber)"/>
+            <path d="M4 31 L36 31 L39 38 L1 38 Z" fill="var(--ink)"/>
+          </svg>
+          <span class="brand-word"><em>Vital</em> Framework</span>
+        </div>
+      </a>
       <h1 class="brand">About <em>you</em></h1>
     </div>
     <p class="tagline">Sex, age, body composition, and symptoms &mdash; everything else builds on this.</p>
+  </div>
+  <div class="quote-block in-header">
+    <svg class="quote-icon" width="34" height="34" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="60" cy="60" r="58" fill="var(--teal-soft)"/>
+      <path d="M30 66c6-22 10-28 14-6 4 20 8 14 12-4 3-14 6-10 9 2 2 8 4 6 6-2"
+        fill="none" stroke="var(--teal)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="60" cy="60" r="58" fill="none" stroke="var(--ink)" stroke-width="2"/>
+    </svg>
+    <div>
+      <p class="quote-text"><span class="mark">&ldquo;</span>The only bad workout is the one you talked yourself out of.<span class="mark">&rdquo;</span></p>
+      <p class="quote-sub">Today's nudge</p>
+    </div>
   </div>
 </header>
 
@@ -26,6 +47,7 @@
   <a class="step" href="diet.html"><span class="n">5</span>Diet</a>
   <a class="step" href="summary.html"><span class="n">6</span>Summary</a>
 </nav>
+
 
 <main>
   <div class="section-head">
@@ -84,16 +106,14 @@
       </div>
     </div>
 
-    <div class="stat-strip" style="margin-top:22px;">
-      <div class="stat-card" id="bmi-card">
-        <div class="k">Body Mass Index</div>
-        <div class="v" id="bmi-val">&mdash;</div>
-        <div class="u" id="bmi-tag-text"></div>
+    <div class="badge-row">
+      <div class="badge">
+        <div class="badge-ring" id="bmi-ring">&mdash;</div>
+        <div class="badge-text"><b>Body Mass Index</b><span id="bmi-tag-text"></span></div>
       </div>
-      <div class="stat-card" id="whtr-card">
-        <div class="k">Waist-to-Height Ratio</div>
-        <div class="v" id="whtr-val">&mdash;</div>
-        <div class="u" id="whtr-tag-text"></div>
+      <div class="badge">
+        <div class="badge-ring amber" id="whtr-ring">&mdash;</div>
+        <div class="badge-text"><b>Waist-to-Height Ratio</b><span id="whtr-tag-text"></span></div>
       </div>
     </div>
 
@@ -164,7 +184,7 @@
 </main>
 
 <footer>
-  <span>Your Health Profile &mdash; runs entirely in your browser. No data leaves this page.</span>
+  <span>Vital Framework &mdash; runs entirely in your browser. No data leaves this page.</span>
   <span>Not a substitute for professional medical advice.</span>
 </footer>
 
@@ -282,9 +302,9 @@ wireUnitToggle('waist-unit-toggle', (target)=>{
 
 function refreshMetrics(){
   const heightCm = getHeightCm(), weightKg = getWeightKg(), waistCm = getWaistCm();
-  const bmiEl = document.getElementById('bmi-val');
+  const bmiEl = document.getElementById('bmi-ring');
   const bmiTagEl = document.getElementById('bmi-tag-text');
-  const whtrEl = document.getElementById('whtr-val');
+  const whtrEl = document.getElementById('whtr-ring');
   const whtrTagEl = document.getElementById('whtr-tag-text');
 
   if(heightCm>0 && weightKg>0){
@@ -298,7 +318,7 @@ function refreshMetrics(){
   if(heightCm>0 && waistCm>0){
     const whtr = computeWHtR(waistCm, heightCm);
     const [label] = whtrTag(whtr);
-    whtrEl.textContent = whtr.toFixed(2);
+    whtrEl.textContent = whtr.toFixed(2).replace(/^0/, '');
     whtrTagEl.textContent = label;
   }else{
     whtrEl.textContent = '\u2014'; whtrTagEl.textContent='';

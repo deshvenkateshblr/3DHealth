@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Symptoms &mdash; Your Health Profile</title>
+<title>Symptoms &mdash; Vital Framework</title>
 <link rel="stylesheet" href="shared/styles.css">
 </head>
 <body>
@@ -11,10 +11,31 @@
 <header class="masthead">
   <div class="masthead-row">
     <div>
-      <a class="brand-link" href="index.html"><p class="eyebrow">Your Health Profile</p></a>
+      <a class="brand-link" href="index.html">
+        <div class="brand-lockup">
+          <svg class="brand-mark" width="20" height="20" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+            <path d="M20 5 L27 16 L13 16 Z" fill="var(--teal)"/>
+            <path d="M10 19 L30 19 L34 28 L6 28 Z" fill="var(--amber)"/>
+            <path d="M4 31 L36 31 L39 38 L1 38 Z" fill="var(--ink)"/>
+          </svg>
+          <span class="brand-word"><em>Vital</em> Framework</span>
+        </div>
+      </a>
       <h1 class="brand">What are you <em>noticing</em>?</h1>
     </div>
     <p class="tagline">Browse by category, or search if you know what you're looking for.</p>
+  </div>
+  <div class="quote-block in-header">
+    <svg class="quote-icon" width="34" height="34" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="60" cy="60" r="58" fill="var(--teal-soft)"/>
+      <path d="M30 66c6-22 10-28 14-6 4 20 8 14 12-4 3-14 6-10 9 2 2 8 4 6 6-2"
+        fill="none" stroke="var(--teal)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="60" cy="60" r="58" fill="none" stroke="var(--ink)" stroke-width="2"/>
+    </svg>
+    <div>
+      <p class="quote-text"><span class="mark">&ldquo;</span>Your body’s been leaving you notes for weeks. Today we’re finally reading them.<span class="mark">&rdquo;</span></p>
+      <p class="quote-sub">Today's nudge</p>
+    </div>
   </div>
 </header>
 
@@ -27,12 +48,13 @@
   <a class="step" href="summary.html"><span class="n">6</span>Summary</a>
 </nav>
 
+
 <main id="main-content">
   <div class="empty-state" id="loading-state">Loading your profile&hellip;</div>
 </main>
 
 <footer>
-  <span>Your Health Profile &mdash; runs entirely in your browser. No data leaves this page.</span>
+  <span>Vital Framework &mdash; runs entirely in your browser. No data leaves this page.</span>
   <span>Not a substitute for professional medical advice.</span>
 </footer>
 
@@ -59,9 +81,16 @@ const CATEGORIES = [
   {name:'Eyes, Ears & Mouth', items:['Eye Strain','Eye Dryness','Hearing Loss','Dental Pain','Jaw Pain']},
   {name:'Immune & General', items:['Immune Weakness','Frequent Infections','Fever','Inflammation','Cold Intolerance','Heat Intolerance','Palpable Lump']}
 ];
-const SYMPTOM_LIST = [...new Set(DIAG.flatMap(d=>d.symptoms||[]))].sort();
+const SYMPTOM_LIST_RAW = [...new Set(DIAG.flatMap(d=>d.symptoms||[]))].sort();
+const FEMALE_ONLY = new Set(['PCOS','Menstrual Pain','Menopause Symptoms','Pregnancy Discomfort','Postpartum Recovery']);
+const isMale = profile && profile.sex === 'Male';
+const SYMPTOM_LIST = isMale ? SYMPTOM_LIST_RAW.filter(s=>!FEMALE_ONLY.has(s)) : SYMPTOM_LIST_RAW;
+if(isMale){
+  CATEGORIES.forEach(c=>{ c.items = c.items.filter(s=>!FEMALE_ONLY.has(s)); });
+}
 
 let selectedSymptoms = new Set((profile && profile.symptoms) || []);
+const vitals = state.vitals || {};
 let activeCat = 'All';
 let searchQuery = '';
 
@@ -87,6 +116,27 @@ function init(){
   <div class="cat-title">Selected</div>
   <div class="chips-row" id="symptom-chips"></div>
   <p class="symptom-empty-hint" id="symptom-hint"></p>
+
+  <div class="cat-title">Known vitals (optional)</div>
+  <p class="lede" style="margin-bottom:14px;">If you know these offhand, they sharpen your diagnostics and show up in your next steps. No harm in leaving them as unknown.</p>
+  <div class="field-row" style="max-width:520px;">
+    <div class="field">
+      <label class="intake-label" for="f-fasting-sugar">Fasting blood sugar (mg/dL)</label>
+      <input type="number" id="f-fasting-sugar" min="40" max="400" placeholder="e.g. 92" ${vitals.fastingSugarUnknown?'disabled':''} value="${vitals.fastingSugar!==undefined && vitals.fastingSugar!==null ? vitals.fastingSugar : ''}">
+      <div class="check-field" style="margin-top:8px;">
+        <input type="checkbox" id="f-fasting-sugar-unknown" ${vitals.fastingSugarUnknown?'checked':''}>
+        <label for="f-fasting-sugar-unknown" style="font-size:12px;">Not tested / unknown</label>
+      </div>
+    </div>
+    <div class="field">
+      <label class="intake-label" for="f-resting-hr">Resting heart rate (bpm)</label>
+      <input type="number" id="f-resting-hr" min="30" max="220" placeholder="e.g. 68" ${vitals.restingHRUnknown?'disabled':''} value="${vitals.restingHR!==undefined && vitals.restingHR!==null ? vitals.restingHR : ''}">
+      <div class="check-field" style="margin-top:8px;">
+        <input type="checkbox" id="f-resting-hr-unknown" ${vitals.restingHRUnknown?'checked':''}>
+        <label for="f-resting-hr-unknown" style="font-size:12px;">Not tested / unknown</label>
+      </div>
+    </div>
+  </div>
 
   <div class="page-footer-nav">
     <a href="profile.html" class="btn secondary">&larr; Back</a>
@@ -155,9 +205,28 @@ function init(){
   renderBrowseGrid();
   renderChips();
 
+  const sugarInput = document.getElementById('f-fasting-sugar');
+  const sugarUnknown = document.getElementById('f-fasting-sugar-unknown');
+  const hrInput = document.getElementById('f-resting-hr');
+  const hrUnknown = document.getElementById('f-resting-hr-unknown');
+  sugarUnknown.addEventListener('change', ()=>{
+    sugarInput.disabled = sugarUnknown.checked;
+    if(sugarUnknown.checked) sugarInput.value = '';
+  });
+  hrUnknown.addEventListener('change', ()=>{
+    hrInput.disabled = hrUnknown.checked;
+    if(hrUnknown.checked) hrInput.value = '';
+  });
+
   document.getElementById('continue-btn').addEventListener('click', ()=>{
     const nextProfile = Object.assign({}, profile, {symptoms: [...selectedSymptoms]});
-    const next = Object.assign({}, state, {profile: nextProfile});
+    const fastingSugar = sugarUnknown.checked ? null : (parseFloat(sugarInput.value) || null);
+    const restingHR = hrUnknown.checked ? null : (parseFloat(hrInput.value) || null);
+    const nextVitals = {
+      fastingSugar, fastingSugarUnknown: sugarUnknown.checked,
+      restingHR, restingHRUnknown: hrUnknown.checked
+    };
+    const next = Object.assign({}, state, {profile: nextProfile, vitals: nextVitals});
     goTo('diagnostics.html', next);
   });
 }
