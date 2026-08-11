@@ -7,10 +7,11 @@
 const STATE_KEY = 'chart_state_v1';
 
 /* ---------- Cross-page state ----------
-   State travels two ways so it survives both scenarios:
-   1) opened as local files where localStorage is shared (most browsers), and
-   2) opened where each local file is an isolated origin (some Chrome setups) —
-      in that case the base64 payload on the URL carries the state forward. */
+   Uses sessionStorage (cleared when the tab/window closes) rather than
+   localStorage, so nothing is remembered between browsing sessions — only
+   while navigating forward and back through this one visit. State also
+   travels as a base64 payload on the URL between pages, as a backup for
+   browsers that isolate sessionStorage across local files opened via file://. */
 function loadState(){
   let fromUrl = null;
   const params = new URLSearchParams(location.search);
@@ -22,7 +23,7 @@ function loadState(){
   }
   let fromStorage = null;
   try{
-    const raw = localStorage.getItem(STATE_KEY);
+    const raw = sessionStorage.getItem(STATE_KEY);
     if(raw) fromStorage = JSON.parse(raw);
   }catch(e){ /* storage unavailable */ }
 
@@ -32,7 +33,7 @@ function loadState(){
 }
 
 function persistState(state){
-  try{ localStorage.setItem(STATE_KEY, JSON.stringify(state)); }catch(e){ /* ignore */ }
+  try{ sessionStorage.setItem(STATE_KEY, JSON.stringify(state)); }catch(e){ /* ignore */ }
 }
 
 function encodeStateParam(state){

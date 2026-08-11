@@ -35,13 +35,22 @@ a{color:inherit;}
 
 /* ---------- Masthead ---------- */
 .masthead{
+  position:relative; overflow:hidden;
   border-bottom:2px solid var(--ink);
-  background:var(--paper);
   padding:24px clamp(16px,4vw,48px) 16px;
+  background:
+    radial-gradient(ellipse 480px 320px at 8% -25%, rgba(31,122,108,0.13), transparent 60%),
+    radial-gradient(ellipse 460px 380px at 97% 135%, rgba(201,122,43,0.15), transparent 60%),
+    var(--paper);
 }
 .masthead-row{
+  position:relative;
   display:flex; justify-content:space-between; align-items:flex-end; gap:24px; flex-wrap:wrap;
 }
+.brand-lockup{ display:flex; align-items:center; gap:8px; margin-bottom:8px; }
+.brand-mark{ flex-shrink:0; }
+.brand-word{ font-family:var(--serif); font-size:15px; font-weight:400; color:var(--ink); letter-spacing:.01em; }
+.brand-word em{ font-style:italic; color:var(--teal); }
 .eyebrow{
   font-family:var(--mono); font-size:11px; letter-spacing:.18em; text-transform:uppercase;
   color:var(--teal); margin:0 0 6px;
@@ -155,6 +164,36 @@ legend{ padding:0; }
 .stat-card.hero .v{ font-size:30px; color:#fff; }
 .stat-card.flag .v{ color:var(--rose); }
 .stat-card.good .v{ color:var(--teal); }
+
+/* ---------- Badge-ring stats (compact BMI / WHtR display) ---------- */
+.badge-row{ display:flex; gap:16px; margin:6px 0 26px; flex-wrap:wrap; }
+.badge{
+  display:flex; align-items:center; gap:13px; background:var(--panel); border:1px solid var(--line);
+  border-radius:100px; padding:8px 20px 8px 8px;
+}
+.badge-ring{
+  width:48px; height:48px; border-radius:50%; border:3.5px solid var(--teal); flex-shrink:0;
+  display:flex; align-items:center; justify-content:center;
+  font-family:var(--mono); font-weight:700; font-size:14px; color:var(--teal);
+}
+.badge-ring.amber{ border-color:var(--amber); color:var(--amber); }
+.badge-ring.rose{ border-color:var(--rose); color:var(--rose); }
+.badge-text{ font-family:var(--mono); font-size:11px; color:var(--ink-soft); line-height:1.35; }
+.badge-text b{ display:block; font-size:9.5px; text-transform:uppercase; letter-spacing:.07em; color:var(--muted); font-weight:400; margin-bottom:2px; }
+
+/* ---------- Quote block (daily nudge, one per page) ---------- */
+.quote-block{ display:flex; align-items:center; gap:18px; padding:6px 0 28px; }
+.quote-icon{ flex-shrink:0; }
+.quote-text{ font-family:var(--serif); font-style:italic; font-size:17px; line-height:1.4; color:var(--ink); margin:0; }
+.quote-text .mark{ color:var(--amber); font-size:24px; line-height:0; vertical-align:-5px; font-style:normal; }
+.quote-sub{ font-family:var(--mono); font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; margin-top:7px; }
+.quote-block.in-header{
+  position:relative; margin-top:16px; padding:14px 0 0; gap:14px;
+  border-top:1px solid rgba(24,38,32,0.12);
+}
+.quote-block.in-header .quote-text{ font-size:14.5px; }
+.quote-block.in-header .quote-sub{ margin-top:4px; }
+@media (max-width:560px){ .quote-block{ gap:12px; } .quote-text{ font-size:15px; } .quote-block.in-header .quote-text{ font-size:13px; } }
 
 /* ---------- Gauge (signature element) ---------- */
 .gauge-block{ margin-bottom:16px; }
