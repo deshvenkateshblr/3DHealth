@@ -418,3 +418,135 @@ footer{
 @media (max-width:560px){
   .test-card .head{ flex-direction:column; align-items:flex-start; }
 }
+.map-route {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.map-stop {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  min-width: 62px;
+}
+.map-pin {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--ink);
+  background: var(--panel);
+}
+.map-stop.active .map-pin {
+  background: var(--teal);
+  border-color: var(--teal);
+  color: #fff;
+}
+.map-stop .label {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.map-stop.active .label {
+  color: var(--ink);
+  font-weight: 600;
+}
+.map-line {
+  width: 22px;
+  height: 2px;
+  background: var(--line);
+  margin-bottom: 14px;
+}
+/* ---------- Refined Symptom Controls ---------- */
+.symptom-controls {
+  margin-bottom: 24px;
+}
+.search-wrap {
+  max-width: 480px;
+  margin-bottom: 12px;
+}
+.cat-tabs-scroll {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+  /* Hide scrollbar for a cleaner look */
+  -ms-overflow-style: none; 
+  scrollbar-width: none; 
+}
+.cat-tabs-scroll::-webkit-scrollbar {
+  display: none;
+}
+.cat-tabs-scroll .cat-tab {
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+/* ---------- Responsive Two-Column Symptom Layout ---------- */
+.symptom-search-full {
+  width: 100%;
+  margin-bottom: 24px;
+}
+.symptom-search-full input {
+  width: 100%;
+  padding: 14px 16px;
+  font-size: 15px;
+}
+
+.symptom-split-layout {
+  display: grid;
+  gap: 24px;
+  align-items: start;
+  /* Default Mobile: Stack them in a single column */
+  grid-template-columns: 1fr; 
+}
+
+.cat-sidebar {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.cat-side-btn {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  padding: 10px 14px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--ink-soft);
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s ease;
+}
+
+.cat-side-btn:hover {
+  border-color: var(--teal);
+}
+
+.cat-side-btn.active {
+  background: var(--ink);
+  color: var(--paper);
+  border-color: var(--ink);
+  font-weight: 600;
+}
+
+/* Desktop override: Switch to two columns */
+@media (min-width: 720px) {
+  .symptom-split-layout {
+    grid-template-columns: 240px 1fr;
+  }
+  .cat-sidebar {
+    flex-direction: column;
+    flex-wrap: nowrap;
+    position: sticky;
+    top: 16px; /* Keeps categories on screen while scrolling symptoms */
+  }
+}
