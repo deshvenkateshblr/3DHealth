@@ -9,44 +9,75 @@
 <body>
 
 <header class="masthead">
-  <div class="masthead-row">
-    <div>
-      <a class="brand-link" href="index.html">
-        <div class="brand-lockup">
-          <svg class="brand-mark" width="20" height="20" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
-            <path d="M20 5 L27 16 L13 16 Z" fill="var(--teal)"/>
-            <path d="M10 19 L30 19 L34 28 L6 28 Z" fill="var(--amber)"/>
-            <path d="M4 31 L36 31 L39 38 L1 38 Z" fill="var(--ink)"/>
-          </svg>
-          <span class="brand-word"><em>Vital</em> Framework</span>
-        </div>
+  <div class="masthead-inner" style="display:flex; align-items:center; justify-content:space-between; gap:24px; flex-wrap:wrap;">
+    
+    <div class="brand-lockup" style="margin-bottom:0;">
+      <a href="index.html" style="text-decoration:none;">
+        <img src="shared/assets/kyh_logo.jpg" alt="KYH – Know Your Health" style="height:38px; width:auto; display:block;">
       </a>
-      <h1 class="brand">What are you <em>noticing</em>?</h1>
     </div>
-    <p class="tagline">Browse by category, or search if you know what you're looking for.</p>
-  </div>
-  <div class="quote-block in-header">
-    <svg class="quote-icon" width="34" height="34" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="60" cy="60" r="58" fill="var(--teal-soft)"/>
-      <path d="M30 66c6-22 10-28 14-6 4 20 8 14 12-4 3-14 6-10 9 2 2 8 4 6 6-2"
-        fill="none" stroke="var(--teal)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
-      <circle cx="60" cy="60" r="58" fill="none" stroke="var(--ink)" stroke-width="2"/>
-    </svg>
-    <div>
-      <p class="quote-text"><span class="mark">&ldquo;</span>Your body’s been leaving you notes for weeks. Today we’re finally reading them.<span class="mark">&rdquo;</span></p>
-      <p class="quote-sub">Today's nudge</p>
+
+    <div class="map-route" aria-label="Your progress from Fine to Great">
+      <div class="map-stop active">
+        <div class="map-pin">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+            <path d="M12 21s-6-5.4-6-10a6 6 0 1 1 12 0c0 4.6-6 10-6 10z"/>
+            <circle cx="12" cy="11" r="2.2"/>
+          </svg>
+        </div>
+        <div class="label">Fine</div>
+      </div>
+
+      <div class="map-line"></div>
+
+      <div class="map-stop">
+        <div class="map-pin" style="border-color:var(--teal); color:var(--teal); opacity:0.45;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/>
+            <rect x="9" y="3" width="6" height="4" rx="1"/>
+          </svg>
+        </div>
+        <div class="label" style="opacity:0.5;">Diagnostics</div>
+      </div>
+
+      <div class="map-line"></div>
+
+      <div class="map-stop">
+        <div class="map-pin" style="border-color:var(--amber); color:var(--amber); opacity:0.45;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="9"/>
+            <path d="M12 7v5l3.5 2"/>
+          </svg>
+        </div>
+        <div class="label" style="opacity:0.5;">Routine</div>
+      </div>
+
+      <div class="map-line"></div>
+
+      <div class="map-stop">
+        <div class="map-pin" style="border-color:var(--teal); color:var(--teal); opacity:0.45;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="9"/>
+            <circle cx="12" cy="12" r="4"/>
+          </svg>
+        </div>
+        <div class="label" style="opacity:0.5;">Diet</div>
+      </div>
+
+      <div class="map-line"></div>
+
+      <div class="map-stop">
+        <div class="map-pin" style="opacity:0.4;">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2l2.4 7.4H22l-6 4.6 2.3 7.4L12 17.3 5.7 21.4 8 14 2 9.4h7.6z"/>
+          </svg>
+        </div>
+        <div class="label" style="opacity:0.5;">Great</div>
+      </div>
     </div>
   </div>
 </header>
 
-<nav class="steps">
-  <a class="step done" href="profile.html"><span class="n">&check;</span>Profile</a>
-  <a class="step current" href="symptoms.html"><span class="n">2</span>Symptoms</a>
-  <a class="step" href="diagnostics.html"><span class="n">3</span>Diagnostics</a>
-  <a class="step" href="routine.html"><span class="n">4</span>Routine</a>
-  <a class="step" href="diet.html"><span class="n">5</span>Diet</a>
-  <a class="step" href="summary.html"><span class="n">6</span>Summary</a>
-</nav>
 
 
 <main id="main-content">
@@ -69,16 +100,16 @@ const main = document.getElementById('main-content');
    no gaps and no duplicates (each test's symptoms[] array is the single source of truth). */
 const CATEGORIES = [
   {name:'Energy, Sleep & Mood', items:['Insomnia','Fatigue','Low Energy','Restlessness','Stress','Anxiety','Depression','Mood Swings','Irritability','Burnout','Snoring']},
-  {name:'Musculoskeletal & Joints', items:['Back Pain','Neck Pain','Shoulder Pain','Knee Pain','Hip Pain','Leg Pain','Leg Cramps','Sciatica','Arthritis','Osteoporosis','Carpal Tunnel','Frozen Shoulder','Joint Stiffness','Poor Posture','Slouching','Weak Core','Muscle Weakness','Balance Issues','Sports Injury','Sprain','Strain','Recovery Fatigue','Overtraining']},
-  {name:'Digestive', items:['Indigestion','Acid Reflux','Constipation','Diarrhea','Bloating','Irritable Bowel Syndrome','Gastritis','Ulcer','Nausea','Vomiting','Gut Health','Hemorrhoids','Loss of Appetite']},
-  {name:'Heart & Circulation', items:['High Blood Pressure','Low Blood Pressure','Heart Palpitations','Chest Pain','Poor Circulation','Varicose Veins','Edema','Swelling']},
+  {name:'Musculoskeletal & Joints', items:['Back Pain','Neck Pain','Shoulder Pain','Knee Pain','Hip Pain','Leg Pain','Leg Cramps','Sciatica','Arthritis','Osteoporosis','Carpal Tunnel','Frozen Shoulder','Joint Stiffness','Poor Posture','Slouching','Weak Core','Muscle Weakness','Balance Issues','Sports Injury','Sprain','Strain','Recovery Fatigue','Overtraining','Plantar Fasciitis']},
+  {name:'Digestive', items:['Indigestion','Acid Reflux','Constipation','Diarrhea','Bloating','Irritable Bowel Syndrome','Gastritis','Ulcer','Nausea','Vomiting','Gut Health','Hemorrhoids','Loss of Appetite','Blood in Stool']},
+  {name:'Heart & Circulation', items:['High Blood Pressure','Low Blood Pressure','Heart Palpitations','Chest Pain','Poor Circulation','Varicose Veins','Edema','Swelling','Fainting / Passing Out']},
   {name:'Weight & Metabolic', items:['Obesity','Overweight','Underweight','Weight Loss','Diabetes','High Cholesterol','Sugar Cravings','Emotional Eating','Excessive Thirst']},
   {name:'Hormonal & Reproductive', items:['Thyroid Disorder','PCOS','Menstrual Pain','Menopause Symptoms','Hot Flashes','Night Sweats','Infertility','Pregnancy Discomfort','Postpartum Recovery']},
   {name:'Head & Neurological', items:['Migraine','Headache','Vertigo','Memory Loss','Poor Concentration','Brain Fog','Cognitive Decline','Parkinson\u2019s Symptoms','Numbness or Tingling']},
-  {name:'Respiratory & Allergy', items:['Asthma','Bronchitis','Shortness of Breath','Allergies','Cold','Sinus Congestion']},
-  {name:'Skin & Hair', items:['Skin Acne','Eczema','Psoriasis','Dry Skin','Hair Loss','Dandruff','Itching','Skin Rash','Bruising Easily']},
+  {name:'Respiratory & Allergy', items:['Asthma','Bronchitis','Shortness of Breath','Allergies','Cold','Sinus Congestion','Chronic Cough']},
+  {name:'Skin & Hair', items:['Skin Acne','Eczema','Psoriasis','Dry Skin','Hair Loss','Dandruff','Itching','Skin Rash','Bruising Easily','Sweaty Hands']},
   {name:'Urinary, Liver & Kidney', items:['Urinary Tract Infection','Kidney Stones','Frequent Urination','Liver Disorder','Fatty Liver','Gallstones','Pancreatitis']},
-  {name:'Eyes, Ears & Mouth', items:['Eye Strain','Eye Dryness','Hearing Loss','Dental Pain','Jaw Pain']},
+  {name:'Eyes, Ears & Mouth', items:['Eye Strain','Eye Dryness','Hearing Loss','Dental Pain','Jaw Pain','Blurry Vision','Ringing in Ears']},
   {name:'Immune & General', items:['Immune Weakness','Frequent Infections','Fever','Inflammation','Cold Intolerance','Heat Intolerance','Palpable Lump']}
 ];
 const SYMPTOM_LIST_RAW = [...new Set(DIAG.flatMap(d=>d.symptoms||[]))].sort();
@@ -98,20 +129,26 @@ function init(){
   main.innerHTML = `
   <div class="section-head">
     <h2>Search or browse</h2>
-    <span class="section-sub">02 of 06</span>
+    <span class="section-sub">Starting point &middot; Symptoms</span>
   </div>
   <p class="lede">Add anything you're currently experiencing. This shapes your diagnostics test list, and adds a note or two on your diet and routine pages where relevant. Nothing to add? Skip it &mdash; we'll use your risk profile instead.</p>
 
-  <div class="symptom-picker" style="max-width:480px;">
-    <input type="text" id="symptom-input" class="field" placeholder="Search all categories&hellip;" autocomplete="off">
+  <div class="symptom-search-full" style="position:sticky; top:0; background:var(--paper); padding:16px 0; z-index:10; border-bottom:1px solid var(--line);">
+    <input type="text" id="symptom-input" class="field" placeholder="Search all symptoms&hellip;" autocomplete="off">
   </div>
 
-  <div class="cat-tabs" id="cat-tabs">
-    <button type="button" class="cat-tab active" data-cat="All">All</button>
-    ${CATEGORIES.map(c=>`<button type="button" class="cat-tab" data-cat="${esc(c.name)}">${esc(c.name)}</button>`).join('')}
-  </div>
+  <div class="symptom-split-layout" style="margin-bottom: 36px;">
+    
+    <div class="cat-sidebar" id="cat-sidebar">
+      <button type="button" class="cat-side-btn active" data-cat="All">All Categories</button>
+      ${CATEGORIES.map(c=>`<button type="button" class="cat-side-btn" data-cat="${esc(c.name)}">${esc(c.name)}</button>`).join('')}
+    </div>
 
-  <div class="browse-grid" id="browse-grid"></div>
+    <div id="browse-wrapper">
+      <div class="browse-grid" id="browse-grid"></div>
+    </div>
+
+  </div>
 
   <div class="cat-title">Selected</div>
   <div class="chips-row" id="symptom-chips"></div>
@@ -145,7 +182,7 @@ function init(){
   `;
 
   const input = document.getElementById('symptom-input');
-  const catTabs = document.getElementById('cat-tabs');
+  const catSidebar = document.getElementById('cat-sidebar');
   const browseGrid = document.getElementById('browse-grid');
   const chips = document.getElementById('symptom-chips');
   const hint = document.getElementById('symptom-hint');
@@ -162,7 +199,7 @@ function init(){
     }
     browseGrid.innerHTML = items.length ? items.map(s=>
       `<button type="button" class="browse-chip${selectedSymptoms.has(s)?' selected':''}" data-s="${esc(s)}">${esc(s)}</button>`
-    ).join('') : `<span class="symptom-empty-hint">No matches.</span>`;
+    ).join('') : `<span class="symptom-empty-hint">No matches found.</span>`;
   }
 
   function renderChips(){
@@ -170,21 +207,35 @@ function init(){
     hint.textContent = selectedSymptoms.size ? `${selectedSymptoms.size} symptom${selectedSymptoms.size>1?'s':''} selected.` : 'No symptoms selected yet \u2014 that\u2019s fine, we\u2019ll use your risk profile instead.';
   }
 
-  catTabs.addEventListener('click', (e)=>{
-    const btn = e.target.closest('.cat-tab');
+  // Handle Sidebar Category Clicks
+  catSidebar.addEventListener('click', (e)=>{
+    const btn = e.target.closest('.cat-side-btn');
     if(!btn) return;
+    
     activeCat = btn.dataset.cat;
+    
+    // Clear search box when clicking a category
     input.value = '';
     searchQuery = '';
-    catTabs.querySelectorAll('.cat-tab').forEach(b=>b.classList.toggle('active', b===btn));
+    
+    catSidebar.querySelectorAll('.cat-side-btn').forEach(b=>b.classList.toggle('active', b===btn));
     renderBrowseGrid();
   });
 
+  // Handle Search Input
   input.addEventListener('input', ()=>{
     searchQuery = input.value;
+    
+    // If user starts typing, automatically switch back to "All" visually
+    if (searchQuery.trim().length > 0 && activeCat !== 'All') {
+      activeCat = 'All';
+      catSidebar.querySelectorAll('.cat-side-btn').forEach(b=>b.classList.toggle('active', b.dataset.cat === 'All'));
+    }
+    
     renderBrowseGrid();
   });
 
+  // Handle Selecting a Symptom
   browseGrid.addEventListener('click', (e)=>{
     const btn = e.target.closest('.browse-chip');
     if(!btn) return;
@@ -194,6 +245,7 @@ function init(){
     renderChips();
   });
 
+  // Handle Removing a Symptom
   chips.addEventListener('click', (e)=>{
     const btn = e.target.closest('.chip-x');
     if(!btn) return;
@@ -209,6 +261,7 @@ function init(){
   const sugarUnknown = document.getElementById('f-fasting-sugar-unknown');
   const hrInput = document.getElementById('f-resting-hr');
   const hrUnknown = document.getElementById('f-resting-hr-unknown');
+  
   sugarUnknown.addEventListener('change', ()=>{
     sugarInput.disabled = sugarUnknown.checked;
     if(sugarUnknown.checked) sugarInput.value = '';
@@ -230,6 +283,7 @@ function init(){
     goTo('diagnostics.html', next);
   });
 }
+
 
 if(!profile){
   main.innerHTML = `<div class="empty-state">We need your profile first. <a href="profile.html">Go back and fill it in &rarr;</a></div>`;
