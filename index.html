@@ -3,91 +3,339 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Vital Framework</title>
+<title>KYH — Know Your Health</title>
 <link rel="stylesheet" href="shared/styles.css">
+<style>
+  /* ===== Header – tight & vertically centred ===== */
+  .masthead {
+    padding: 12px clamp(16px, 4vw, 40px) !important;
+  }
+  .masthead-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+  .brand-lockup {
+    margin-bottom: 0 !important;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+  }
+  .brand-lockup img {
+    height: 42px;
+    width: auto;
+    max-width: 160px;
+    display: block;
+  }
+
+  /* Map route */
+  .map-route {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .map-stop {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    min-width: 64px;
+  }
+  .map-pin {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid var(--ink);
+    background: var(--panel);
+  }
+  .map-stop.start .map-pin {
+    background: var(--teal);
+    border-color: var(--teal);
+    color: #fff;
+  }
+  .map-stop.dest .map-pin {
+    background: var(--ink);
+    border-color: var(--ink);
+    color: var(--paper);
+  }
+  .map-stop .label {
+    font-family: var(--mono);
+    font-size: 9.5px;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-align: center;
+    line-height: 1.2;
+  }
+  .map-stop.start .label,
+  .map-stop.dest .label {
+    color: var(--ink);
+    font-weight: 600;
+  }
+  .map-line {
+    width: 22px;
+    height: 2px;
+    background: var(--line);
+    margin-bottom: 14px;
+  }
+
+  /* ===== Hero ===== */
+  .hero-question {
+    text-align: center;
+    margin: 10px 0 16px;
+  }
+  .hero-question h1 {
+    font-family: var(--serif);
+    font-weight: 400;
+    font-size: clamp(40px, 7.5vw, 64px);
+    line-height: 1.05;
+    margin: 0 0 6px;
+    letter-spacing: -0.02em;
+  }
+  .hero-question .sub {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: clamp(19px, 3vw, 24px);
+    color: var(--ink-soft);
+    margin: 0;
+  }
+  .hero-summary {
+    text-align: center;
+    max-width: 520px;
+    margin: 0 auto 32px;
+    font-size: 16px;
+    line-height: 1.55;
+    color: var(--ink-soft);
+  }
+
+  /* ===== Outcome cards ===== */
+  .outcome-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin-bottom: 36px;
+  }
+  @media (max-width: 900px) {
+    .outcome-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  @media (max-width: 520px) {
+    .outcome-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+  .outcome-card {
+    background: var(--panel);
+    border: 1px solid var(--ink);
+    padding: 20px 18px;
+  }
+  .outcome-card .verb {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--teal);
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+  .outcome-card h3 {
+    font-family: var(--serif);
+    font-weight: 400;
+    font-size: 17.5px;
+    margin: 0 0 7px;
+    line-height: 1.3;
+  }
+  .outcome-card p {
+    font-size: 13.5px;
+    line-height: 1.5;
+    color: var(--ink-soft);
+    margin: 0;
+  }
+
+  .start-wrap {
+    text-align: center;
+  }
+  .start-wrap .btn {
+    font-size: 14px;
+    padding: 16px 48px;
+    letter-spacing: .12em;
+  }
+  .start-wrap p {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 12px;
+  }
+
+  @media (max-width: 700px) {
+    .map-line { display: none; }
+    .masthead-inner {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 14px;
+    }
+    .brand-lockup img {
+      height: 36px;
+    }
+  }
+</style>
 </head>
 <body>
 
 <header class="masthead">
-  <div class="masthead-row">
-    <div>
-      <div class="brand-lockup">
-        <svg class="brand-mark" width="22" height="22" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
-          <path d="M20 5 L27 16 L13 16 Z" fill="var(--teal)"/>
-          <path d="M10 19 L30 19 L34 28 L6 28 Z" fill="var(--amber)"/>
-          <path d="M4 31 L36 31 L39 38 L1 38 Z" fill="var(--ink)"/>
-        </svg>
-        <span class="brand-word"><em>Vital</em> Framework</span>
-      </div>
-      <h1 class="brand">Your <em>numbers</em>, your <em>plate</em>, your <em>day</em></h1>
+  <div class="masthead-inner">
+    <!-- New KYH Logo -->
+    <div class="brand-lockup">
+      <a href="index.html" style="text-decoration:none;">
+        <img src="shared/assets/kyh_logo.jpg" alt="KYH – Know Your Health. Own Your Path.">
+      </a>
     </div>
-    <p class="tagline">A short walk through your numbers, your plate, and your day.</p>
+
+    <!-- Map route -->
+    <div class="map-route" aria-label="Route from Fine to Great">
+      <div class="map-stop start">
+        <div class="map-pin">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+            <path d="M12 21s-6-5.4-6-10a6 6 0 1 1 12 0c0 4.6-6 10-6 10z"/>
+            <circle cx="12" cy="11" r="2.2"/>
+          </svg>
+        </div>
+        <div class="label">Fine</div>
+      </div>
+
+      <div class="map-line"></div>
+
+      <div class="map-stop">
+        <div class="map-pin" style="border-color:var(--teal); color:var(--teal);">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/>
+            <rect x="9" y="3" width="6" height="4" rx="1"/>
+          </svg>
+        </div>
+        <div class="label">Diagnostics</div>
+      </div>
+
+      <div class="map-line"></div>
+
+      <div class="map-stop">
+        <div class="map-pin" style="border-color:var(--amber); color:var(--amber);">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="9"/>
+            <path d="M12 7v5l3.5 2"/>
+          </svg>
+        </div>
+        <div class="label">Routine</div>
+      </div>
+
+      <div class="map-line"></div>
+
+      <div class="map-stop">
+        <div class="map-pin" style="border-color:var(--teal); color:var(--teal);">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="9"/>
+            <circle cx="12" cy="12" r="4"/>
+          </svg>
+        </div>
+        <div class="label">Diet</div>
+      </div>
+
+      <div class="map-line"></div>
+
+      <div class="map-stop dest">
+        <div class="map-pin">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2l2.4 7.4H22l-6 4.6 2.3 7.4L12 17.3 5.7 21.4 8 14 2 9.4h7.6z"/>
+          </svg>
+        </div>
+        <div class="label">Great</div>
+      </div>
+    </div>
   </div>
 </header>
 
-<main style="max-width:920px;">
-  <section class="hero-section" style="padding-left:0;padding-right:0;">
-    <div style="text-align:center; margin-bottom:8px;">
-      <img src="shared/assets/pyramid-hero.png" alt="Vital Framework: Diagnostics, Daily Routine, and Diet, stacked as a pyramid" style="width:220px; height:auto; filter:drop-shadow(0 10px 16px rgba(24,38,32,0.16));">
-    </div>
-    <h1 style="text-align:center;">Build your <em>health profile</em>,<br>in three dimensions.</h1>
-    <p class="hero-lede" style="text-align:center; margin-left:auto; margin-right:auto;">Vital Framework walks you through three connected dimensions of everyday health &mdash; what to test for, how to spend your 24 hours, and what to eat &mdash; and builds each recommendation around the profile you give it. Nothing you enter leaves your browser.</p>
+<main style="max-width:1000px;">
+  <section class="hero-section" style="padding-left:0; padding-right:0;">
 
-    <div class="dim-grid">
-      <div class="dim-card">
-        <svg class="icon" width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
-          <rect x="2" y="2" width="36" height="36" rx="4" fill="none" stroke="var(--ink)" stroke-width="1.5"/>
-          <path d="M6 20h5l3-9 5 18 4-13 3 4h7" fill="none" stroke="var(--teal)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-        <div class="idx">01 &middot; Diagnostics</div>
-        <h3>Establish a baseline</h3>
-        <p>We map your age, sex, and family history to a risk category, then narrow a 100+ test library down to the ones actually relevant to you &mdash; so screening is targeted, not guesswork.</p>
-      </div>
-      <div class="dim-card">
-        <svg class="icon" width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="20" cy="20" r="17" fill="none" stroke="var(--ink)" stroke-width="1.5"/>
-          <path d="M20 20 L20 6 A14 14 0 0 1 32.1 26.4 Z" fill="var(--amber)" opacity="0.28"/>
-          <line x1="20" y1="20" x2="20" y2="8.5" stroke="var(--ink)" stroke-width="1.5" stroke-linecap="round"/>
-          <line x1="20" y1="20" x2="27.5" y2="20" stroke="var(--ink)" stroke-width="1.5" stroke-linecap="round"/>
-          <circle cx="20" cy="20" r="1.6" fill="var(--ink)"/>
-        </svg>
-        <div class="idx">02 &middot; Daily Routine</div>
-        <h3>Structure the day</h3>
-        <p>We compare how you currently spend your 24 hours &mdash; sleep, desk time, movement &mdash; against an ideal built for your profile, and flag where the gap matters most.</p>
-      </div>
-      <div class="dim-card">
-        <svg class="icon" width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="20" cy="20" r="17" fill="none" stroke="var(--ink)" stroke-width="1.5"/>
-          <circle cx="20" cy="20" r="10.5" fill="none" stroke="var(--ink)" stroke-width="1"/>
-          <path d="M20 13c4.5 0 6.5 3.2 6.5 6.5-3.3 0-6.5-2-6.5-6.5z" fill="var(--teal)" stroke="none"/>
-          <path d="M20 20c0-3.2 1-5.4 3-6.8" fill="none" stroke="var(--teal)" stroke-width="1.2" stroke-linecap="round"/>
-        </svg>
-        <div class="idx">03 &middot; Diet</div>
-        <h3>Fuel with precision</h3>
-        <p>Your sex, age, body composition, and the activity level we see in your routine translate into calorie, macro, and micronutrient targets &mdash; adjusted for how you actually eat, from whole foods to packaged snacks.</p>
-      </div>
+    <div class="hero-question">
+      <h1>How are you?</h1>
+      <p class="sub">Fine is just the starting point.</p>
     </div>
 
-    <div class="cat-title" style="margin-top:0;">Your journey</div>
-    <div class="journey">
-      <div class="journey-line"></div>
-      <div class="journey-step accent"><span class="journey-dot">1</span><span class="journey-label">About You</span></div>
-      <div class="journey-step"><span class="journey-dot">2</span><span class="journey-label">Symptoms</span></div>
-      <div class="journey-step"><span class="journey-dot">3</span><span class="journey-label">Diagnostics</span></div>
-      <div class="journey-step"><span class="journey-dot">4</span><span class="journey-label">Routine</span></div>
-      <div class="journey-step"><span class="journey-dot">5</span><span class="journey-label">Diet</span></div>
-      <div class="journey-step accent"><span class="journey-dot">6</span><span class="journey-label">Your Profile</span></div>
+    <p class="hero-summary">
+      In under 10 minutes, get a clear map of where you are and the simple next steps toward feeling genuinely great.
+    </p>
+
+    <div class="outcome-grid">
+      <div class="outcome-card">
+        <div class="verb">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/>
+            <rect x="9" y="3" width="6" height="4" rx="1"/>
+          </svg>
+          Review
+        </div>
+        <h3>What tests could help you</h3>
+        <p>Only the labs that actually matter for your age, sex, symptoms and family history — not a generic checklist.</p>
+      </div>
+
+      <div class="outcome-card">
+        <div class="verb">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="9"/>
+            <path d="M12 7v5l3.5 2"/>
+          </svg>
+          Visualize
+        </div>
+        <h3>How your day is going</h3>
+        <p>See where your daily routine sits versus an ideal built for you, and which few changes move the needle most.</p>
+      </div>
+
+      <div class="outcome-card">
+        <div class="verb">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="9"/>
+            <circle cx="12" cy="12" r="4"/>
+          </svg>
+          Audit
+        </div>
+        <h3>What you eat</h3>
+        <p>Turn your actual eating patterns into clear calorie, macro and micronutrient targets — fuel with precision.</p>
+      </div>
+
+      <div class="outcome-card">
+        <div class="verb">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/>
+          </svg>
+          Prepare
+        </div>
+        <h3>For next steps</h3>
+        <p>A clean summary for your doctor consultation, videos to learn, plus a ready-made AI prompt to refine the plan all in your context.</p>
+      </div>
     </div>
 
-    <div class="start-cta">
-      <a class="btn" href="profile.html">Start your profile &rarr;</a>
-      <p>Takes about 5–7 minutes &middot; runs entirely offline</p>
+    <div class="start-wrap">
+      <a class="btn" href="profile.html">Start</a>
+      <p>Runs entirely in your browser · nothing is stored or sent anywhere</p>
     </div>
+
   </section>
 </main>
 
 <footer>
-  <span>Vital Framework &mdash; runs entirely in your browser. No data leaves this page.</span>
+  <span>KYH — Know Your Health. Own Your Path. Nothing you enter leaves your browser.</span>
   <span>Not a substitute for professional medical advice.</span>
 </footer>
 
