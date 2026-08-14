@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Synthesis &mdash; KYH</title>
+<link rel="stylesheet" href="shared/styles.css">
+<style>
+  /* Clean Accordion UI for Macros */
+  details.macro-accordion {
+    border: 1px solid var(--line);
+    margin-bottom: 12px;
+    background: var(--panel);
+    transition: border-color 0.2s;
+  }
+  details.macro-accordion:hover { border-color: var(--teal); }
+  details.macro-accordion summary {
+    padding: 16px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    list-style: none;
+    font-weight: 600;
+  }
+  details.macro-accordion summary::-webkit-details-marker { display: none; }
+  details.macro-accordion summary::after {
+    content: '+';
+    font-family: var(--mono);
+    color: var(--teal);
+    font-weight: bold;
+    font-size: 18px;
+    line-height: 1;
+  }
+  details.macro-accordion[open] summary::after { content: '\2013'; } /* En dash for minus */
+  .macro-content {
+    padding: 0 16px 16px;
+  }
+  .macro-meta {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    margin-top: 4px;
+    display: block;
+    font-weight: normal;
+  }
+  
+  .food-chip {
+    display: inline-block;
+    padding: 6px 12px;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 100px;
+    font-size: 12.5px;
+    margin: 4px 4px 4px 0;
+    color: var(--ink-soft);
+  }
+  
+  .balance-card {
+    display: flex;
+    justify-content: space-between;
+    background: var(--panel);
+    border: 1px solid var(--ink);
+    padding: 24px;
+    margin-bottom: 36px;
+    flex-wrap: wrap;
+    gap: 24px;
+  }
+  .balance-metric .val { font-family: var(--mono); font-size: 28px; font-weight: 600; color: var(--ink); }
+  .balance-metric .lbl { font-family: var(--mono); font-size: 10px; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); margin-bottom: 4px; }
+  .balance-status {
+    padding: 8px 16px;
+    background: var(--teal-soft);
+    color: var(--teal);
+    font-family: var(--mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    align-self: flex-start;
+    border-radius: 4px;
+    font-weight: 600;
+  }
+  .balance-status.deficit { background: var(--amber-soft); color: #8c5013; }
+  .balance-status.surplus { background: var(--rose-soft); color: var(--rose); }
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="masthead-inner" style="display:flex; align-items:center; justify-content:space-between; gap:24px; flex-wrap:wrap;">
+    <div class="brand-lockup" style="margin-bottom:0;">
+      <a href="index.html" style="text-decoration:none;">
+        <img src="shared/assets/kyh_logo.jpg" alt="KYH – Know Your Health" style="height:38px; width:auto; display:block;">
+      </a>
+    </div>
+    <div class="map-route" aria-label="Your progress from Fine to Great">
+      <div class="map-stop"><div class="map-pin" style="border-color:var(--teal); color:var(--teal);"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 21s-6-5.4-6-10a6 6 0 1 1 12 0c0 4.6-6 10-6 10z"/><circle cx="12" cy="11" r="2.2"/></svg></div><div class="label">Fine</div></div>
+      <div class="map-line"></div>
+      <div class="map-stop"><div class="map-pin" style="border-color:var(--teal); color:var(--teal);"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/></svg></div><div class="label">Diagnostics</div></div>
+      <div class="map-line"></div>
+      <div class="map-stop"><div class="map-pin" style="border-color:var(--teal); color:var(--teal);"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg></div><div class="label" >Routine</div></div>
+      <div class="map-line"></div>
+      <div class="map-stop"><div class="map-pin" style="border-color:var(--teal); color:var(--teal);"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/></svg></div><div class="label" >Diet</div></div>
+      <div class="map-line"></div>
+      <div class="map-stop active"><div class="map-pin" style="border-color:var(--ink); color:var(--paper); background:var(--ink);"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 7.4H22l-6 4.6 2.3 7.4L12 17.3 5.7 21.4 8 14 2 9.4h7.6z"/></svg></div><div class="label" style="color:var(--ink); font-weight:600;">Great</div></div>
+    </div>
+  </div>
+</header>
+
+<main id="main-content">
+  <div class="empty-state">Synthesizing your data&hellip;</div>
+</main>
+
+<footer>
+  <span>KYH — Know Your Health. Own Your Path. Runs entirely in your browser.</span>
+  <span>Not a substitute for professional medical advice.</span>
+</footer>
+
+<script src="shared/utils.js"></script>
+<script>
+const state = loadState();
+const profile = state.profile || {};
+const routine = state.routine || {};
+const diet = state.diet || {};
+const symptoms = profile.symptoms || [];
+
+const main = document.getElementById('main-content');
+
+// --- Helper Data for Diet Filtering ---
+const FOOD_DB = {
+  carbs: ["Oats", "Quinoa", "Brown Rice", "Sweet Potato", "Whole Wheat Roti", "Millets", "Sourdough Bread"],
+  protein: {
+    vegan: ["Tofu", "Tempeh", "Lentils / Dal", "Chickpeas", "Edamame", "Seitan"],
+    vegetarian: ["Paneer", "Greek Yogurt", "Whey Protein"],
+    eggetarian: ["Eggs"],
+    pescetarian: ["Salmon", "White Fish", "Shrimp"],
+    omnivore: ["Chicken Breast", "Lean Turkey"]
+  },
+  fats: ["Avocado", "Olive Oil", "Almonds", "Walnuts", "Chia Seeds", "Flaxseeds", "Ghee (in moderation)"]
+};
+
+function estimateIntake(rhythm) {
+  let intake = 0;
+  const calMap = { 'Light': 300, 'Standard': 600, 'Heavy': 900 };
+  for (const meal in rhythm) {
+    if (rhythm[meal] && rhythm[meal] !== 'Skip') {
+      intake += calMap[rhythm[meal]] || 0;
+    }
+  }
+  return intake;
+}
+
+function generateClinicalInsight() {
+  let insights = [];
+  const freq = diet.frequency || {};
+
+  // Insight 1: Fatigue + Low Greens
+  if ((symptoms.includes('Fatigue') || symptoms.includes('Low Energy')) && (freq.greens === 'Rarely' || freq.greens === '1-2x/Wk')) {
+    let text = `Your fatigue is likely connected to your diet. As someone who rarely eats leafy greens, you are at a higher risk for Iron and Magnesium deficiencies.`;
+    if (diet.type.includes('Vegetarian') || diet.type === 'Vegan') {
+      text += ` Since you eat a plant-based diet, this risk is amplified. Adding a serving of spinach or kale 3x a week is your highest leverage action right now.`;
+    }
+    insights.push(text);
+  }
+
+  // Insight 2: Digestion + Low Fiber
+  if ((symptoms.includes('Constipation') || symptoms.includes('Bloating')) && (freq.fruits === 'Rarely' || freq.legumes === 'Rarely')) {
+    insights.push(`Your digestive symptoms strongly correlate with a lack of soluble fiber. Your frequency grid shows low intake of fruits or legumes. Gradually adding chia seeds or a daily serving of whole fruit will improve gut motility within 72 hours.`);
+  }
+
+  // Insight 3: Sleep + Sugary Drinks
+  if ((symptoms.includes('Insomnia') || symptoms.includes('Restlessness')) && freq.sugary_drinks !== 'Rarely') {
+    insights.push(`Your sleep disruption may be tied to blood sugar volatility. Consuming sugary drinks regularly causes late-day crashes that spike cortisol (the stress hormone), keeping you awake. Swapping one soda for sparkling water is your easiest win.`);
+  }
+
+  // Fallback if no specific symptom matches
+  if (insights.length === 0) {
+    if (freq.processed !== 'Rarely') {
+      insights.push(`Your baseline health is solid, but reducing ultra-processed foods from '${freq.processed}' to 'Rarely' will dramatically lower long-term inflammation markers.`);
+    } else {
+      insights.push(`Your current dietary patterns look well-aligned with a baseline healthy profile. Focus on maintaining consistency and hitting your daily protein targets to support your metabolism.`);
+    }
+  }
+
+  return insights[0]; // Return the highest priority insight
+}
+
+function getProteinSources(dietType) {
+  let sources = [...FOOD_DB.protein.vegan];
+  if (dietType !== 'Vegan') sources = sources.concat(FOOD_DB.protein.vegetarian);
+  if (dietType === 'Eggetarian' || dietType === 'Pescetarian' || dietType === 'Omnivore') sources = sources.concat(FOOD_DB.protein.eggetarian);
+  if (dietType === 'Pescetarian' || dietType === 'Omnivore') sources = sources.concat(FOOD_DB.protein.pescetarian);
+  if (dietType === 'Omnivore') sources = sources.concat(FOOD_DB.protein.omnivore);
+  return sources;
+}
+
+function init() {
+  if (!diet.type) {
+    main.innerHTML = `<div class="empty-state">Data missing. <a href="diet.html">Go back &rarr;</a></div>`;
+    return;
+  }
+
+  const estBurn = routine.estimatedCalories || 2200; // From Routine page
+  const estIntake = estimateIntake(diet.rhythm);
+  const diff = estIntake - estBurn;
+  
+  let statusText = "Maintenance Phase";
+  let statusClass = "maintenance";
+  if (diff > 250) { statusText = "Caloric Surplus"; statusClass = "surplus"; }
+  if (diff < -250) { statusText = "Caloric Deficit"; statusClass = "deficit"; }
+
+  // Target Portions (Rough math based on ideal balanced diet)
+  const proteinPortions = Math.round((estBurn * 0.25) / 130); // ~130 cal per protein portion
+  const carbPortions = Math.round((estBurn * 0.45) / 150);
+  const fatPortions = Math.round((estBurn * 0.30) / 100);
+
+  const proteinSources = getProteinSources(diet.type);
+  const insightText = generateClinicalInsight();
+
+  main.innerHTML = `
+    <div class="section-head">
+      <h2>Your Nutrition Map</h2>
+      <span class="section-sub">05 of 05 &middot; Synthesis</span>
+    </div>
+
+    <div class="cat-title">Energy Balance</div>
+    <div class="balance-card">
+      <div>
+        <div class="balance-metric">
+          <div class="lbl">Estimated Daily Burn</div>
+          <div class="val">~${estBurn.toLocaleString()} kcal</div>
+        </div>
+        <div class="balance-metric" style="margin-top:16px;">
+          <div class="lbl">Estimated Daily Intake</div>
+          <div class="val">~${estIntake.toLocaleString()} kcal</div>
+        </div>
+      </div>
+      <div class="balance-status ${statusClass}">${statusText}</div>
+    </div>
+
+    <div class="cat-title">Clinical Insight</div>
+    <div class="note-block ${insightText.includes('highest leverage') ? 'amber' : 'teal'}" style="margin-bottom:36px; margin-top:12px;">
+      <span class="k">Based on your Symptoms & Habits</span>
+      ${insightText}
+    </div>
+
+    <div class="cat-title">Daily Macro Targets</div>
+    <p class="lede" style="font-size:14px; margin-bottom:20px;">Your precise portion targets built for a ${estBurn} kcal metabolism on a ${diet.type} diet. (1 Portion &approx; size of your palm/fist).</p>
+
+    <details class="macro-accordion">
+      <summary>
+        <div>
+          Proteins
+          <span class="macro-meta">Target: ${proteinPortions - 1} - ${proteinPortions + 1} Portions / Day</span>
+        </div>
+      </summary>
+      <div class="macro-content">
+        <p style="font-size:13px; color:var(--ink-soft); margin-top:0;">Filtered for your <b>${diet.type}</b> preference. Focus on these sources for muscle repair and satiety:</p>
+        <div>
+          ${proteinSources.map(f => `<span class="food-chip">${f}</span>`).join('')}
+        </div>
+      </div>
+    </details>
+
+    <details class="macro-accordion">
+      <summary>
+        <div>
+          Complex Carbohydrates
+          <span class="macro-meta">Target: ${carbPortions - 1} - ${carbPortions + 1} Portions / Day</span>
+        </div>
+      </summary>
+      <div class="macro-content">
+        <p style="font-size:13px; color:var(--ink-soft); margin-top:0;">Your primary energy source. Stick to these slow-digesting options to prevent blood sugar spikes:</p>
+        <div>
+          ${FOOD_DB.carbs.map(f => `<span class="food-chip">${f}</span>`).join('')}
+        </div>
+      </div>
+    </details>
+
+    <details class="macro-accordion">
+      <summary>
+        <div>
+          Healthy Fats
+          <span class="macro-meta">Target: ${fatPortions - 1} - ${fatPortions + 1} Portions / Day</span>
+        </div>
+      </summary>
+      <div class="macro-content">
+        <p style="font-size:13px; color:var(--ink-soft); margin-top:0;">Crucial for hormone regulation and joint health. Keep portions strict (thumb-sized):</p>
+        <div>
+          ${FOOD_DB.fats.map(f => `<span class="food-chip">${f}</span>`).join('')}
+        </div>
+      </div>
+    </details>
+    
+    <div class="page-footer-nav" style="margin-top: 48px;">
+      <a href="diet.html" class="btn secondary">&larr; Back to Diet</a>
+      <a href="summary.html" class="btn">View Final Summary &rarr;</a>
+    </div>
+  `;
+}
+
+init();
+</script>
+</body>
+</html>

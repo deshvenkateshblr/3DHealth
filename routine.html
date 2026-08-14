@@ -73,13 +73,16 @@ function init(){
   <div class="ledger-container">
     <div class="ledger-top-bar">
       <h3>1. Your 24 Hours</h3>
-      <div class="hour-counter" id="hour-counter">24.0 / 24 hrs</div>
-    </div>
-    <div class="ledger-header">
-      <div>Activity</div>
-      <div style="text-align:right;">Actual (hrs)</div>
-      <div style="text-align:right;">Ideal (hrs)</div>
-      <div style="text-align:right;">Diff</div>
+      
+      <div style="display:flex; align-items:center; gap:24px; text-align:right;">
+        
+        <div style="line-height:1.2;">
+          <div style="font-family:var(--mono); font-size:10px; color:var(--paper); opacity:0.7; text-transform:uppercase; letter-spacing:.05em;">Est. Daily Burn</div>
+          <div id="cal-burn-display" style="font-family:var(--mono); font-size:15px; font-weight:600; color:var(--teal-soft);">~0 kcal</div>
+        </div>
+
+        <div class="hour-counter" id="hour-counter">24.0 / 24 hrs</div>
+      </div>
     </div>
 
     <div class="ledger-group-head">Rest & Focus</div>
@@ -96,7 +99,7 @@ function init(){
       <div class="col-diff stock-ticker" id="diff-desk">━</div>
     </div>
     <div class="ledger-row">
-      <div class="ledger-label">Idle Sitting<span class="ledger-sub">Watching TV, social media, lounging</span></div>
+      <div class="ledger-label">Idle Sitting<span class="ledger-sub">Commute, Watching TV, social media, lounging</span></div>
       <div class="col-actual"><input type="number" class="hour-input actual-input" id="act-idle" min="0" max="24" step="0.5" value="${prevAct.idle || ''}"></div>
       <div class="col-ideal"><input type="number" class="hour-input ideal-input" id="idl-idle" min="0" max="24" step="0.5" value="${prevIdl.idle || getIdealMid(idealRow.idle)}"></div>
       <div class="col-diff stock-ticker" id="diff-idle">━</div>
@@ -338,6 +341,34 @@ function recalculateLedger() {
     // Update Stock Ticker for Unallocated row (comparing Auto-Actual vs Custom-Ideal)
     const idlLeftover = parseFloat(document.getElementById('idl-other').value) || 0;
     document.getElementById(`diff-other`).innerHTML = getDiffHTML(actLeftover, idlLeftover, false);
+
+    // --- LIVE CALORIE CALCULATION (METs) ---
+    // Fallback to 70kg if profile weight is missing for some reason
+    const w = profile.weightKg || 70; 
+    
+    // 1. Calculate Daily Routine Burn (Hours * MET * Weight)
+    const dailyBurn = (
+      (parseFloat(document.getElementById('act-sleep').value) || 0) * 0.9 +
+      (parseFloat(document.getElementById('act-desk').value) || 0) * 1.2 +
+      (parseFloat(document.getElementById('act-idle').value) || 0) * 1.0 +
+      (parseFloat(document.getElementById('act-standing').value) || 0) * 2.0 +
+      (parseFloat(document.getElementById('act-walking').value) || 0) * 3.0 +
+      (parseFloat(document.getElementById('act-exercise').value) || 0) * 6.0 +
+      (parseFloat(document.getElementById('act-yoga').value) || 0) * 2.5 +
+      (actLeftover) * 1.5 // Unallocated time assumes light activity/sitting
+    ) * w;
+
+    // 2. Add Weekly Extras (Averaged out per day)
+    const sportsDaily = (parseFloat(document.getElementById('hab-sports').value) || 0) / 7;
+    const strengthDaily = (parseFloat(document.getElementById('hab-strength').value) || 0) / 7;
+    const extraBurn = (sportsDaily * 6.0 + strengthDaily * 5.0) * w;
+
+    // 3. Update the UI
+    const totalEstCalories = Math.round(dailyBurn + extraBurn);
+    document.getElementById('cal-burn-display').textContent = `~${totalEstCalories.toLocaleString()} kcal`;
+    
+    // Save to a global variable so we can pass it to the next page
+    window.currentEstCalories = totalEstCalories;
   }
 
   // Attach auto-calc listeners
@@ -376,7 +407,8 @@ function recalculateLedger() {
         sports: parseFloat(document.getElementById('hab-sports').value) || 0,
         strength: parseFloat(document.getElementById('hab-strength').value) || 0,
         social: parseFloat(document.getElementById('hab-social').value) || 0
-      }
+      },
+      estimatedCalories: window.currentEstCalories || 2000 // Pass the live calculation to Diet
     };
 
     const next = Object.assign({}, state, { routine: routineState });

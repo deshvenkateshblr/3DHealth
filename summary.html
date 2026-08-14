@@ -9,44 +9,72 @@
 <body>
 
 <header class="masthead">
-  <div class="masthead-row">
-    <div>
-      <a class="brand-link" href="index.html">
-        <div class="brand-lockup">
-          <svg class="brand-mark" width="20" height="20" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
-            <path d="M20 5 L27 16 L13 16 Z" fill="var(--teal)"/>
-            <path d="M10 19 L30 19 L34 28 L6 28 Z" fill="var(--amber)"/>
-            <path d="M4 31 L36 31 L39 38 L1 38 Z" fill="var(--ink)"/>
-          </svg>
-          <span class="brand-word"><em>Vital</em> Framework</span>
-        </div>
+  <div class="masthead-inner" style="display:flex; align-items:center; justify-content:space-between; gap:24px; flex-wrap:wrap;">
+    
+    <div class="brand-lockup" style="margin-bottom:0;">
+      <a href="index.html" style="text-decoration:none;">
+        <img src="shared/assets/kyh_logo.jpg" alt="KYH – Know Your Health" style="height:38px; width:auto; display:block;">
       </a>
-      <h1 class="brand">Your <em>Profile</em></h1>
     </div>
-    <p class="tagline">Everything in one place: baseline, fuel, and structure.</p>
-  </div>
-  <div class="quote-block in-header">
-    <svg class="quote-icon" width="34" height="34" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="60" cy="60" r="58" fill="var(--teal-soft)"/>
-      <path d="M30 66c6-22 10-28 14-6 4 20 8 14 12-4 3-14 6-10 9 2 2 8 4 6 6-2"
-        fill="none" stroke="var(--teal)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
-      <circle cx="60" cy="60" r="58" fill="none" stroke="var(--ink)" stroke-width="2"/>
-    </svg>
-    <div>
-      <p class="quote-text"><span class="mark">&ldquo;</span>You showed up and told the truth. That’s the whole hard part — the rest is just follow-through.<span class="mark">&rdquo;</span></p>
-      <p class="quote-sub">Today's nudge</p>
+
+    <div class="map-route" aria-label="Your progress from Fine to Great">
+      <div class="map-stop">
+        <div class="map-pin" style="border-color:var(--teal); color:var(--teal);">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+            <path d="M12 21s-6-5.4-6-10a6 6 0 1 1 12 0c0 4.6-6 10-6 10z"/><circle cx="12" cy="11" r="2.2"/>
+          </svg>
+        </div>
+        <div class="label">Fine</div>
+      </div>
+      
+      <div class="map-line"></div>
+      
+      <div class="map-stop">
+        <div class="map-pin" style="border-color:var(--teal); color:var(--teal);">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/>
+          </svg>
+        </div>
+        <div class="label">Diagnostics</div>
+      </div>
+      
+      <div class="map-line"></div>
+      
+      <div class="map-stop">
+        <div class="map-pin" style="border-color:var(--teal); color:var(--teal);">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/>
+          </svg>
+        </div>
+        <div class="label">Routine</div>
+      </div>
+      
+      <div class="map-line"></div>
+      
+      <div class="map-stop">
+        <div class="map-pin" style="border-color:var(--teal); color:var(--teal);">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/>
+          </svg>
+        </div>
+        <div class="label">Diet</div>
+      </div>
+
+      <div class="map-line"></div>
+      
+      <div class="map-stop active">
+        <div class="map-pin" style="border-color:var(--ink); color:var(--paper); background:var(--ink);">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2l2.4 7.4H22l-6 4.6 2.3 7.4L12 17.3 5.7 21.4 8 14 2 9.4h7.6z"/>
+          </svg>
+        </div>
+        <div class="label" style="color:var(--ink); font-weight:600;">Great</div>
+      </div>
     </div>
+
   </div>
 </header>
 
-<nav class="steps">
-  <a class="step done" href="profile.html"><span class="n">&check;</span>Profile</a>
-  <a class="step done" href="symptoms.html"><span class="n">&check;</span>Symptoms</a>
-  <a class="step done" href="diagnostics.html"><span class="n">&check;</span>Diagnostics</a>
-  <a class="step done" href="routine.html"><span class="n">&check;</span>Routine</a>
-  <a class="step done" href="diet.html"><span class="n">&check;</span>Diet</a>
-  <a class="step current" href="summary.html"><span class="n">6</span>Summary</a>
-</nav>
 
 
 <main id="main-content">
@@ -322,31 +350,310 @@ function render(){
   const [bmiLabel] = bmiTag(p.bmi);
   const [whtrLabel] = whtrTag(p.whtr);
 
-  /* Diagnostics recap */
-  let diagHtml = `<p class="lede">You haven't answered the diagnostics questions yet. <a href="diagnostics.html">Go back &rarr;</a></p>`;
+  // 1. LIFESTYLE NOTES
+  const lifestyleNotes = [];
+  if(p.smoking && p.smoking!=='Never'){
+    lifestyleNotes.push('Reducing or quitting smoking is one of the highest-impact changes available for long-term heart, lung, and cancer risk \u2014 worth raising with a doctor if you\u2019re considering it.');
+  }
+  if(p.alcohol==='3-5x/week' || p.alcohol==='Daily'){
+    lifestyleNotes.push('Cutting back on alcohol frequency tends to improve sleep, liver markers, and blood pressure within weeks \u2014 even a modest reduction helps.');
+  }
+  
+  const vitals = state.vitals || {};
+  if(vitals.fastingSugarUnknown){
+    lifestyleNotes.push('You marked fasting blood sugar as untested \u2014 it\u2019s a quick, cheap test and one of the most useful early-warning numbers you can have on file.');
+  } else if(vitals.fastingSugar!=null){
+    if(vitals.fastingSugar>=126) lifestyleNotes.push(`Your fasting blood sugar (${vitals.fastingSugar} mg/dL) is above the typical reference range \u2014 worth confirming with a lab test and a doctor.`);
+    else if(vitals.fastingSugar>=100) lifestyleNotes.push(`Your fasting blood sugar (${vitals.fastingSugar} mg/dL) sits in the elevated range \u2014 worth a confirmed lab test.`);
+    else if(vitals.fastingSugar<70) lifestyleNotes.push(`Your fasting blood sugar (${vitals.fastingSugar} mg/dL) is below the typical range \u2014 worth mentioning to a doctor.`);
+  }
+  
+  if(vitals.restingHRUnknown){
+    lifestyleNotes.push('You marked resting heart rate as untested \u2014 it\u2019s free to check yourself and a useful baseline over time.');
+  } else if(vitals.restingHR!=null){
+    if(vitals.restingHR>100) lifestyleNotes.push(`Your resting heart rate (${vitals.restingHR} bpm) is above the typical resting range (60\u2013100 bpm).`);
+    else if(vitals.restingHR<50) lifestyleNotes.push(`Your resting heart rate (${vitals.restingHR} bpm) is below the typical range.`);
+  }
+  
+  // 2. PROFILE SUMMARY HTML
+  const famHistoryArr = [];
+  if (p.famMetabolic) famHistoryArr.push("Metabolic");
+  if (p.famCardio) famHistoryArr.push("Cardiovascular");
+  const famText = famHistoryArr.length > 0 ? famHistoryArr.join(", ") : "None";
+  const reproText = p.reproStatus ? `<div><span class="intake-label" style="margin-right: 6px;">Status:</span> <span style="font-weight: 600; color: var(--ink);">${esc(p.reproStatus)}${p.pcos ? ' (PCOS)' : ''}</span></div>` : '';
+  const symptomsText = (p.symptoms && p.symptoms.length > 0) ? p.symptoms.map(esc).join(', ') : 'None reported';
+
+  const profileSummaryHtml = `
+    <div class="section-head">
+      <h2>Baseline Profile</h2>
+      <span class="section-sub">Vital Stats & Symptoms</span>
+    </div>
+    <div style="background: var(--panel); border: 1px solid var(--line); padding: 24px; margin-bottom: 48px;">
+      <div style="display: flex; flex-wrap: wrap; gap: 12px 24px; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--line);">
+        <div><span class="intake-label" style="margin-right: 6px;">Sex:</span> <span style="font-weight: 600; color: var(--ink);">${esc(p.sex)}</span></div>
+        <div><span class="intake-label" style="margin-right: 6px;">Age:</span> <span style="font-weight: 600; color: var(--ink);">${esc(p.age)}</span></div>
+        <div><span class="intake-label" style="margin-right: 6px;">Smoking:</span> <span style="font-weight: 600; color: var(--ink);">${esc(p.smoking || 'None')}</span></div>
+        <div><span class="intake-label" style="margin-right: 6px;">Alcohol:</span> <span style="font-weight: 600; color: var(--ink);">${esc(p.alcohol || 'None')}</span></div>
+        <div><span class="intake-label" style="margin-right: 6px;">Family History:</span> <span style="font-weight: 600; color: var(--ink);">${famText}</span></div>
+        ${reproText}
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 24px;">
+        <div>
+          <div class="intake-label" style="margin-bottom: 4px; color: var(--muted);">BMI (Body Mass Index)</div>
+          <div style="font-size: 16px;">
+            <span style="font-weight: 600; color: var(--ink); font-family: var(--mono); font-size: 18px;">${p.bmi.toFixed(1)}</span>
+            <span style="font-size: 13px; color: var(--muted); margin-left: 4px;">(${bmiLabel})</span>
+          </div>
+        </div>
+        <div>
+          <div class="intake-label" style="margin-bottom: 4px; color: var(--muted);">WHtR (Waist-to-Height)</div>
+          <div style="font-size: 16px;">
+            <span style="font-weight: 600; color: var(--ink); font-family: var(--mono); font-size: 18px;">${p.whtr.toFixed(2)}</span>
+            <span style="font-size: 13px; color: var(--muted); margin-left: 4px;">(${whtrLabel})</span>
+          </div>
+        </div>
+        <div style="grid-column: 1 / -1;">
+          <div class="intake-label" style="margin-bottom: 6px; color: var(--rose);">Flagged Symptoms</div>
+          <div style="font-size: 15px; font-weight: 500; color: var(--ink);">${symptomsText}</div>
+        </div>
+      </div>
+      ${lifestyleNotes.length ? `
+      <div style="margin-top: 24px; padding-top: 16px; border-top: 1px dashed var(--line);">
+        <div class="intake-label" style="margin-bottom: 8px;">Worth Addressing</div>
+        <ul style="margin: 0; padding-left: 18px; font-size: 14px; color: var(--ink-soft); line-height: 1.6;">
+          ${lifestyleNotes.map(n => `<li>${n}</li>`).join('')}
+        </ul>
+      </div>` : ''}
+    </div>
+  `;
+
+  // 3. ADVANCED DIAGNOSTICS ENGINE
   let due = [], ok = [], flagged = [];
-  if(state.diagnostics){
-    const answers = state.diagnostics.answers || {};
-    (state.diagnostics.topTests||[]).forEach(t=>{
-      const a = answers[t.test];
-      const isDue = !a || a.done===false || (a.done===true && a.recency==='2+ years ago') || (a.done===true && !a.recency);
-      (isDue ? due : ok).push(t.test);
-      if(a && a.resultStatus === 'Flagged \u2014 needs attention'){
-        flagged.push({test:t.test, note:a.resultNote});
+  let diagnosticsSummaryHtml = `<p class="lede">You haven't answered the diagnostics questions yet. <a href="diagnostics.html">Go back &rarr;</a></p>`;
+  
+  if (state.diagnostics) {
+    const dAnswers = state.diagnostics.answers || {};
+    const dTopTests = Array.isArray(state.diagnostics.topTests) ? state.diagnostics.topTests : [];
+
+    const completedTests = [];
+    const investigativeTests = [];
+    const routineTests = [];
+
+    dTopTests.forEach(t => {
+      const testObj = typeof t === 'string' ? { test: t, bySymptom: false, viaSymptoms: [] } : t;
+      if (!testObj || !testObj.test) return;
+
+      const testName = testObj.test;
+      const a = dAnswers[testName];
+
+      const isDue = !a || a.done === false || (a.done === true && a.recency === '2+ years ago') || (a.done === true && !a.recency);
+      if(isDue) due.push(testName); else ok.push(testName);
+      if(a && (a.resultStatus === 'Flagged \u2014 needs attention' || a.resultStatus === 'Abnormal')) flagged.push({test: testName, note: a.resultNote});
+
+      if (!isDue && a && a.done) {
+        completedTests.push({ name: testName, ...a });
+      } else {
+        if (testObj.bySymptom && testObj.viaSymptoms && testObj.viaSymptoms.length > 0) {
+          investigativeTests.push(testObj);
+        } else {
+          routineTests.push(testObj);
+        }
       }
     });
-    diagHtml = `
-    <div class="stat-strip">
-      <div class="stat-card ${due.length?'flag':'good'}"><div class="k">Tests due</div><div class="v">${due.length}</div><div class="u">of ${(state.diagnostics.topTests||[]).length} reviewed</div></div>
-      <div class="stat-card good"><div class="k">Up to date</div><div class="v">${ok.length}</div><div class="u">recently covered</div></div>
-      <div class="stat-card ${flagged.length?'flag':''}"><div class="k">Previously flagged</div><div class="v">${flagged.length}</div><div class="u">self-reported</div></div>
-    </div>
-    ${due.length ? `<div class="note-block"><span class="k">Due for a check</span>${due.map(esc).join(', ')}.</div>` : `<div class="note-block teal"><span class="k">All caught up</span>Everything in your top 10 is recently covered.</div>`}
-    ${flagged.length ? `<div class="note-block"><span class="k">Worth discussing with a doctor</span>${flagged.map(f=>esc(f.test)+(f.note?' ('+esc(f.note)+')':'')).join(', ')}. This is what you told us &mdash; we haven't interpreted it.</div>` : ''}
+
+    const sugarText = vitals.fastingSugar ? `${vitals.fastingSugar} mg/dL` : 'Not logged';
+    
+    let hrText = 'Not logged';
+    let hrInference = '';
+    if (vitals.restingHR) {
+      hrText = `${vitals.restingHR} bpm`;
+      if (vitals.restingHR < 60) hrInference = 'Low (often athletic)';
+      else if (vitals.restingHR > 100) hrInference = 'Elevated';
+      else hrInference = 'Normal';
+    }
+
+    const completedTestsHtml = completedTests.length > 0 
+      ? completedTests.map(t => {
+          const statusColor = (t.resultStatus === 'Abnormal' || t.resultStatus === 'Flagged \u2014 needs attention') ? 'var(--rose)' : (t.resultStatus === 'Normal' ? 'var(--teal)' : 'var(--ink)');
+          return `
+            <div style="margin-bottom: 16px;">
+              <div style="font-weight: 600; color: var(--ink); font-size: 15px;">
+                ${esc(t.name)} 
+                <span style="font-weight: 400; color: var(--muted); font-size: 13px; margin-left: 4px;">(${esc(t.recency || 'Unknown')})</span>
+              </div>
+              <div style="font-size: 14px; font-weight: 500; color: ${statusColor}; margin-top: 2px;">
+                Status: ${esc(t.resultStatus || 'Unknown')}
+              </div>
+              ${t.resultNote ? `<div style="font-size: 13px; color: var(--ink-soft); margin-top: 2px;">Note: ${esc(t.resultNote)}</div>` : ''}
+            </div>
+          `;
+        }).join('')
+      : '<div style="font-size: 14px; color: var(--muted);">No recent laboratory tests logged.</div>';
+
+    // Pure Narrative Text for Targeted Investigations
+    let investigativeHtml = '<div style="font-size: 14px; color: var(--muted);">No targeted investigations needed based on symptoms.</div>';
+    
+    if (investigativeTests.length > 0) {
+      const formattedList = investigativeTests.map(t => `<b>${esc(t.test)}</b> <span style="font-weight: 500; color: var(--amber);">(${t.viaSymptoms.map(esc).join(', ')})</span>`);
+      let textList = formattedList[0];
+      if (formattedList.length === 2) textList = formattedList.join(' and ');
+      if (formattedList.length > 2) textList = formattedList.slice(0, -1).join(', ') + ', and ' + formattedList[formattedList.length - 1];
+      
+      investigativeHtml = `
+        <p style="margin: 0; font-size: 15px; line-height: 1.6; color: var(--ink);">
+          Based on your reported symptoms, we highly recommend prioritizing ${textList}.
+        </p>
+      `;
+    }
+
+// 1. Generate the chips ONLY if there are routine tests
+    const routineHtml = routineTests.length > 0
+      ? routineTests.map(t => `<span style="display: inline-block; padding: 4px 10px; border: 1px solid var(--line); color: var(--ink-soft); border-radius: 4px; font-size: 13px; font-weight: 500; background: var(--paper); margin-bottom: 6px;">${esc(t.test)}</span>`).join(' ')
+      : ''; // No fallback text, just empty
+
+    // 2. Wrap it in a block that only renders if routineHtml exists
+    const routineSectionBlock = routineHtml ? `
+      <div style="margin-top: 32px;">
+        <div class="intake-label" style="margin-bottom: 4px; color: var(--muted);">Standard Preventative Labs</div>
+        <div style="font-size: 12.5px; color: var(--muted); margin-bottom: 12px; line-height: 1.4;">General health screening checks recommended for a ${p.age}-year-old ${p.sex}.</div>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+          ${routineHtml}
+        </div>
+      </div>
+    ` : '';
+
+    diagnosticsSummaryHtml = `
+      <div class="section-head">
+        <h2>Clinical Diagnostics</h2>
+        <span class="section-sub">Vitals & Lab Triage</span>
+      </div>
+      <div style="background: var(--panel); border: 1px solid var(--line); padding: 24px; margin-bottom: 48px;">
+        
+        <div style="display: flex; flex-wrap: wrap; gap: 36px; margin-bottom: 28px; padding-bottom: 16px; border-bottom: 1px solid var(--line);">
+          <div>
+            <div class="intake-label" style="margin-bottom: 4px; color: var(--muted);">Fasting Blood Sugar</div>
+            <div style="font-weight: 600; color: var(--ink); font-family: var(--mono); font-size: 18px;">${sugarText}</div>
+          </div>
+          <div>
+            <div class="intake-label" style="margin-bottom: 4px; color: var(--muted);">Resting Heart Rate</div>
+            <div style="font-size: 16px;">
+              <span style="font-weight: 600; color: var(--ink); font-family: var(--mono); font-size: 18px;">${hrText}</span>
+              ${hrInference ? `<span style="font-size: 13px; color: var(--muted); margin-left: 4px;">(${hrInference})</span>` : ''}
+            </div>
+          </div>
+        </div>
+        
+        <div style="display: flex; flex-direction: column; gap: 32px;">
+          <div>
+            <div class="intake-label" style="margin-bottom: 12px; color: var(--ink);">Logged Lab Results</div>
+            ${completedTestsHtml}
+          </div>
+          
+          <div>
+            <div class="intake-label" style="margin-bottom: 12px; color: var(--amber);">Targeted Investigations</div>
+            ${investigativeHtml}
+          </div>
+            
+          ${routineSectionBlock}
+        </div>
+      </div>
     `;
   }
 
-  /* Diet recap */
+
+// 4. ROUTINE RECAP
+  let routineHtml = `<p class="lede" style="color: var(--muted);">You haven't logged your routine yet. <a href="routine.html">Go back &rarr;</a></p>`;
+  let routineOff = [];
+  
+  if (state.routine) {
+    // Preserve your existing gauge logic for out-of-bounds items
+    if (typeof ROUTINE_GAUGE_FIELDS !== 'undefined') {
+      ROUTINE_GAUGE_FIELDS.forEach(f => {
+        const [lo, hi] = parseRange(state.routine.ideal[f.key]);
+        const v = state.routine.actual[f.key];
+        if (v < lo || v > hi) routineOff.push(f.label);
+      });
+    }
+
+    const estBurn = state.routine.estimatedCalories ? `~${state.routine.estimatedCalories.toLocaleString()}` : 'Not calculated';
+
+    // Format out-of-bounds items into a flowing narrative sentence
+    let routineStatusHtml = '';
+    if (routineOff.length > 0) {
+      let offText = routineOff.length === 1 
+        ? `<strong>${esc(routineOff[0])}</strong> is currently` 
+        : `<strong>${routineOff.slice(0, -1).map(esc).join(', ')}</strong>, and <strong>${esc(routineOff[routineOff.length - 1])}</strong> are currently`;
+
+      routineStatusHtml = `
+        <div style="padding: 16px; background: var(--amber-soft); border-radius: 4px; border: 1px solid #ebd4b9; margin-bottom: 24px;">
+          <p style="margin: 0; font-size: 14.5px; line-height: 1.6; color: #8c5013;">
+            Based on your log, ${offText} outside your ideal clinical range. Adjusting these should be your primary focus.
+          </p>
+        </div>
+      `;
+    } else {
+      routineStatusHtml = `
+        <div style="padding: 16px; background: var(--teal-soft); border-radius: 4px; border: 1px solid #c6e0d9; margin-bottom: 24px;">
+          <p style="margin: 0; font-size: 14.5px; line-height: 1.6; color: var(--teal);">
+            Every logged activity falls within your ideal clinical range. Great job maintaining a balanced baseline.
+          </p>
+        </div>
+      `;
+    }
+
+    // Extract Habits
+    const hab = state.routine.habits || {};
+    
+    // Group Daily Habits
+    const dailyHabits = [];
+    if (hab.steps) dailyHabits.push(`${hab.steps.toLocaleString()} steps`);
+    if (hab.sun) dailyHabits.push(`${hab.sun} mins sunlight`);
+    if (hab.dinner) dailyHabits.push(`Dinner at ${hab.dinner} PM`);
+    if (hab.postMealWalk) dailyHabits.push('Post-meal walk');
+    const dailyText = dailyHabits.length > 0 ? dailyHabits.join(' &nbsp;&middot;&nbsp; ') : 'None logged';
+
+    // Group Weekly Extras
+    const weeklyExtras = [];
+    if (hab.sports) weeklyExtras.push(`${hab.sports} hrs sports/cardio`);
+    if (hab.strength) weeklyExtras.push(`${hab.strength} hrs strength training`);
+    if (hab.social) weeklyExtras.push(`${hab.social} hrs social/community`);
+    const weeklyText = weeklyExtras.length > 0 ? weeklyExtras.join(' &nbsp;&middot;&nbsp; ') : 'None logged';
+
+    routineHtml = `
+      <div class="section-head">
+        <h2>Daily Routine</h2>
+        <span class="section-sub">Energy Burn & Habits</span>
+      </div>
+      <div style="background: var(--panel); border: 1px solid var(--line); padding: 24px; margin-bottom: 48px;">
+        
+        <div style="display: flex; flex-wrap: wrap; gap: 36px; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--line);">
+          <div>
+            <div class="intake-label" style="margin-bottom: 4px; color: var(--muted);">Estimated Daily Burn</div>
+            <div style="font-size: 16px;">
+              <span style="font-weight: 600; color: var(--ink); font-family: var(--mono); font-size: 18px;">${estBurn}</span>
+              <span style="font-size: 13px; color: var(--muted); margin-left: 4px;">kcal/day</span>
+            </div>
+          </div>
+        </div>
+
+        ${routineStatusHtml}
+
+        <div style="display: flex; flex-direction: column; gap: 16px;">
+          <div>
+            <div class="intake-label" style="margin-bottom: 6px; color: var(--muted);">Daily Habits</div>
+            <div style="font-weight: 500; color: var(--ink); font-size: 15px;">${dailyText}</div>
+          </div>
+          <div>
+            <div class="intake-label" style="margin-bottom: 6px; color: var(--muted);">Weekly Extras</div>
+            <div style="font-weight: 500; color: var(--ink); font-size: 15px;">${weeklyText}</div>
+          </div>
+        </div>
+
+      </div>
+    `;
+  }
+
+  // 4. DIET RECAP
   let dietHtml = `<p class="lede">You haven't set your diet pattern yet. <a href="diet.html">Go back &rarr;</a></p>`;
   if(state.diet){
     const d = state.diet;
@@ -359,78 +666,15 @@ function render(){
     `;
   }
 
-  /* Routine recap */
-  let routineHtml = `<p class="lede">You haven't logged your routine yet. <a href="routine.html">Go back &rarr;</a></p>`;
-  let routineOff = [];
-  if(state.routine){
-    ROUTINE_GAUGE_FIELDS.forEach(f=>{
-      const [lo,hi] = parseRange(state.routine.ideal[f.key]);
-      const v = state.routine.actual[f.key];
-      if(v<lo || v>hi) routineOff.push(f.label);
-    });
-    routineHtml = `
-    <div class="stat-strip">
-      <div class="stat-card ${routineOff.length?'flag':'good'}"><div class="k">Outside ideal range</div><div class="v">${routineOff.length}</div><div class="u">of ${ROUTINE_GAUGE_FIELDS.length} activities</div></div>
-    </div>
-    ${routineOff.length ? `<div class="note-block"><span class="k">Worth adjusting</span>${routineOff.map(esc).join(', ')}.</div>` : `<div class="note-block teal"><span class="k">Well balanced</span>Every logged activity falls in its ideal range.</div>`}
-    `;
-  }
-
-  /* Lifestyle recommendations, shown only where relevant */
-  const lifestyleNotes = [];
-  if(p.smoking && p.smoking!=='Never'){
-    lifestyleNotes.push('Reducing or quitting smoking is one of the highest-impact changes available for long-term heart, lung, and cancer risk \u2014 worth raising with a doctor if you\u2019re considering it.');
-  }
-  if(p.alcohol==='3-5x/week' || p.alcohol==='Daily'){
-    lifestyleNotes.push('Cutting back on alcohol frequency tends to improve sleep, liver markers, and blood pressure within weeks \u2014 even a modest reduction helps.');
-  }
-  if(state.diet && state.diet.freq && state.diet.freq.fried>=2){
-    lifestyleNotes.push('Deep-fried food is showing up often in your week \u2014 swapping in baked, grilled, or air-fried versions a few times can meaningfully lower this without eliminating the foods you enjoy.');
-  }
-
-  /* Vitals: fasting glucose and resting heart rate, standard reference bands only */
-  const vitals = state.vitals || {};
-  if(vitals.fastingSugarUnknown){
-    lifestyleNotes.push('You marked fasting blood sugar as untested \u2014 it\u2019s a quick, cheap test and one of the most useful early-warning numbers you can have on file.');
-  } else if(vitals.fastingSugar!=null){
-    if(vitals.fastingSugar>=126) lifestyleNotes.push(`Your fasting blood sugar (${vitals.fastingSugar} mg/dL) is above the typical reference range (under 100 mg/dL) \u2014 this is self-reported and not a diagnosis, but worth confirming with a lab test and a doctor.`);
-    else if(vitals.fastingSugar>=100) lifestyleNotes.push(`Your fasting blood sugar (${vitals.fastingSugar} mg/dL) sits in the elevated range (100\u2013125 mg/dL is often flagged as prediabetic) \u2014 worth a confirmed lab test if this wasn\u2019t already one.`);
-    else if(vitals.fastingSugar<70) lifestyleNotes.push(`Your fasting blood sugar (${vitals.fastingSugar} mg/dL) is below the typical range \u2014 worth mentioning to a doctor, especially if you feel shaky or lightheaded when fasting.`);
-  }
-  if(vitals.restingHRUnknown){
-    lifestyleNotes.push('You marked resting heart rate as untested \u2014 it\u2019s free to check yourself (first thing in the morning, before getting up) and a useful baseline over time.');
-  } else if(vitals.restingHR!=null){
-    if(vitals.restingHR>100) lifestyleNotes.push(`Your resting heart rate (${vitals.restingHR} bpm) is above the typical resting range (60\u2013100 bpm) \u2014 worth a mention to a doctor, particularly if it\u2019s new or you notice palpitations.`);
-    else if(vitals.restingHR<50) lifestyleNotes.push(`Your resting heart rate (${vitals.restingHR} bpm) is below the typical range \u2014 often unremarkable in very active people, but worth mentioning if it\u2019s new or you feel dizzy or fatigued.`);
-  }
-
+  // 6. INJECT EVERYTHING INTO DOM
   main.innerHTML = `
-  <div class="section-head">
-    <h2>${esc(p.sex)}, age ${esc(p.age)}</h2>
-    <span class="section-sub">06 of 06</span>
-  </div>
+  ${profileSummaryHtml}
+  ${diagnosticsSummaryHtml}
 
-  <div class="stat-strip">
-    <div class="stat-card"><div class="k">BMI</div><div class="v">${p.bmi.toFixed(1)}</div><div class="u">${bmiLabel}</div></div>
-    <div class="stat-card"><div class="k">Waist-to-height ratio</div><div class="v">${p.whtr.toFixed(2)}</div><div class="u">${whtrLabel}</div></div>
-    <div class="stat-card"><div class="k">Activity level</div><div class="v" style="font-size:16px;">${esc((state.routine && state.routine.derivedActivity) || '\u2014')}</div><div class="u">from your routine log</div></div>
-  </div>
-  <div class="stat-strip">
-    <div class="stat-card"><div class="k">Smoking</div><div class="v" style="font-size:16px;">${esc(p.smoking||'\u2014')}</div></div>
-    <div class="stat-card"><div class="k">Alcohol</div><div class="v" style="font-size:16px;">${esc(p.alcohol||'\u2014')}</div></div>
-    ${p.reproStatus ? `<div class="stat-card"><div class="k">Menstrual &amp; menopause status</div><div class="v" style="font-size:15px;">${esc(p.reproStatus)}${p.pcos?' &middot; PCOS':''}</div></div>` : ''}
-  </div>
-  ${lifestyleNotes.length ? `<div class="note-block"><span class="k">Worth addressing</span><ul style="margin:4px 0 0; padding-left:18px;">${lifestyleNotes.map(n=>`<li>${n}</li>`).join('')}</ul></div>` : ''}
-  ${p.symptoms && p.symptoms.length ? `<p class="lede">Symptoms you flagged: ${p.symptoms.map(esc).join(', ')}. <a href="symptoms.html">Adjust &rarr;</a></p>` : ''}
-
-  <div class="cat-title">01 &middot; Diagnostics</div>
-  ${diagHtml}
+  ${routineHtml}
 
   <div class="cat-title">02 &middot; Diet</div>
   ${dietHtml}
-
-  <div class="cat-title">03 &middot; Daily Routine</div>
-  ${routineHtml}
 
   <div class="cat-title">Next steps</div>
 
@@ -464,6 +708,7 @@ function render(){
   </div>
   `;
 
+  // 7. RE-ATTACH LISTENERS & POPULATE AI PROMPT
   document.getElementById('ai-prompt-box').value = buildAIPrompt(state, due, ok, routineOff, flagged, lifestyleNotes);
   document.getElementById('print-sheet').innerHTML = buildPrintSheetHtml(state, due, ok, routineOff, flagged, lifestyleNotes);
 
@@ -482,10 +727,7 @@ function render(){
     setTimeout(()=>{ feedback.textContent=''; }, 2500);
   });
 
-  document.getElementById('print-btn').addEventListener('click', ()=>{
-    window.print();
-  });
-
+  document.getElementById('print-btn').addEventListener('click', ()=>{ window.print(); });
   wireVideoShowMore();
 
   document.getElementById('restart-btn').addEventListener('click', ()=>{
@@ -495,6 +737,7 @@ function render(){
     }
   });
 }
+
 
 if(!state.profile){
   main.innerHTML = `<div class="empty-state">We need your profile first. <a href="profile.html">Go back and fill it in &rarr;</a></div>`;
