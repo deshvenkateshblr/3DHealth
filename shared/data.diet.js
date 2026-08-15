@@ -397,7 +397,7 @@ window.CUISINE_EXTRAS = {
     "Magnesium": "dal, leafy sabji, seeds, nuts, millets",
     "Iron": "dal, sambar, dark leafy sabji + lemon/amla",
     "Calcium": "curd, buttermilk, raita, sesame (til), paneer",
-    "Omega-3 (EPA/DHA)": "flaxseed (alsi), walnuts, fish (if allowed)",
+    "Omega-3 (EPA/DHA)": "flaxseed (alsi), walnuts",
     "Zinc": "dal, seeds, nuts, whole grains",
     "Potassium": "coconut water, banana, sabji, curd, potato",
     "Vitamin D": "sunlight + fortified milk / curd",
