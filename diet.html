@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Diet &mdash; KYH</title>
-<link rel="stylesheet" href="shared/styles.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Diet &mdash; KYH</title>
+  <link rel="stylesheet" href="shared/styles.css">
 </head>
 <body>
 
@@ -20,7 +20,7 @@
       <div class="map-line"></div>
       <div class="map-stop"><div class="map-pin" style="border-color:var(--teal); color:var(--teal);"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/></svg></div><div class="label">Diagnostics</div></div>
       <div class="map-line"></div>
-      <div class="map-stop"><div class="map-pin" style="border-color:var(--teal); color:var(--teal); "><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg></div><div class="label" >Routine</div></div>
+      <div class="map-stop"><div class="map-pin" style="border-color:var(--teal); color:var(--teal);"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg></div><div class="label">Routine</div></div>
       <div class="map-line"></div>
       <div class="map-stop active"><div class="map-pin" style="border-color:var(--amber); color:var(--paper); background:var(--amber);"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/></svg></div><div class="label" style="color:var(--ink); font-weight:600;">Diet</div></div>
       <div class="map-line"></div>
@@ -30,54 +30,7 @@
 </header>
 
 <main id="main-content">
-  
-  <div class="section-head">
-    <h2>Diet Preference &amp; Patterns</h2>
-  </div>
-  <p class="lede" style="margin-bottom:32px;">Log your dietary preferences, eating rhythm, and food quality markers. We'll synthesize this into a concrete nutritional target built for your metabolism.</p>
-
-  <div class="cat-title">Foundation</div>
-  <div class="field-row" style="margin-bottom:36px;">
-    <div class="field">
-      <label class="intake-label" for="diet-type">Dietary preference</label>
-      <select id="diet-type">
-        <option value="" disabled selected>Select...</option>
-        <option value="Omnivore">Omnivore (No restrictions)</option>
-        <option value="Pescetarian">Pescetarian</option>
-        <option value="Eggetarian">Eggetarian / Ovo-Vegetarian</option>
-        <option value="Vegetarian">Vegetarian (Strictly No Eggs)</option>
-        <option value="Vegan">Vegan (100% Plant-based)</option>
-      </select>
-    </div>
-    <div class="field">
-      <label class="intake-label" for="cuisine-type">Cuisine / region</label>
-      <select id="cuisine-type">
-        <option value="" disabled selected>Select...</option>
-        <option value="Global">Global / Mixed</option>
-        <option value="South Indian">South Indian</option>
-        <option value="North Indian">North Indian</option>
-        <option value="Mediterranean">Mediterranean</option>
-        <option value="East Asian">East Asian</option>
-      </select>
-    </div>
-  </div>
-
-  <div class="cat-title">Eating Rhythm & Satiety</div>
-  <p class="lede" style="font-size:14px; margin-bottom:16px;">Check your daily meals and roughly how full they make you feel.</p>
-  
-  <div id="rhythm-container" class="habit-grid" style="margin-bottom:36px;">
-    </div>
-
-  <div class="cat-title">Food Quality Markers</div>
-  <p class="lede" style="font-size:14px; margin-bottom:16px;">How often do you consume these specific clinical markers?</p>
-  
-  <div id="markers-container" class="habit-grid" style="margin-bottom:36px;">
-    </div>
-
-  <div class="page-footer-nav">
-    <a href="routine.html" class="btn secondary">&larr; Back</a>
-    <button type="button" class="btn" id="continue-btn">Synthesize Diet &rarr;</button>
-  </div>
+  <div class="empty-state">Loading…</div>
 </main>
 
 <footer>
@@ -88,121 +41,235 @@
 <script src="shared/utils.js"></script>
 <script src="shared/data.diet.js"></script>
 <script>
-const state = loadState() || { profile: {}, routine: {} };
-const profile = state.profile;
-let dietState = { type: "", cuisine: "", rhythm: {}, frequency: {} };
+const state = loadState() || {};
+const profile = state.profile || {};
+const routine = state.routine || {};
+const userSymptoms = profile.symptoms || [];
 
-const meals = [
-  { id: 'morning_coffee', label: 'Morning Tea / Coffee' },
-  { id: 'breakfast', label: 'Breakfast' },
-  { id: 'lunch', label: 'Lunch' },
-  { id: 'afternoon_snack', label: 'Snack / Tea' },
-  { id: 'dinner', label: 'Dinner' },
-  { id: 'midnight_snack', label: 'Late Night' }
-];
-const satieties = ['Skip', 'Light', 'Standard', 'Heavy'];
+let dietState = {
+  type: "",
+  cuisine: "",
+  frequency: {},
+  priorities: []
+};
 
-const markers = [
-  { id: 'fruits', label: 'Fruits' },
-  { id: 'greens', label: 'Green / leafy vegetables' },
-  { id: 'legumes', label: 'Legumes, lentils & pulses' },
-  { id: 'nuts', label: 'Nuts & seeds' },
-  { id: 'processed', label: 'Fried / Ultra-processed' },
-  { id: 'sugary_drinks', label: 'Sugary drinks / sodas' }
-];
-const frequencies = ['Daily', '3-5x/Wk', '1-2x/Wk', 'Rarely'];
+function getExamples(nutrientName) {
+  const diet = dietState.type || "Vegetarian";
+  const cuisine = dietState.cuisine || "Indian";
+  const base = (window.PREF_FOOD_EXAMPLES[diet] || {})[nutrientName] || "";
+  const extra = (window.CUISINE_EXTRAS[cuisine] || {})[nutrientName] || "";
 
-function initUI() {
-  if(!profile){
-    document.getElementById('main-content').innerHTML = `<div class="empty-state">We need your profile first. <a href="profile.html">Go back to start &rarr;</a></div>`;
+  // Indian: show richer list directly (no "Indian favourites" label)
+  if (cuisine === "Indian" && extra) return extra;
+  if (base && extra) return `${base} · ${extra}`;
+  return base || extra || "";
+}
+
+function deriveProfiles() {
+  const cats = ["Low Risk"];
+  const whtr = (profile.waistCm && profile.heightCm) ? profile.waistCm / profile.heightCm : 0;
+  if (profile.bmi >= 25 || whtr >= 0.5 || profile.famMetabolic) cats.push("Metabolic");
+  if (whtr >= 0.5 || profile.famCardio || (profile.age || 0) > 40) cats.push("Cardiovascular");
+  return cats;
+}
+
+function scoreNutrient(n) {
+  let score = 0;
+  const matched = (n.symptoms || []).filter(s => userSymptoms.includes(s));
+  score += matched.length * 12;
+
+  const userProfiles = deriveProfiles();
+  score += (n.profile || "").split(";").filter(p => userProfiles.includes(p.trim())).length * 8;
+
+  Object.entries(dietState.frequency).forEach(([id, freq]) => {
+    const marker = (window.FOOD_QUALITY || []).find(f => f.id === id);
+    if (!marker) return;
+    if (marker.type === "protective" && (freq === "Rarely" || freq === "1-2x/Wk")) {
+      if (marker.nutrientsBoosted.includes(n.nutrient)) score += 5;
+    }
+    if (marker.type === "harmful" && (freq === "Daily" || freq === "3-5x/Wk")) {
+      if (n.nutrient === "Added Sugars / Refined Carbohydrates") score += 11;
+    }
+  });
+
+  if (profile.alcohol && profile.alcohol !== "Never" && ["Magnesium","Vitamin B12","Zinc","Protein"].includes(n.nutrient)) score += 4;
+  if (profile.smoking && profile.smoking !== "Never" && ["Zinc","Omega-3 (EPA/DHA)"].includes(n.nutrient)) score += 3;
+  if (profile.bmi >= 25 && ["Protein","Fibre","Magnesium","Chromium","Omega-3 (EPA/DHA)","Added Sugars / Refined Carbohydrates"].includes(n.nutrient)) score += 6;
+
+  return { score, matched };
+}
+
+function renderPage() {
+  if (!profile.sex) {
+    document.getElementById("main-content").innerHTML = `<div class="empty-state">We need your profile first. <a href="profile.html">Go back to start →</a></div>`;
     return;
   }
 
-  // Inject Rhythm HTML utilizing native .habit-grid & .unit-toggle elements
-  const rhythmHtml = meals.map((meal) => `
-    <div class="habit-card">
-      <div>
-        <div class="k" style="font-size:12.5px;">${meal.label}</div>
+  const main = document.getElementById("main-content");
+  main.innerHTML = `
+    <div class="section-head">
+      <h2>Diet Priorities</h2>
+      <span class="section-sub">Diet</span>
+    </div>
+    <p class="lede" style="margin-bottom:28px;">
+      Based on your symptoms, body composition, routine and preferences we prioritise the nutrients that matter most for you right now.
+    </p>
+
+    <div class="cat-title">Dietary & Cuisine Preference</div>
+    <div class="field-row" style="margin-bottom:28px;">
+      <div class="field">
+        <label class="eyebrow-label" for="diet-type">Dietary preference</label>
+        <select id="diet-type">
+          <option value="">Select…</option>
+          <option value="Vegetarian">Vegetarian</option>
+          <option value="Vegan">Vegan</option>
+          <option value="Eggetarian">Eggetarian</option>
+          <option value="Jain">Jain</option>
+          <option value="Pescatarian">Pescatarian</option>
+          <option value="Non-Vegetarian">Non-Vegetarian</option>
+        </select>
       </div>
-      <div style="margin-top:14px;">
-        <div class="unit-toggle small satiety-group" data-meal="${meal.id}" style="width:100%; display:flex;">
-          ${satieties.map(size => `<button type="button" class="satiety-btn" data-val="${size}" style="flex:1; padding-left:2px; padding-right:2px;">${size}</button>`).join('')}
+      <div class="field">
+        <label class="eyebrow-label" for="cuisine-type">Cuisine preference</label>
+        <select id="cuisine-type">
+          <option value="">Select…</option>
+          <option value="Indian">Indian</option>
+          <option value="Mediterranean">Mediterranean</option>
+          <option value="East Asian">East Asian</option>
+          <option value="Middle Eastern">Middle Eastern</option>
+          <option value="Western / Continental">Western / Continental</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="cat-title">Food Quality Markers</div>
+    <p class="lede" style="font-size:14px; margin-bottom:16px;">How often do you consume these?</p>
+    <div id="markers-container" class="habit-grid" style="margin-bottom:36px;"></div>
+
+    <div class="cat-title">Nutrient Priorities</div>
+    <p class="lede" style="font-size:14px; margin-bottom:16px;" id="priority-meta">Ranked for you</p>
+    <div id="nutrient-list"></div>
+
+    <div class="page-footer-nav">
+      <a href="routine.html" class="btn secondary">← Back</a>
+      <button type="button" class="btn" id="continue-btn">Synthesize Diet →</button>
+    </div>
+  `;
+
+  // Food Quality Markers
+  document.getElementById("markers-container").innerHTML = (window.FOOD_QUALITY || []).map(m => `
+    <div class="habit-card">
+      <div class="k" style="font-size:13px;">${m.label}</div>
+      <div style="margin-top:12px;">
+        <div class="unit-toggle small freq-group" data-marker="${m.id}" style="width:100%;display:flex;">
+          ${(window.FOOD_QUALITY_OPTIONS || []).map(opt => 
+            `<button type="button" class="freq-btn" data-val="${opt}" style="flex:1;">${opt}</button>`
+          ).join("")}
         </div>
       </div>
     </div>
-  `).join('');
-  document.getElementById('rhythm-container').innerHTML = rhythmHtml;
+  `).join("");
 
-  // Inject Frequency HTML utilizing native .habit-grid & .unit-toggle elements
-  const markerHtml = markers.map((marker) => `
-    <div class="habit-card">
-      <div>
-        <div class="k" style="font-size:12.5px;">${marker.label}</div>
-      </div>
-      <div style="margin-top:14px;">
-        <div class="unit-toggle small freq-group" data-marker="${marker.id}" style="width:100%; display:flex;">
-          ${frequencies.map(freq => `<button type="button" class="freq-btn" data-val="${freq}" style="flex:1; padding-left:2px; padding-right:2px;">${freq}</button>`).join('')}
-        </div>
-      </div>
-    </div>
-  `).join('');
-  document.getElementById('markers-container').innerHTML = markerHtml;
-  
-  attachListeners();
-}
-
-function attachListeners() {
-  document.getElementById('diet-type').addEventListener('change', (e) => dietState.type = e.target.value);
-  document.getElementById('cuisine-type').addEventListener('change', (e) => dietState.cuisine = e.target.value);
-
-  // Rhythm logic
-  document.getElementById('rhythm-container').addEventListener('click', (e) => {
-    const btn = e.target.closest('.satiety-btn');
-    if (!btn) return;
-    const group = btn.closest('.satiety-group');
-    const mealId = group.dataset.meal;
-    
-    group.querySelectorAll('.satiety-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    dietState.rhythm[mealId] = btn.dataset.val;
+  document.getElementById("diet-type").addEventListener("change", e => {
+    dietState.type = e.target.value;
+    renderNutrients();
+  });
+  document.getElementById("cuisine-type").addEventListener("change", e => {
+    dietState.cuisine = e.target.value;
+    renderNutrients();
   });
 
-  // Frequency logic
-  document.getElementById('markers-container').addEventListener('click', (e) => {
-    const btn = e.target.closest('.freq-btn');
+  document.getElementById("markers-container").addEventListener("click", e => {
+    const btn = e.target.closest(".freq-btn");
     if (!btn) return;
-    const group = btn.closest('.freq-group');
-    const markerId = group.dataset.marker;
-    
-    group.querySelectorAll('.freq-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    dietState.frequency[markerId] = btn.dataset.val;
+    const group = btn.closest(".freq-group");
+    group.querySelectorAll(".freq-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    dietState.frequency[group.dataset.marker] = btn.dataset.val;
+    renderNutrients();
   });
 
-  // Submission
-  document.getElementById('continue-btn').addEventListener('click', () => {
-    if (!dietState.type || !dietState.cuisine) return alert("Please select your Dietary preference and Cuisine.");
-    if (Object.keys(dietState.rhythm).length < meals.length) return alert("Please select an option for all Eating Rhythm choices (use 'Skip' if you don't eat that meal).");
-    if (Object.keys(dietState.frequency).length < markers.length) return alert("Please answer all Food Quality markers.");
+  document.getElementById("continue-btn").addEventListener("click", () => {
+    if (!dietState.type || !dietState.cuisine) return alert("Please select both Dietary preference and Cuisine preference.");
+    if (Object.keys(dietState.frequency).length < (window.FOOD_QUALITY || []).length) {
+      return alert("Please answer all Food Quality markers.");
+    }
 
+    // Keep original calorie target logic
     let targetRow = null;
-    if (window.DIET && profile) {
-      let activeLevel = "Moderate"; 
-      if(state.routine && state.routine.estimatedCalories > 2400) activeLevel = "Active";
-      if(state.routine && state.routine.estimatedCalories < 1800) activeLevel = "Sedentary";
-      targetRow = window.DIET.find(r => r.sex === profile.sex && r.age === profile.ageRange && r.activity === activeLevel) || window.DIET[0]; 
+    if (window.DIET && window.DIET.length) {
+      let activeLevel = "Moderate";
+      if (routine.estimatedCalories > 2400) activeLevel = "Active";
+      if (routine.estimatedCalories < 1800) activeLevel = "Sedentary";
+      targetRow = window.DIET.find(r => 
+        r.sex === profile.sex && 
+        (r.age === profile.ageRange || r.age === String(profile.age)) && 
+        r.activity === activeLevel
+      ) || window.DIET[0];
     }
 
     dietState.target = targetRow ? {
-      cal: targetRow.cal, carbs: targetRow.carbs, fat: targetRow.fat, protein: targetRow.protein, fiber: targetRow.fiber, note: targetRow.note
+      cal: targetRow.cal, carbs: targetRow.carbs, fat: targetRow.fat,
+      protein: targetRow.protein, fiber: targetRow.fiber, note: targetRow.note
     } : null;
 
+    dietState.priorities = (window.NUTRIENTS || [])
+      .map(n => ({ ...n, ...scoreNutrient(n) }))
+      .sort((a,b) => b.score - a.score)
+      .slice(0, 10);
+
     const nextState = Object.assign({}, state, { diet: dietState });
-    goTo('diet-synthesis.html', nextState); 
+    goTo("diet-synthesis.html", nextState);
   });
+
+  renderNutrients();
 }
 
-initUI();
+function renderNutrients() {
+  const list = document.getElementById("nutrient-list");
+  if (!list) return;
+
+  const ranked = (window.NUTRIENTS || [])
+    .map(n => ({ ...n, ...scoreNutrient(n) }))
+    .sort((a,b) => b.score - a.score)
+    .slice(0, 10);
+
+  const matchedCount = ranked.filter(n => n.matched.length).length;
+  const meta = document.getElementById("priority-meta");
+  if (meta) meta.textContent = `${ranked.length} nutrients prioritised · ${matchedCount} matched to your symptoms`;
+
+  list.innerHTML = ranked.map((n, idx) => {
+    const isLimit = n.direction === "limit";
+    const examples = getExamples(n.nutrient);
+    const tagClass = isLimit ? "due" : (n.matched.length ? "ok" : "");
+    const tagText = isLimit ? "LIMIT" : (n.matched.length ? "MATCHES: " + n.matched.slice(0,2).join(", ").toUpperCase() : "BASELINE");
+
+    return `
+      <div class="test-card">
+        <div class="head">
+          <div>
+            <div class="name">${idx+1}. ${n.nutrient}</div>
+            <div class="test-desc">${n.note}</div>
+            <div class="symptom"><b>Watch for:</b> ${(n.symptoms||[]).slice(0,5).join(", ")}</div>
+            ${examples ? `<div style="margin-top:8px;padding:8px 10px;background:var(--paper);border-radius:4px;font-size:12.5px;"><b style="color:var(--teal);">Ideas for you:</b> ${examples}</div>` : ""}
+          </div>
+          <span class="tag ${tagClass}">${tagText}</span>
+        </div>
+        <div class="answers">
+          <span style="font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:.04em;">CURRENT INTAKE?</span>
+          <div class="radio-pair">
+            <input type="radio" name="n_${idx}" id="n_${idx}_yes" value="yes">
+            <label for="n_${idx}_yes">Yes</label>
+            <input type="radio" name="n_${idx}" id="n_${idx}_no" value="no">
+            <label for="n_${idx}_no">No</label>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join("");
+}
+
+renderPage();
 </script>
 </body>
 </html>

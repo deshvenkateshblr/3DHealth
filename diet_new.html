@@ -1,0 +1,582 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Diet &mdash; KYH</title>
+  <link rel="stylesheet" href="shared/styles.css">
+  <style>
+    .page { max-width: 880px; margin: 0 auto; padding: 12px 20px 80px; }
+
+    .based-on { font-size: 14px; color: var(--ink-soft); margin: 18px 0 4px; }
+    .based-on a { color: var(--teal); text-decoration: underline; text-underline-offset: 2px; }
+    .meta { font-size: 13px; color: var(--muted); margin-bottom: 22px; }
+
+    .cat-title {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: var(--teal);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 32px 0 12px;
+    }
+    .cat-title:first-of-type { margin-top: 8px; }
+    .cat-title::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+
+    .section-desc { font-size: 14px; color: var(--ink-soft); margin: -4px 0 16px; }
+
+    .pref-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 8px;
+    }
+    .pref-group label {
+      display: block;
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+    .pref-group select {
+      width: 100%;
+      font-size: 14px;
+      padding: 9px 12px;
+      border: 1px solid var(--line);
+      background: var(--panel);
+      color: var(--ink);
+      border-radius: 4px;
+    }
+
+    .fq-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 14px;
+    }
+    .fq-card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 16px 16px 14px;
+    }
+    .fq-card .label { font-size: 14px; font-weight: 600; margin-bottom: 12px; }
+    .fq-options {
+      display: flex;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .fq-options label {
+      flex: 1;
+      text-align: center;
+      font-family: var(--mono);
+      font-size: 11px;
+      padding: 7px 4px;
+      cursor: pointer;
+      color: var(--muted);
+      background: var(--paper);
+      border-right: 1px solid var(--line);
+      user-select: none;
+    }
+    .fq-options label:last-child { border-right: none; }
+    .fq-options input { display: none; }
+    .fq-options input:checked + label {
+      background: var(--ink);
+      color: var(--paper);
+    }
+
+    .test-card {
+      border: 1px solid var(--line);
+      border-left: 3px solid var(--teal);
+      background: var(--panel);
+      padding: 14px 16px;
+      margin-bottom: 10px;
+    }
+    .test-card.limit { border-left-color: var(--rose); }
+    .test-card .head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: baseline;
+      flex-wrap: wrap;
+    }
+    .test-card .name { font-weight: 600; font-size: 14.5px; }
+    .test-card .test-desc { font-size: 12.5px; color: var(--ink-soft); margin-top: 3px; }
+    .test-card .symptom { font-size: 12.5px; color: var(--muted); margin-top: 2px; }
+    .test-card .symptom b { color: var(--ink-soft); font-weight: 600; }
+    .test-card .examples {
+      font-size: 12.5px;
+      color: var(--ink-soft);
+      margin-top: 6px;
+      padding: 8px 10px;
+      background: var(--paper);
+      border-radius: 4px;
+    }
+    .test-card .examples b { color: var(--teal); font-weight: 600; }
+
+    .tag {
+      font-family: var(--mono);
+      font-size: 9.5px;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      padding: 3px 7px;
+      border: 1px solid var(--line);
+      color: var(--muted);
+      white-space: nowrap;
+    }
+    .tag.ok { border-color: var(--teal); color: var(--teal); }
+    .tag.limit { border-color: var(--rose); color: var(--rose); }
+
+    .answers {
+      display: flex;
+      gap: 14px;
+      margin-top: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .radio-pair { display: flex; gap: 4px; font-family: var(--mono); font-size: 11px; }
+    .radio-pair label {
+      border: 1px solid var(--line);
+      padding: 6px 11px;
+      cursor: pointer;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+    .radio-pair input { display: none; }
+    .radio-pair input:checked + label {
+      background: var(--ink);
+      color: var(--paper);
+      border-color: var(--ink);
+    }
+    .recency-select {
+      font-family: var(--mono);
+      font-size: 11.5px;
+      padding: 6px 8px;
+      border: 1px solid var(--line);
+      background: var(--paper);
+    }
+    .recency-select:disabled { opacity: .4; }
+
+    .note-block {
+      margin-top: 28px;
+      border-left: 3px solid var(--teal);
+      background: var(--teal-soft);
+      padding: 14px 16px;
+      font-size: 13.5px;
+      color: #123f37;
+    }
+    .note-block .k {
+      font-family: var(--mono);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      color: var(--teal);
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    @media (max-width: 600px) {
+      .pref-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="masthead-inner" style="display:flex; align-items:center; justify-content:space-between; gap:24px; flex-wrap:wrap;">
+    <div class="brand-lockup" style="margin-bottom:0;">
+      <a href="index.html" style="text-decoration:none;">
+        <img src="shared/assets/kyh_logo.jpg" alt="KYH – Know Your Health" style="height:38px; width:auto; display:block;">
+      </a>
+    </div>
+    <div class="map-route" aria-label="Your progress from Fine to Great">
+      <div class="map-stop"><div class="map-pin" style="border-color:var(--teal); color:var(--teal);"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 21s-6-5.4-6-10a6 6 0 1 1 12 0c0 4.6-6 10-6 10z"/><circle cx="12" cy="11" r="2.2"/></svg></div><div class="label">Fine</div></div>
+      <div class="map-line"></div>
+      <div class="map-stop"><div class="map-pin" style="border-color:var(--teal); color:var(--teal);"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/></svg></div><div class="label">Diagnostics</div></div>
+      <div class="map-line"></div>
+      <div class="map-stop"><div class="map-pin" style="border-color:var(--teal); color:var(--teal);"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg></div><div class="label">Routine</div></div>
+      <div class="map-line"></div>
+      <div class="map-stop active"><div class="map-pin" style="border-color:var(--amber); color:var(--paper); background:var(--amber);"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/></svg></div><div class="label" style="color:var(--ink); font-weight:600;">Diet</div></div>
+      <div class="map-line"></div>
+      <div class="map-stop"><div class="map-pin" style="opacity:0.4;"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 7.4H22l-6 4.6 2.3 7.4L12 17.3 5.7 21.4 8 14 2 9.4h7.6z"/></svg></div><div class="label" style="opacity:0.5;">Great</div></div>
+    </div>
+  </div>
+</header>
+
+<div class="page">
+
+  <p class="based-on">Based on your profile, symptoms & preferences · <a href="#">adjust</a></p>
+  <p class="meta" id="metaLine">Calculating priorities…</p>
+
+  <!-- Dietary + Cuisine -->
+  <div class="cat-title">Dietary & Cuisine Preference</div>
+  <div class="pref-row">
+    <div class="pref-group">
+      <label>Dietary Preference</label>
+      <select id="dietaryPref">
+        <option value="Vegetarian">Vegetarian</option>
+        <option value="Vegan">Vegan</option>
+        <option value="Eggetarian">Eggetarian</option>
+        <option value="Jain">Jain</option>
+        <option value="Pescatarian">Pescatarian</option>
+        <option value="Non-Vegetarian">Non-Vegetarian</option>
+      </select>
+    </div>
+    <div class="pref-group">
+      <label>Cuisine Preference</label>
+      <select id="cuisinePref">
+        <option value="Indian">Indian</option>
+        <option value="Mediterranean">Mediterranean</option>
+        <option value="East Asian">East Asian</option>
+        <option value="Middle Eastern">Middle Eastern</option>
+        <option value="Western / Continental">Western / Continental</option>
+        <option value="No preference">No preference</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Food Quality Markers -->
+  <div class="cat-title">Food Quality Markers</div>
+  <p class="section-desc">How often do you consume these specific clinical markers?</p>
+  <div class="fq-grid" id="foodQualityGrid"></div>
+
+  <!-- Nutrient Priorities -->
+  <div class="cat-title">Nutrient Priorities</div>
+  <p class="section-desc">Ranked by symptoms, health profile, food quality and your preferences</p>
+  <div id="nutrientList"></div>
+
+  <div class="note-block">
+    <span class="k">How this works</span>
+    Symptom matches carry the strongest weight. Body composition, family history and Food Quality answers further adjust priority. Food examples adapt to your dietary and cuisine preference.
+  </div>
+
+</div>
+
+<script>
+  const state = {
+    profile: {
+      sex: "Male", age: 56, height: "5 ft 8 in", weight: "63 kg", waist: "32 in",
+      bmi: 21.1, waistToHeightRatio: 0.47,
+      smoking: "Never", alcohol: "Never",
+      familyDiabetes: false, familyHeartDisease: false
+    },
+    symptoms: ["Bloating", "Fatigue", "Sugar Cravings", "Low Energy", "Brain Fog"],
+    foodQuality: {},
+    dietaryPref: "Vegetarian",
+    cuisinePref: "Indian"
+  };
+
+  const FOOD_QUALITY = [
+    { id: "fruits", label: "Fruits", type: "protective", nutrientsBoosted: ["Vitamin C","Potassium","Fibre","Folate"] },
+    { id: "leafy_greens", label: "Green / leafy vegetables", type: "protective", nutrientsBoosted: ["Magnesium","Folate","Vitamin K","Potassium","Fibre","Calcium"] },
+    { id: "legumes", label: "Legumes, lentils & pulses", type: "protective", nutrientsBoosted: ["Protein","Fibre","Magnesium","Iron","Folate","Zinc"] },
+    { id: "nuts_seeds", label: "Nuts & seeds", type: "protective", nutrientsBoosted: ["Fats","Magnesium","Zinc","Vitamin E","Protein","Fibre"] },
+    { id: "fried_ultraprocessed", label: "Fried / Ultra-processed", type: "harmful", nutrientsBoosted: ["Added Sugars / Refined Carbohydrates"] },
+    { id: "sugary_drinks", label: "Sugary drinks / sodas", type: "harmful", nutrientsBoosted: ["Added Sugars / Refined Carbohydrates"] }
+  ];
+  const OPTIONS = ["Daily", "3-5x/Wk", "1-2x/Wk", "Rarely"];
+
+  const PREF_FOOD_EXAMPLES = {
+    "Vegan": {
+      "Protein": "tofu, tempeh, lentils, chickpeas, edamame, seitan",
+      "Carbohydrates": "oats, quinoa, brown rice, millets, sweet potato",
+      "Fats": "walnuts, flaxseed, chia seeds, olive oil, avocado",
+      "Fibre": "lentils, chickpeas, oats, chia, vegetables, berries",
+      "Added Sugars / Refined Carbohydrates": "limit sugary drinks, desserts, white bread, packaged snacks",
+      "Vitamin D": "fortified plant milks, UV-exposed mushrooms, sunlight",
+      "Magnesium": "pumpkin seeds, almonds, spinach, black beans",
+      "Iron": "lentils, tofu, pumpkin seeds, spinach + vitamin C",
+      "Vitamin B12": "fortified plant milk, nutritional yeast, fortified cereals",
+      "Omega-3 (EPA/DHA)": "flaxseed, chia seeds, walnuts, algae oil",
+      "Zinc": "pumpkin seeds, lentils, chickpeas, cashews",
+      "Calcium": "fortified plant milk, calcium-set tofu, sesame, tahini",
+      "Potassium": "banana, sweet potato, spinach, avocado",
+      "Chromium": "broccoli, green beans, whole grains"
+    },
+    "Vegetarian": {
+      "Protein": "paneer, curd/yogurt, lentils, chickpeas, beans, milk",
+      "Carbohydrates": "oats, brown rice, millets, whole wheat, quinoa",
+      "Fats": "nuts, seeds, ghee (moderation), olive oil, avocado",
+      "Fibre": "lentils, oats, vegetables, fruit, whole grains",
+      "Added Sugars / Refined Carbohydrates": "limit sweets, sugary drinks, refined flour items",
+      "Vitamin D": "milk, curd, fortified cereals, sunlight",
+      "Magnesium": "pumpkin seeds, almonds, spinach, yogurt",
+      "Iron": "lentils, beans, paneer, spinach + vitamin C",
+      "Vitamin B12": "milk, curd, paneer, fortified cereals",
+      "Omega-3 (EPA/DHA)": "flaxseed, chia, walnuts (consider algae oil)",
+      "Zinc": "pumpkin seeds, lentils, cashews, dairy",
+      "Calcium": "milk, curd, paneer, sesame seeds",
+      "Potassium": "banana, yogurt, spinach, coconut water, potato",
+      "Chromium": "broccoli, whole grains"
+    },
+    "Eggetarian": {
+      "Protein": "eggs, paneer, curd, lentils, chickpeas",
+      "Carbohydrates": "oats, brown rice, millets, whole wheat, quinoa",
+      "Fats": "egg yolk, nuts, seeds, olive oil, ghee (moderation)",
+      "Fibre": "lentils, oats, vegetables, fruit",
+      "Added Sugars / Refined Carbohydrates": "limit sweets, sugary drinks, refined snacks",
+      "Vitamin D": "egg yolk, milk, curd, fortified cereals, sunlight",
+      "Magnesium": "pumpkin seeds, almonds, spinach, yogurt",
+      "Iron": "eggs, lentils, spinach + vitamin C",
+      "Vitamin B12": "eggs, milk, curd, paneer",
+      "Omega-3 (EPA/DHA)": "eggs (omega-3 enriched), flax, chia, walnuts",
+      "Zinc": "eggs, pumpkin seeds, lentils, dairy",
+      "Calcium": "milk, curd, paneer, sesame seeds",
+      "Potassium": "banana, yogurt, spinach, potato",
+      "Chromium": "broccoli, whole grains, egg yolk"
+    },
+    "Jain": {
+      "Protein": "milk, curd, paneer, split lentils (dhals), beans (no root veg)",
+      "Carbohydrates": "rice, whole wheat, millets, oats, quinoa",
+      "Fats": "nuts, seeds, ghee, olive oil",
+      "Fibre": "split lentils, oats, allowable vegetables & fruit",
+      "Added Sugars / Refined Carbohydrates": "limit sweets, sugary drinks, refined flour",
+      "Vitamin D": "milk, curd, paneer, sunlight",
+      "Magnesium": "pumpkin seeds, almonds, allowable greens, dairy",
+      "Iron": "lentils, sesame seeds + vitamin C",
+      "Vitamin B12": "milk, curd, paneer",
+      "Omega-3 (EPA/DHA)": "flaxseed, chia seeds, walnuts",
+      "Zinc": "pumpkin seeds, lentils, dairy, cashews",
+      "Calcium": "milk, curd, paneer, sesame seeds",
+      "Potassium": "banana, yogurt, allowable fruits & vegetables",
+      "Chromium": "whole grains, allowable vegetables"
+    },
+    "Pescatarian": {
+      "Protein": "fish, seafood, eggs, lentils, paneer, yogurt",
+      "Carbohydrates": "brown rice, oats, millets, quinoa, whole wheat",
+      "Fats": "fatty fish, nuts, seeds, olive oil",
+      "Fibre": "lentils, oats, vegetables, fruit",
+      "Added Sugars / Refined Carbohydrates": "limit sugary drinks, desserts, refined snacks",
+      "Vitamin D": "fatty fish, egg yolk, fortified milk, sunlight",
+      "Magnesium": "pumpkin seeds, almonds, spinach, fish",
+      "Iron": "fish, lentils, spinach + vitamin C",
+      "Vitamin B12": "fish, seafood, eggs, dairy",
+      "Omega-3 (EPA/DHA)": "salmon, sardines, mackerel, anchovies",
+      "Zinc": "fish, pumpkin seeds, lentils, dairy",
+      "Calcium": "milk, curd, yogurt, fish with soft bones",
+      "Potassium": "banana, yogurt, spinach, fish, potato",
+      "Chromium": "broccoli, whole grains"
+    },
+    "Non-Vegetarian": {
+      "Protein": "chicken, fish, eggs, lean meat, lentils, paneer",
+      "Carbohydrates": "brown rice, whole wheat, oats, millets, quinoa",
+      "Fats": "fatty fish, nuts, seeds, olive oil, egg yolk",
+      "Fibre": "lentils, oats, vegetables, fruit, whole grains",
+      "Added Sugars / Refined Carbohydrates": "limit sugary drinks, desserts, processed snacks",
+      "Vitamin D": "fatty fish, egg yolk, fortified milk, sunlight",
+      "Magnesium": "pumpkin seeds, almonds, spinach, fish, yogurt",
+      "Iron": "red meat (moderation), chicken, fish, lentils + vitamin C",
+      "Vitamin B12": "meat, fish, eggs, dairy",
+      "Omega-3 (EPA/DHA)": "salmon, sardines, mackerel, walnuts, flax",
+      "Zinc": "meat, pumpkin seeds, lentils, dairy",
+      "Calcium": "milk, curd, yogurt, fish with bones, sesame",
+      "Potassium": "banana, yogurt, spinach, potato, meat",
+      "Chromium": "broccoli, whole grains"
+    }
+  };
+
+  const CUISINE_EXTRAS = {
+    "Indian": {
+      "Protein": "dal, sambar, idli, dosa (with sambar/chutney), paneer, curd, sprouts",
+      "Carbohydrates": "rice, idli, dosa, poori (occasional), whole-wheat roti, millets",
+      "Fats": "ghee (moderation), groundnut oil, sesame, coconut (regional)",
+      "Fibre": "sabji, sambar, dal, salads, millets",
+      "Added Sugars / Refined Carbohydrates": "limit sweetened coffee, mithai, sugary drinks, maida snacks",
+      "Magnesium": "dal, leafy sabji, seeds, nuts, millets",
+      "Iron": "dal, sambar, dark leafy sabji + lemon/amla",
+      "Calcium": "curd, buttermilk, raita, sesame (til), paneer",
+      "Omega-3 (EPA/DHA)": "flaxseed (alsi), walnuts, fish (if allowed)",
+      "Zinc": "dal, seeds, nuts, whole grains",
+      "Potassium": "coconut water, banana, sabji, curd, potato",
+      "Vitamin D": "sunlight + fortified milk / curd",
+      "Vitamin B12": "milk, curd, paneer",
+      "Chromium": "whole grains, broccoli"
+    },
+    "Mediterranean": {
+      "Protein": "Greek yogurt, lentils, chickpeas, fish",
+      "Fats": "extra-virgin olive oil, olives, tahini",
+      "Omega-3 (EPA/DHA)": "sardines, mackerel, anchovies"
+    },
+    "East Asian": {
+      "Protein": "tofu, edamame, fish",
+      "Fats": "sesame oil, sesame seeds",
+      "Calcium": "calcium-set tofu, fortified soy milk"
+    },
+    "Middle Eastern": {
+      "Protein": "labneh, lentils, chickpeas, fava",
+      "Fats": "tahini, olive oil"
+    },
+    "Western / Continental": {
+      "Protein": "Greek yogurt, cottage cheese, eggs, chicken/fish",
+      "Fats": "olive oil, avocado, nuts"
+    }
+  };
+
+  const NUTRIENTS = [
+    { nutrient: "Protein", profile: "Low Risk;Metabolic;Mixed", note: "Essential amino acids for muscle repair, enzymes and satiety", symptoms: ["Fatigue","Low Energy","Muscle Weakness","Hair Loss","Underweight"], direction: "optimize" },
+    { nutrient: "Carbohydrates", profile: "Low Risk;Metabolic", note: "Primary fuel; fibre quality matters more than total grams", symptoms: ["Fatigue","Low Energy","Bloating","Sugar Cravings","Brain Fog"], direction: "optimize" },
+    { nutrient: "Fats", profile: "Low Risk;Metabolic;Cardiovascular", note: "Hormone production, membranes and fat-soluble vitamins", symptoms: ["Dry Skin","Fatigue","Inflammation","Brain Fog","Hair Loss"], direction: "optimize" },
+    { nutrient: "Fibre", profile: "Low Risk;Metabolic", note: "Gut motility, microbiome and blood-sugar buffering", symptoms: ["Bloating","Constipation","Sugar Cravings","High Cholesterol"], direction: "optimize" },
+    { nutrient: "Added Sugars / Refined Carbohydrates", profile: "Metabolic;Mixed", note: "Limit for blood-sugar stability, inflammation and gut health", symptoms: ["Sugar Cravings","Emotional Eating","Fatigue","Bloating","Brain Fog"], direction: "limit" },
+    { nutrient: "Vitamin D", profile: "Low Risk;Metabolic;Mixed", note: "Bone, immune, mood and muscle function", symptoms: ["Fatigue","Low Energy","Muscle Weakness","Depression","Brain Fog"], direction: "optimize" },
+    { nutrient: "Magnesium", profile: "Low Risk;Metabolic;Mixed", note: "Sleep, stress, muscle relaxation and glucose metabolism", symptoms: ["Fatigue","Low Energy","Insomnia","Anxiety","Constipation","Brain Fog"], direction: "optimize" },
+    { nutrient: "Iron", profile: "Low Risk;Mixed", note: "Oxygen transport and energy production", symptoms: ["Fatigue","Low Energy","Hair Loss","Brain Fog"], direction: "optimize" },
+    { nutrient: "Vitamin B12", profile: "Low Risk;Mixed", note: "Nerve health, red cells and energy metabolism", symptoms: ["Fatigue","Low Energy","Brain Fog","Poor Concentration"], direction: "optimize" },
+    { nutrient: "Omega-3 (EPA/DHA)", profile: "Low Risk;Cardiovascular;Metabolic", note: "Anti-inflammatory, brain and cardiovascular support", symptoms: ["Inflammation","Brain Fog","Mood Swings","Dry Skin"], direction: "optimize" },
+    { nutrient: "Zinc", profile: "Low Risk;Mixed", note: "Immune function, skin, hair and hormone support", symptoms: ["Hair Loss","Immune Weakness","Low Energy"], direction: "optimize" },
+    { nutrient: "Calcium", profile: "Low Risk;Metabolic", note: "Bone density and muscle contraction", symptoms: ["Muscle Weakness","Back Pain"], direction: "optimize" },
+    { nutrient: "Potassium", profile: "Low Risk;Cardiovascular;Metabolic", note: "Blood pressure and muscle function", symptoms: ["Muscle Weakness","Fatigue"], direction: "optimize" },
+    { nutrient: "Chromium", profile: "Metabolic", note: "Insulin sensitivity and glucose handling", symptoms: ["Sugar Cravings","Fatigue"], direction: "optimize" }
+  ];
+
+  function getExamples(nutrientName) {
+    const diet = state.dietaryPref;
+    const cuisine = state.cuisinePref;
+    const base = PREF_FOOD_EXAMPLES[diet]?.[nutrientName] || "";
+    const extra = CUISINE_EXTRAS[cuisine]?.[nutrientName] || "";
+
+    // Indian: show the richer Indian list directly (no "Indian favourites" label)
+    if (cuisine === "Indian" && extra) {
+      return extra;
+    }
+    // Other cuisines
+    if (base && extra) return `${base} · ${extra}`;
+    return base || extra || "";
+  }
+
+  function deriveUserProfiles(p) {
+    const profiles = ["Low Risk"];
+    if (p.bmi >= 25 || p.waistToHeightRatio >= 0.50 || p.familyDiabetes) profiles.push("Metabolic");
+    if (p.waistToHeightRatio >= 0.50 || p.familyHeartDisease || p.age > 40) profiles.push("Cardiovascular");
+    return profiles;
+  }
+
+  function scoreNutrient(n) {
+    let score = 0;
+    const matched = n.symptoms.filter(s => state.symptoms.includes(s));
+    score += matched.length * 12;
+
+    const userProfiles = deriveUserProfiles(state.profile);
+    score += n.profile.split(";").filter(p => userProfiles.includes(p)).length * 8;
+
+    Object.entries(state.foodQuality).forEach(([id, freq]) => {
+      const marker = FOOD_QUALITY.find(f => f.id === id);
+      if (!marker) return;
+      if (marker.type === "protective" && (freq === "Rarely" || freq === "1-2x/Wk")) {
+        if (marker.nutrientsBoosted.includes(n.nutrient)) score += 5;
+      }
+      if (marker.type === "harmful" && (freq === "Daily" || freq === "3-5x/Wk")) {
+        if (n.nutrient === "Added Sugars / Refined Carbohydrates") score += 11;
+      }
+    });
+
+    if (state.profile.alcohol !== "Never" && ["Magnesium","Vitamin B12","Zinc","Protein"].includes(n.nutrient)) score += 4;
+    if (state.profile.bmi >= 25 || state.profile.waistToHeightRatio >= 0.50) {
+      if (["Protein","Fibre","Magnesium","Chromium","Omega-3 (EPA/DHA)","Added Sugars / Refined Carbohydrates"].includes(n.nutrient)) score += 6;
+    }
+    return { score, matched };
+  }
+
+  function renderFoodQuality() {
+    const grid = document.getElementById("foodQualityGrid");
+    grid.innerHTML = "";
+    FOOD_QUALITY.forEach(item => {
+      const card = document.createElement("div");
+      card.className = "fq-card";
+      const opts = OPTIONS.map((opt, i) => `
+        <input type="radio" name="fq_${item.id}" id="fq_${item.id}_${i}" value="${opt}"
+          ${state.foodQuality[item.id] === opt ? "checked" : ""}>
+        <label for="fq_${item.id}_${i}">${opt}</label>
+      `).join("");
+      card.innerHTML = `<div class="label">${item.label}</div><div class="fq-options">${opts}</div>`;
+      grid.appendChild(card);
+    });
+    grid.querySelectorAll("input").forEach(r => {
+      r.addEventListener("change", e => {
+        state.foodQuality[e.target.name.replace("fq_", "")] = e.target.value;
+        renderNutrients();
+      });
+    });
+  }
+
+  function renderNutrients() {
+    const ranked = NUTRIENTS
+      .map(n => ({ ...n, ...scoreNutrient(n) }))
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 10);
+
+    const list = document.getElementById("nutrientList");
+    list.innerHTML = "";
+
+    const matchedCount = ranked.filter(n => n.matched.length > 0).length;
+    document.getElementById("metaLine").textContent =
+      `${ranked.length} nutrients prioritised · ${matchedCount} directly matched to your symptoms`;
+
+    ranked.forEach((n, idx) => {
+      const isLimit = n.direction === "limit";
+      const examplesText = getExamples(n.nutrient);
+
+      const card = document.createElement("div");
+      card.className = "test-card" + (isLimit ? " limit" : "");
+      card.innerHTML = `
+        <div class="head">
+          <div>
+            <div class="name">${idx + 1}. ${n.nutrient}</div>
+            <div class="test-desc">${n.note}</div>
+            <div class="symptom"><b>Watch for:</b> ${n.symptoms.slice(0,5).join(", ")}</div>
+            ${examplesText ? `<div class="examples"><b>Ideas for you:</b> ${examplesText}</div>` : ""}
+          </div>
+          <span class="tag ${isLimit ? "limit" : (n.matched.length ? "ok" : "")}">
+            ${isLimit ? "LIMIT" : (n.matched.length ? "MATCHES: " + n.matched.slice(0,2).join(", ").toUpperCase() : "BASELINE")}
+          </span>
+        </div>
+        <div class="answers">
+          <span style="font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:.04em;">CURRENT INTAKE?</span>
+          <div class="radio-pair">
+            <input type="radio" name="n_${idx}" id="n_${idx}_yes" value="yes">
+            <label for="n_${idx}_yes">Yes</label>
+            <input type="radio" name="n_${idx}" id="n_${idx}_no" value="no">
+            <label for="n_${idx}_no">No</label>
+          </div>
+          <select class="recency-select" disabled>
+            <option>How often / how much?</option>
+            <option>Daily</option>
+            <option>Most days</option>
+            <option>1-2× / week</option>
+            <option>Rarely</option>
+          </select>
+        </div>
+      `;
+      list.appendChild(card);
+
+      card.querySelectorAll("input[type=radio]").forEach(radio => {
+        radio.addEventListener("change", function () {
+          this.closest(".answers").querySelector(".recency-select").disabled = this.value !== "yes";
+        });
+      });
+    });
+  }
+
+  document.getElementById("dietaryPref").addEventListener("change", e => {
+    state.dietaryPref = e.target.value;
+    renderNutrients();
+  });
+  document.getElementById("cuisinePref").addEventListener("change", e => {
+    state.cuisinePref = e.target.value;
+    renderNutrients();
+  });
+
+  // Init
+  document.getElementById("dietaryPref").value = state.dietaryPref;
+  document.getElementById("cuisinePref").value = state.cuisinePref;
+  renderFoodQuality();
+  renderNutrients();
+</script>
+</body>
+</html>

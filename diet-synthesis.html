@@ -224,6 +224,23 @@ function init() {
       <h2>Your Nutrition Map</h2>
       <span class="section-sub">05 of 05 &middot; Synthesis</span>
     </div>
+    <div class="cat-title">Your Top Nutrient Priorities</div>
+        <p class="lede" style="font-size:14px; margin-bottom:16px;">
+          These were ranked using your symptoms, body composition and food quality answers.
+        </p>
+        ${(diet.priorities || []).slice(0, 6).map((n, i) => `
+          <div class="test-card" style="margin-bottom:10px;">
+            <div class="head">
+              <div>
+                <div class="name">${i+1}. ${n.nutrient}</div>
+                <div class="test-desc">${n.note}</div>
+              </div>
+              <span class="tag ${n.direction === 'limit' ? 'due' : 'ok'}">
+                ${n.direction === 'limit' ? 'LIMIT' : 'PRIORITY'}
+              </span>
+            </div>
+      </div>
+    `).join("")}
 
     <div class="cat-title">Energy Balance</div>
     <div class="balance-card">
