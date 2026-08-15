@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -92,7 +92,7 @@
   <div class="masthead-inner" style="display:flex; align-items:center; justify-content:space-between; gap:24px; flex-wrap:wrap;">
     <div class="brand-lockup" style="margin-bottom:0;">
       <a href="index.html" style="text-decoration:none;">
-        <img src="shared/assets/kyh_logo.jpg" alt="KYH � Know Your Health" style="height:38px; width:auto; display:block;">
+        <img src="shared/assets/kyh_logo.jpg" alt="KYH – Know Your Health" style="height:38px; width:auto; display:block;">
       </a>
     </div>
     <div class="map-route" aria-label="Your progress from Fine to Great">
@@ -114,7 +114,7 @@
 </main>
 
 <footer>
-  <span>KYH � Know Your Health. Own Your Path. Runs entirely in your browser.</span>
+  <span>KYH — Know Your Health. Own Your Path. Runs entirely in your browser.</span>
   <span>Not a substitute for professional medical advice.</span>
 </footer>
 
@@ -198,123 +198,170 @@ function getProteinSources(dietType) {
 
 function init() {
   if (!diet.type) {
-    main.innerHTML = `<div class="empty-state">Data missing. <a href="diet.html">Go back &rarr;</a></div>`;
+    main.innerHTML = `<div class="empty-state">Data missing. <a href="diet.html">Go back →</a></div>`;
     return;
   }
 
-  const estBurn = routine.estimatedCalories || 2200; // From Routine page
-  const estIntake = estimateIntake(diet.rhythm);
-  const diff = estIntake - estBurn;
-  
-  let statusText = "Maintenance Phase";
-  let statusClass = "maintenance";
-  if (diff > 250) { statusText = "Caloric Surplus"; statusClass = "surplus"; }
-  if (diff < -250) { statusText = "Caloric Deficit"; statusClass = "deficit"; }
+  const estBurn = routine.estimatedCalories || 2200;
+  const targetCal = diet.target?.cal ? parseInt(diet.target.cal, 10) : Math.round(estBurn * 0.95);
 
-  // Target Portions (Rough math based on ideal balanced diet)
-  const proteinPortions = Math.round((estBurn * 0.25) / 130); // ~130 cal per protein portion
-  const carbPortions = Math.round((estBurn * 0.45) / 150);
-  const fatPortions = Math.round((estBurn * 0.30) / 100);
+  // Portion estimates (simple & practical)
+  const proteinPortions = Math.round((targetCal * 0.25) / 130);
+  const carbPortions    = Math.round((targetCal * 0.45) / 150);
+  const fatPortions     = Math.round((targetCal * 0.30) / 100);
 
-  const proteinSources = getProteinSources(diet.type);
-  const insightText = generateClinicalInsight();
+  // ---------- Helpers ----------
+  function getFoodIdeas(nutrientKey) {
+    const dietType = diet.type || "Vegetarian";
+    const cuisine  = diet.cuisine || "Indian";
 
+    // Prefer cuisine-specific examples (especially Indian)
+    if (window.CUISINE_EXTRAS?.[cuisine]?.[nutrientKey]) {
+      return window.CUISINE_EXTRAS[cuisine][nutrientKey];
+    }
+    // Fall back to dietary preference
+    return window.PREF_FOOD_EXAMPLES?.[dietType]?.[nutrientKey] || "";
+  }
+
+  function buildPriorityParagraph() {
+    const priorities = diet.priorities || [];
+    if (!priorities.length) {
+      return "We don’t have enough signal yet to prioritise specific nutrients. Focus on overall food quality and consistently hitting your calorie and protein targets.";
+    }
+
+    const top = priorities.slice(0, 5);
+    const names = top.map(p => p.nutrient);
+
+    let text = `Based on your symptoms and current eating patterns, the nutrients that deserve the most attention right now are `;
+    text += names.slice(0, -1).join(", ") + (names.length > 1 ? " and " : "") + names[names.length - 1] + ". ";
+
+    if (top[0]?.note) {
+      text += top[0].note + " ";
+    }
+
+    const limits = priorities.filter(p => p.direction === "limit");
+    if (limits.length) {
+      text += `It is also worth actively limiting ${limits.map(l => l.nutrient.toLowerCase()).join(" and ")}.`;
+    }
+
+    return text;
+  }
+
+  function generateClinicalInsight() {
+    const freq = diet.frequency || {};
+    const priorities = diet.priorities || [];
+    let insights = [];
+
+    if (priorities[0]?.matched?.length) {
+      insights.push(`Your top priority is <b>${priorities[0].nutrient}</b> (linked to: ${priorities[0].matched.slice(0,3).join(", ")}).`);
+    }
+
+    if ((symptoms.includes("Fatigue") || symptoms.includes("Low Energy")) &&
+        (freq.leafy_greens === "Rarely" || freq.leafy_greens === "1-2x/Wk")) {
+      insights.push("Your fatigue is likely connected to low leafy green intake (iron + magnesium). Adding a serving most days is high-leverage.");
+    }
+
+    if ((symptoms.includes("Bloating") || symptoms.includes("Constipation")) &&
+        (freq.fruits === "Rarely" || freq.legumes === "Rarely")) {
+      insights.push("Digestive symptoms correlate with low fibre. Gradually increase fruits and legumes.");
+    }
+
+    if (freq.sugary_drinks === "Daily" || freq.sugary_drinks === "3-5x/Wk") {
+      insights.push("Regular sugary drinks are contributing to blood-sugar volatility. Reducing them is one of the highest-ROI changes you can make.");
+    }
+
+    if (insights.length === 0) {
+      insights.push("Your current patterns look reasonably balanced. Focus on consistency with protein and the priority nutrients above.");
+    }
+
+    return insights[0];
+  }
+
+  const proteinIdeas = getFoodIdeas("Protein");
+  const carbIdeas    = getFoodIdeas("Carbohydrates");
+  const fatIdeas     = getFoodIdeas("Fats");
+  const insightText  = generateClinicalInsight();
+  const priorityText = buildPriorityParagraph();
+
+  // ---------- Render ----------
   main.innerHTML = `
     <div class="section-head">
       <h2>Your Nutrition Map</h2>
-      <span class="section-sub">05 of 05 &middot; Synthesis</span>
+      <span class="section-sub">Synthesis</span>
     </div>
-    <div class="cat-title">Your Top Nutrient Priorities</div>
-        <p class="lede" style="font-size:14px; margin-bottom:16px;">
-          These were ranked using your symptoms, body composition and food quality answers.
-        </p>
-        ${(diet.priorities || []).slice(0, 6).map((n, i) => `
-          <div class="test-card" style="margin-bottom:10px;">
-            <div class="head">
-              <div>
-                <div class="name">${i+1}. ${n.nutrient}</div>
-                <div class="test-desc">${n.note}</div>
-              </div>
-              <span class="tag ${n.direction === 'limit' ? 'due' : 'ok'}">
-                ${n.direction === 'limit' ? 'LIMIT' : 'PRIORITY'}
-              </span>
-            </div>
-      </div>
-    `).join("")}
 
-    <div class="cat-title">Energy Balance</div>
+    <!-- 1. Daily Calorie Target (honest version) -->
+    <div class="cat-title">Daily Calorie Target</div>
     <div class="balance-card">
       <div>
         <div class="balance-metric">
-          <div class="lbl">Estimated Daily Burn</div>
-          <div class="val">~${estBurn.toLocaleString()} kcal</div>
+          <div class="lbl">Recommended Daily Intake</div>
+          <div class="val">~${targetCal.toLocaleString()} kcal</div>
         </div>
-        <div class="balance-metric" style="margin-top:16px;">
-          <div class="lbl">Estimated Daily Intake</div>
-          <div class="val">~${estIntake.toLocaleString()} kcal</div>
+        <div style="margin-top:10px; font-size:13.5px; color:var(--ink-soft); max-width:420px;">
+          Based on your profile, body composition and activity level.
+          ${estBurn ? `<div style="margin-top:6px; font-family:var(--mono); font-size:11px; color:var(--muted);">
+            Estimated burn from your routine: ~${estBurn.toLocaleString()} kcal
+          </div>` : ""}
         </div>
       </div>
-      <div class="balance-status ${statusClass}">${statusText}</div>
     </div>
 
+    <!-- 2. Clinical Insight -->
     <div class="cat-title">Clinical Insight</div>
-    <div class="note-block ${insightText.includes('highest leverage') ? 'amber' : 'teal'}" style="margin-bottom:36px; margin-top:12px;">
-      <span class="k">Based on your Symptoms & Habits</span>
+    <div class="note-block ${insightText.includes("high-leverage") || insightText.includes("highest-ROI") ? "" : "teal"}" style="margin-bottom:32px; margin-top:12px;">
+      <span class="k">Based on your symptoms & habits</span>
       ${insightText}
     </div>
 
-    <div class="cat-title">Daily Macro Targets</div>
-    <p class="lede" style="font-size:14px; margin-bottom:20px;">Your precise portion targets built for a ${estBurn} kcal metabolism on a ${diet.type} diet. (1 Portion &approx; size of your palm/fist).</p>
-
-    <details class="macro-accordion">
-      <summary>
-        <div>
-          Proteins
-          <span class="macro-meta">Target: ${proteinPortions - 1} - ${proteinPortions + 1} Portions / Day</span>
-        </div>
-      </summary>
-      <div class="macro-content">
-        <p style="font-size:13px; color:var(--ink-soft); margin-top:0;">Filtered for your <b>${diet.type}</b> preference. Focus on these sources for muscle repair and satiety:</p>
-        <div>
-          ${proteinSources.map(f => `<span class="food-chip">${f}</span>`).join('')}
-        </div>
-      </div>
-    </details>
-
-    <details class="macro-accordion">
-      <summary>
-        <div>
-          Complex Carbohydrates
-          <span class="macro-meta">Target: ${carbPortions - 1} - ${carbPortions + 1} Portions / Day</span>
-        </div>
-      </summary>
-      <div class="macro-content">
-        <p style="font-size:13px; color:var(--ink-soft); margin-top:0;">Your primary energy source. Stick to these slow-digesting options to prevent blood sugar spikes:</p>
-        <div>
-          ${FOOD_DB.carbs.map(f => `<span class="food-chip">${f}</span>`).join('')}
-        </div>
-      </div>
-    </details>
-
-    <details class="macro-accordion">
-      <summary>
-        <div>
-          Healthy Fats
-          <span class="macro-meta">Target: ${fatPortions - 1} - ${fatPortions + 1} Portions / Day</span>
-        </div>
-      </summary>
-      <div class="macro-content">
-        <p style="font-size:13px; color:var(--ink-soft); margin-top:0;">Crucial for hormone regulation and joint health. Keep portions strict (thumb-sized):</p>
-        <div>
-          ${FOOD_DB.fats.map(f => `<span class="food-chip">${f}</span>`).join('')}
-        </div>
-      </div>
-    </details>
-    
-    <div class="page-footer-nav" style="margin-top: 48px;">
-      <a href="diet.html" class="btn secondary">&larr; Back to Diet</a>
-      <a href="summary.html" class="btn">View Final Summary &rarr;</a>
+    <!-- 3. Nutrient Priorities (collapsed into one paragraph) -->
+    <div class="cat-title">Nutrient Priorities</div>
+    <div class="note-block teal" style="margin-bottom:36px; margin-top:12px;">
+      <span class="k">Personalised for you</span>
+      ${priorityText}
     </div>
+
+    <!-- 4. Daily Macro Targets (portions only) -->
+<div class="cat-title">Daily Macro Targets</div>
+<p class="lede" style="font-size:14px; margin-bottom:20px;">
+  Practical portion guides for a ~${targetCal.toLocaleString()} kcal target 
+  (${diet.type}${diet.cuisine ? ` · ${diet.cuisine}` : ""}). 
+  One portion ≈ size of your palm / fist.
+</p>
+
+<div class="test-card" style="margin-bottom:10px;">
+  <div class="name">Proteins</div>
+  <div class="test-desc" style="margin-top:4px;">
+    Target: <b>${Math.max(1, proteinPortions - 1)} – ${proteinPortions + 1} portions / day</b>
+  </div>
+  <div style="font-size:13px; color:var(--ink-soft); margin-top:6px;">
+    Prioritise protein at most meals to support muscle, recovery and satiety.
+  </div>
+</div>
+
+<div class="test-card" style="margin-bottom:10px;">
+  <div class="name">Complex Carbohydrates</div>
+  <div class="test-desc" style="margin-top:4px;">
+    Target: <b>${Math.max(1, carbPortions - 1)} – ${carbPortions + 1} portions / day</b>
+  </div>
+  <div style="font-size:13px; color:var(--ink-soft); margin-top:6px;">
+    Prefer whole grains, millets, oats and root vegetables for steadier energy.
+  </div>
+</div>
+
+<div class="test-card" style="margin-bottom:10px;">
+  <div class="name">Healthy Fats</div>
+  <div class="test-desc" style="margin-top:4px;">
+    Target: <b>${Math.max(1, fatPortions - 1)} – ${fatPortions + 1} portions / day</b>
+  </div>
+  <div style="font-size:13px; color:var(--ink-soft); margin-top:6px;">
+    Keep portions modest (roughly thumb-sized) to stay within the calorie target.
+  </div>
+</div>
+<div class="page-footer-nav" style="margin-top:48px;">
+  <a href="diet.html" class="btn secondary">← Back to Diet</a>
+  <a href="summary.html" class="btn">Finish →</a>
+</div>
   `;
 }
 

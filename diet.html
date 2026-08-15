@@ -40,26 +40,36 @@
 
 <script src="shared/utils.js"></script>
 <script src="shared/data.diet.js"></script>
+
+<script src="shared/utils.js"></script>
+<script src="shared/data.diet.js"></script>
 <script>
-const state = loadState() || {};
+const state   = loadState() || {};
 const profile = state.profile || {};
 const routine = state.routine || {};
 const userSymptoms = profile.symptoms || [];
 
-let dietState = {
+// Restore any previous diet answers for this session
+let dietState = Object.assign({
   type: "",
   cuisine: "",
   frequency: {},
-  priorities: []
-};
+  intake: {},      // { [nutrient]: { tracking: "yes"|"no", frequency: "..." } }
+  priorities: [],
+  target: null
+}, state.diet || {});
 
+function saveDietProgress() {
+  const next = Object.assign({}, state, { diet: dietState });
+  persistState(next);
+}
+
+/* ---------- Helpers ---------- */
 function getExamples(nutrientName) {
   const diet = dietState.type || "Vegetarian";
   const cuisine = dietState.cuisine || "Indian";
-  const base = (window.PREF_FOOD_EXAMPLES[diet] || {})[nutrientName] || "";
-  const extra = (window.CUISINE_EXTRAS[cuisine] || {})[nutrientName] || "";
-
-  // Indian: show richer list directly (no "Indian favourites" label)
+  const base  = (window.PREF_FOOD_EXAMPLES?.[diet] || {})[nutrientName] || "";
+  const extra = (window.CUISINE_EXTRAS?.[cuisine] || {})[nutrientName] || "";
   if (cuisine === "Indian" && extra) return extra;
   if (base && extra) return `${base} · ${extra}`;
   return base || extra || "";
@@ -67,7 +77,7 @@ function getExamples(nutrientName) {
 
 function deriveProfiles() {
   const cats = ["Low Risk"];
-  const whtr = (profile.waistCm && profile.heightCm) ? profile.waistCm / profile.heightCm : 0;
+  const whtr = (profile.waistCm && profile.heightCm) ? profile.waistCm / profile.heightCm : (profile.whtr || 0);
   if (profile.bmi >= 25 || whtr >= 0.5 || profile.famMetabolic) cats.push("Metabolic");
   if (whtr >= 0.5 || profile.famCardio || (profile.age || 0) > 40) cats.push("Cardiovascular");
   return cats;
@@ -81,7 +91,7 @@ function scoreNutrient(n) {
   const userProfiles = deriveProfiles();
   score += (n.profile || "").split(";").filter(p => userProfiles.includes(p.trim())).length * 8;
 
-  Object.entries(dietState.frequency).forEach(([id, freq]) => {
+  Object.entries(dietState.frequency || {}).forEach(([id, freq]) => {
     const marker = (window.FOOD_QUALITY || []).find(f => f.id === id);
     if (!marker) return;
     if (marker.type === "protective" && (freq === "Rarely" || freq === "1-2x/Wk")) {
@@ -92,16 +102,21 @@ function scoreNutrient(n) {
     }
   });
 
-  if (profile.alcohol && profile.alcohol !== "Never" && ["Magnesium","Vitamin B12","Zinc","Protein"].includes(n.nutrient)) score += 4;
-  if (profile.smoking && profile.smoking !== "Never" && ["Zinc","Omega-3 (EPA/DHA)"].includes(n.nutrient)) score += 3;
-  if (profile.bmi >= 25 && ["Protein","Fibre","Magnesium","Chromium","Omega-3 (EPA/DHA)","Added Sugars / Refined Carbohydrates"].includes(n.nutrient)) score += 6;
+  if (profile.alcohol && profile.alcohol !== "Never" &&
+      ["Magnesium","Vitamin B12","Zinc","Protein"].includes(n.nutrient)) score += 4;
+  if (profile.smoking && profile.smoking !== "Never" &&
+      ["Zinc","Omega-3 (EPA/DHA)"].includes(n.nutrient)) score += 3;
+  if (profile.bmi >= 25 &&
+      ["Protein","Fibre","Magnesium","Chromium","Omega-3 (EPA/DHA)","Added Sugars / Refined Carbohydrates"].includes(n.nutrient)) score += 6;
 
   return { score, matched };
 }
 
+/* ---------- Render page ---------- */
 function renderPage() {
   if (!profile.sex) {
-    document.getElementById("main-content").innerHTML = `<div class="empty-state">We need your profile first. <a href="profile.html">Go back to start →</a></div>`;
+    document.getElementById("main-content").innerHTML =
+      `<div class="empty-state">We need your profile first. <a href="profile.html">Go back to start →</a></div>`;
     return;
   }
 
@@ -144,7 +159,7 @@ function renderPage() {
 
     <div class="cat-title">Food Quality Markers</div>
     <p class="lede" style="font-size:14px; margin-bottom:16px;">How often do you consume these?</p>
-    <div id="markers-container" class="habit-grid" style="margin-bottom:36px;"></div>
+    <div id="markers-container" style="margin-bottom:36px;"></div>
 
     <div class="cat-title">Nutrient Priorities</div>
     <p class="lede" style="font-size:14px; margin-bottom:16px;" id="priority-meta">Ranked for you</p>
@@ -156,54 +171,54 @@ function renderPage() {
     </div>
   `;
 
-  // Food Quality Markers
-  document.getElementById("markers-container").innerHTML = (window.FOOD_QUALITY || []).map(m => `
-    <div class="habit-card">
-      <div class="k" style="font-size:13px;">${m.label}</div>
-      <div style="margin-top:12px;">
-        <div class="unit-toggle small freq-group" data-marker="${m.id}" style="width:100%;display:flex;">
-          ${(window.FOOD_QUALITY_OPTIONS || []).map(opt => 
-            `<button type="button" class="freq-btn" data-val="${opt}" style="flex:1;">${opt}</button>`
-          ).join("")}
-        </div>
-      </div>
-    </div>
-  `).join("");
+  // Restore preference selects
+  if (dietState.type)    document.getElementById("diet-type").value = dietState.type;
+  if (dietState.cuisine) document.getElementById("cuisine-type").value = dietState.cuisine;
 
+  // Food Quality Matrix
+  renderFrequencyMatrix();
+  // Nutrient cards
+  renderNutrients();
+
+  // Preference change handlers
   document.getElementById("diet-type").addEventListener("change", e => {
     dietState.type = e.target.value;
+    saveDietProgress();
     renderNutrients();
   });
   document.getElementById("cuisine-type").addEventListener("change", e => {
     dietState.cuisine = e.target.value;
+    saveDietProgress();
     renderNutrients();
   });
 
-  document.getElementById("markers-container").addEventListener("click", e => {
-    const btn = e.target.closest(".freq-btn");
-    if (!btn) return;
-    const group = btn.closest(".freq-group");
-    group.querySelectorAll(".freq-btn").forEach(b => b.classList.remove("active"));
-    btn.classList.add("active");
-    dietState.frequency[group.dataset.marker] = btn.dataset.val;
-    renderNutrients();
+  // Frequency matrix change
+  document.getElementById("markers-container").addEventListener("change", e => {
+    if (e.target.type === "radio") {
+      dietState.frequency[e.target.dataset.food] = e.target.value;
+      saveDietProgress();
+      renderNutrients();
+    }
   });
 
+  // Continue
   document.getElementById("continue-btn").addEventListener("click", () => {
-    if (!dietState.type || !dietState.cuisine) return alert("Please select both Dietary preference and Cuisine preference.");
-    if (Object.keys(dietState.frequency).length < (window.FOOD_QUALITY || []).length) {
+    if (!dietState.type || !dietState.cuisine) {
+      return alert("Please select both Dietary preference and Cuisine preference.");
+    }
+    if (Object.keys(dietState.frequency || {}).length < (window.FOOD_QUALITY || []).length) {
       return alert("Please answer all Food Quality markers.");
     }
 
-    // Keep original calorie target logic
+    // Calorie target from window.DIET
     let targetRow = null;
     if (window.DIET && window.DIET.length) {
       let activeLevel = "Moderate";
       if (routine.estimatedCalories > 2400) activeLevel = "Active";
       if (routine.estimatedCalories < 1800) activeLevel = "Sedentary";
-      targetRow = window.DIET.find(r => 
-        r.sex === profile.sex && 
-        (r.age === profile.ageRange || r.age === String(profile.age)) && 
+      targetRow = window.DIET.find(r =>
+        r.sex === profile.sex &&
+        (r.age === profile.ageRange || r.age === String(profile.age)) &&
         r.activity === activeLevel
       ) || window.DIET[0];
     }
@@ -215,14 +230,49 @@ function renderPage() {
 
     dietState.priorities = (window.NUTRIENTS || [])
       .map(n => ({ ...n, ...scoreNutrient(n) }))
-      .sort((a,b) => b.score - a.score)
+      .sort((a, b) => b.score - a.score)
       .slice(0, 10);
 
     const nextState = Object.assign({}, state, { diet: dietState });
     goTo("diet-synthesis.html", nextState);
   });
+}
 
-  renderNutrients();
+function renderFrequencyMatrix() {
+  const foods = window.FOOD_QUALITY || [];
+  const freqs = window.FOOD_QUALITY_OPTIONS || ["Daily", "3-5x/Wk", "1-2x/Wk", "Rarely"];
+
+  let html = `
+    <div class="fq-matrix-wrapper">
+      <table class="fq-matrix">
+        <thead>
+          <tr>
+            <th>Frequency</th>
+            ${foods.map(f => `<th>${f.label}</th>`).join("")}
+          </tr>
+        </thead>
+        <tbody>
+  `;
+
+  freqs.forEach(freq => {
+    html += `<tr><th scope="row">${freq}</th>`;
+    foods.forEach(food => {
+      const checked = dietState.frequency[food.id] === freq ? "checked" : "";
+      html += `
+        <td>
+          <input type="radio"
+                 name="fq_${food.id}"
+                 value="${freq}"
+                 data-food="${food.id}"
+                 ${checked}
+                 aria-label="${freq} for ${food.label}">
+        </td>`;
+    });
+    html += `</tr>`;
+  });
+
+  html += `</tbody></table></div>`;
+  document.getElementById("markers-container").innerHTML = html;
 }
 
 function renderNutrients() {
@@ -231,42 +281,99 @@ function renderNutrients() {
 
   const ranked = (window.NUTRIENTS || [])
     .map(n => ({ ...n, ...scoreNutrient(n) }))
-    .sort((a,b) => b.score - a.score)
+    .sort((a, b) => b.score - a.score)
     .slice(0, 10);
 
-  const matchedCount = ranked.filter(n => n.matched.length).length;
+  const matchedCount = ranked.filter(n => n.matched.length > 0).length;
   const meta = document.getElementById("priority-meta");
-  if (meta) meta.textContent = `${ranked.length} nutrients prioritised · ${matchedCount} matched to your symptoms`;
+  if (meta) {
+    meta.textContent = `${ranked.length} nutrients prioritised · ${matchedCount} matched to your symptoms`;
+  }
 
   list.innerHTML = ranked.map((n, idx) => {
     const isLimit = n.direction === "limit";
     const examples = getExamples(n.nutrient);
     const tagClass = isLimit ? "due" : (n.matched.length ? "ok" : "");
-    const tagText = isLimit ? "LIMIT" : (n.matched.length ? "MATCHES: " + n.matched.slice(0,2).join(", ").toUpperCase() : "BASELINE");
+    const tagText  = isLimit ? "LIMIT"
+      : (n.matched.length ? "MATCHES: " + n.matched.slice(0, 2).join(", ").toUpperCase() : "BASELINE");
+
+    const current  = dietState.intake?.[n.nutrient] || {};
+    const isYes    = current.tracking === "yes";
+    const selectedFreq = current.frequency || "";
 
     return `
-      <div class="test-card">
+      <div class="test-card" data-nutrient="${n.nutrient}">
         <div class="head">
           <div>
-            <div class="name">${idx+1}. ${n.nutrient}</div>
+            <div class="name">${idx + 1}. ${n.nutrient}</div>
             <div class="test-desc">${n.note}</div>
-            <div class="symptom"><b>Watch for:</b> ${(n.symptoms||[]).slice(0,5).join(", ")}</div>
-            ${examples ? `<div style="margin-top:8px;padding:8px 10px;background:var(--paper);border-radius:4px;font-size:12.5px;"><b style="color:var(--teal);">Ideas for you:</b> ${examples}</div>` : ""}
+            <div class="symptom"><b>Watch for:</b> ${(n.symptoms || []).slice(0, 5).join(", ")}</div>
+            ${examples ? `
+              <div style="margin-top:8px;padding:8px 10px;background:var(--paper);border-radius:4px;font-size:12.5px;">
+                <b style="color:var(--teal);">Ideas for you:</b> ${examples}
+              </div>` : ""}
           </div>
           <span class="tag ${tagClass}">${tagText}</span>
         </div>
+
         <div class="answers">
-          <span style="font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:.04em;">CURRENT INTAKE?</span>
+          <span style="font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:.04em;">
+            CURRENT INTAKE?
+          </span>
           <div class="radio-pair">
-            <input type="radio" name="n_${idx}" id="n_${idx}_yes" value="yes">
-            <label for="n_${idx}_yes">Yes</label>
-            <input type="radio" name="n_${idx}" id="n_${idx}_no" value="no">
-            <label for="n_${idx}_no">No</label>
+            <input type="radio" name="track_${idx}" id="track_${idx}_yes" value="yes" ${isYes ? "checked" : ""}>
+            <label for="track_${idx}_yes">Yes</label>
+            <input type="radio" name="track_${idx}" id="track_${idx}_no" value="no" ${current.tracking === "no" ? "checked" : ""}>
+            <label for="track_${idx}_no">No</label>
           </div>
+
+          <select class="recency-select intake-freq"
+                  data-nutrient="${n.nutrient}"
+                  ${isYes ? "" : "disabled"}
+                  style="min-width:140px;">
+            <option value="">How often?</option>
+            <option value="Daily"      ${selectedFreq === "Daily" ? "selected" : ""}>Daily</option>
+            <option value="Most days"  ${selectedFreq === "Most days" ? "selected" : ""}>Most days</option>
+            <option value="1-2x / week"${selectedFreq === "1-2x / week" ? "selected" : ""}>1-2× / week</option>
+            <option value="Rarely"     ${selectedFreq === "Rarely" ? "selected" : ""}>Rarely</option>
+          </select>
         </div>
       </div>
     `;
   }).join("");
+
+  // Wire intake radios + selects
+  list.querySelectorAll(".radio-pair input").forEach(radio => {
+    radio.addEventListener("change", function () {
+      const card = this.closest(".test-card");
+      const nutrient = card.dataset.nutrient;
+      const select = card.querySelector(".intake-freq");
+
+      if (!dietState.intake) dietState.intake = {};
+      if (!dietState.intake[nutrient]) dietState.intake[nutrient] = {};
+
+      dietState.intake[nutrient].tracking = this.value;
+
+      if (this.value === "yes") {
+        select.disabled = false;
+      } else {
+        select.disabled = true;
+        select.value = "";
+        dietState.intake[nutrient].frequency = "";
+      }
+      saveDietProgress();
+    });
+  });
+
+  list.querySelectorAll(".intake-freq").forEach(select => {
+    select.addEventListener("change", function () {
+      const nutrient = this.dataset.nutrient;
+      if (!dietState.intake) dietState.intake = {};
+      if (!dietState.intake[nutrient]) dietState.intake[nutrient] = {};
+      dietState.intake[nutrient].frequency = this.value;
+      saveDietProgress();
+    });
+  });
 }
 
 renderPage();

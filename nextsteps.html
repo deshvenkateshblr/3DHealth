@@ -1,0 +1,399 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Next Steps &mdash; KYH</title>
+  <link rel="stylesheet" href="shared/styles.css">
+  <style>
+    .prompt-box {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      padding: 16px 18px;
+      font-family: var(--mono);
+      font-size: 12.5px;
+      line-height: 1.55;
+      white-space: pre-wrap;
+      max-height: 280px;
+      overflow-y: auto;
+      margin-bottom: 12px;
+    }
+    .video-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+    .video-card {
+      display: block;
+      text-decoration: none;
+      color: inherit;
+      border: 1px solid var(--line);
+      background: var(--panel);
+      transition: border-color .15s;
+    }
+    .video-card:hover { border-color: var(--teal); }
+    .video-thumb-wrap {
+      position: relative;
+      aspect-ratio: 16/9;
+      background: var(--line);
+      overflow: hidden;
+    }
+    .video-thumb-wrap img {
+      width: 100%; height: 100%; object-fit: cover; display: block;
+    }
+    .video-duration {
+      position: absolute; bottom: 6px; right: 6px;
+      background: rgba(0,0,0,.75); color: #fff;
+      font-family: var(--mono); font-size: 10px; padding: 2px 5px;
+    }
+    .video-title {
+      font-size: 13px; font-weight: 600; padding: 10px 12px 4px;
+      line-height: 1.35;
+    }
+    .video-tags { padding: 0 12px 12px; display: flex; flex-wrap: wrap; gap: 4px; }
+    .video-source-title {
+      font-family: var(--mono); font-size: 11px; letter-spacing: .08em;
+      text-transform: uppercase; color: var(--muted); margin: 20px 0 10px;
+    }
+  </style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="masthead-inner" style="display:flex; align-items:center; justify-content:space-between; gap:24px; flex-wrap:wrap;">
+    <div class="brand-lockup" style="margin-bottom:0;">
+      <a href="index.html" style="text-decoration:none;">
+        <img src="shared/assets/kyh_logo.jpg" alt="KYH – Know Your Health" style="height:38px; width:auto; display:block;">
+      </a>
+    </div>
+    <div class="map-route" aria-label="Your progress from Fine to Great">
+      <div class="map-stop"><div class="map-pin" style="border-color:var(--teal); color:var(--teal);"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 21s-6-5.4-6-10a6 6 0 1 1 12 0c0 4.6-6 10-6 10z"/><circle cx="12" cy="11" r="2.2"/></svg></div><div class="label">Fine</div></div>
+      <div class="map-line"></div>
+      <div class="map-stop"><div class="map-pin" style="border-color:var(--teal); color:var(--teal);"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/></svg></div><div class="label">Diagnostics</div></div>
+      <div class="map-line"></div>
+      <div class="map-stop"><div class="map-pin" style="border-color:var(--teal); color:var(--teal);"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg></div><div class="label">Routine</div></div>
+      <div class="map-line"></div>
+      <div class="map-stop"><div class="map-pin" style="border-color:var(--teal); color:var(--teal);"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/></svg></div><div class="label">Diet</div></div>
+      <div class="map-line"></div>
+      <div class="map-stop active"><div class="map-pin" style="border-color:var(--ink); color:var(--paper); background:var(--ink);"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 7.4H22l-6 4.6 2.3 7.4L12 17.3 5.7 21.4 8 14 2 9.4h7.6z"/></svg></div><div class="label" style="color:var(--ink); font-weight:600;">Great</div></div>
+    </div>
+  </div>
+</header>
+
+<main id="main-content">
+  <div class="empty-state">Loading next steps…</div>
+</main>
+
+<footer>
+  <span>KYH — Know Your Health. Own Your Path. Runs entirely in your browser.</span>
+  <span>Not a substitute for professional medical advice.</span>
+</footer>
+
+<script src="shared/data.videos.sb.js"></script>
+<script src="shared/data.videos.nbs.js"></script>
+<script src="shared/utils.js"></script>
+<script>
+const state = loadState() || {};
+const profile = state.profile || {};
+const routine = state.routine || {};
+const diet = state.diet || {};
+const diagnostics = state.diagnostics || {};
+const symptoms = profile.symptoms || [];
+const main = document.getElementById("main-content");
+
+/* ---------- Video matching (kept from original summary) ---------- */
+function deriveInterestTags(state) {
+  const p = state.profile || {};
+  const symptomTags = [...(p.symptoms || [])];
+  const contextTags = new Set();
+
+  if (p.reproStatus === "Perimenopausal" || p.reproStatus === "Post-menopausal") contextTags.add("Menopause");
+  if (p.pcos) contextTags.add("PCOS");
+  if (p.bmi >= 25) contextTags.add("Weight Loss");
+  if ((p.whtr || 0) >= 0.5) contextTags.add("Belly Fat");
+  if (p.famMetabolic) { contextTags.add("Blood Sugar"); contextTags.add("Insulin Resistance"); }
+
+  const freq = (state.diet && state.diet.frequency) || {};
+  if (freq.sugary_drinks === "Daily" || freq.sugary_drinks === "3-5x/Wk") contextTags.add("Sugar");
+  if (freq.fried_ultraprocessed === "Daily" || freq.fried_ultraprocessed === "3-5x/Wk") contextTags.add("Ultra-Processed Foods");
+  if (freq.leafy_greens === "Rarely" || freq.fruits === "Rarely") contextTags.add("Healthy Eating");
+
+  if (state.routine) {
+    if ((state.routine.actual?.sleep || 0) < 6.5) contextTags.add("Sleep");
+    if ((state.routine.actual?.exercise || 0) < 0.5) contextTags.add("Beginner Workout");
+  }
+  return { symptomTags, contextTags: [...contextTags] };
+}
+
+function scoreVideo(video, symptomTags, contextTags) {
+  const titleL = (video.title || "").toLowerCase();
+  const descL  = (video.description_short || "").toLowerCase();
+  const tagsL  = (video.tags || []).map(t => t.toLowerCase());
+
+  function strength(tl) {
+    if (titleL.includes(tl)) return 3;
+    if (tagsL.some(vt => vt.includes(tl) || tl.includes(vt))) return 2;
+    if (descL.includes(tl)) return 1;
+    return 0;
+  }
+
+  let score = 0;
+  const matched = [];
+  symptomTags.forEach(t => {
+    const s = strength(t.toLowerCase());
+    if (s > 0) { score += s * 3; matched.push(t); }
+  });
+  contextTags.forEach(t => {
+    const s = strength(t.toLowerCase());
+    if (s > 0) { score += s; if (!matched.includes(t)) matched.push(t); }
+  });
+  return { score, matched };
+}
+
+function pickTopVideos(list, symptomTags, contextTags, n) {
+  return (list || [])
+    .map(v => {
+      const { score, matched } = scoreVideo(v, symptomTags, contextTags);
+      return Object.assign({}, v, { _score: score, _matched: matched });
+    })
+    .sort((a, b) => b._score - a._score || (b.view_count || 0) - (a.view_count || 0))
+    .slice(0, n);
+}
+
+function fmtDuration(sec) {
+  if (!sec && sec !== 0) return "";
+  const m = Math.floor(sec / 60), s = String(sec % 60).padStart(2, "0");
+  return `${m}:${s}`;
+}
+
+function videoCardHtml(v) {
+  const tagsHtml = (v._matched && v._matched.length)
+    ? v._matched.slice(0, 3).map(t => `<span class="tag ok">${esc(t)}</span>`).join("")
+    : `<span class="tag">Popular</span>`;
+  return `
+    <a class="video-card" href="${esc(v.url)}" target="_blank" rel="noopener">
+      <div class="video-thumb-wrap">
+        <img src="${esc(v.thumbnail)}" alt="" loading="lazy"
+             onerror="this.style.display='none'">
+        <span class="video-duration">${fmtDuration(v.duration)}</span>
+      </div>
+      <div class="video-title">${esc(v.title)}</div>
+      <div class="video-tags">${tagsHtml}</div>
+    </a>`;
+}
+
+/* ---------- AI Prompt (updated for new diet shape) ---------- */
+function buildAIPrompt() {
+  const p = profile;
+  const lines = [];
+
+  lines.push("I'd like help creating a personalised health action plan. Here is my current profile from a self-assessment tool:");
+  lines.push("");
+  lines.push("PROFILE");
+  lines.push(`- Sex: ${p.sex || "—"}, Age: ${p.age || "—"}`);
+  if (p.bmi) lines.push(`- BMI: ${p.bmi.toFixed(1)}`);
+  if (p.whtr || (p.waistCm && p.heightCm)) {
+    const whtr = p.whtr || (p.waistCm / p.heightCm);
+    lines.push(`- Waist-to-height ratio: ${whtr.toFixed(2)}`);
+  }
+  lines.push(`- Smoking: ${p.smoking || "—"}, Alcohol: ${p.alcohol || "—"}`);
+  if (p.famMetabolic || p.famCardio) {
+    const fam = [];
+    if (p.famMetabolic) fam.push("diabetes/metabolic");
+    if (p.famCardio) fam.push("heart disease/hypertension");
+    lines.push(`- Family history: ${fam.join(", ")}`);
+  }
+  if (symptoms.length) lines.push(`- Current symptoms: ${symptoms.join(", ")}`);
+  lines.push("");
+
+  if (diagnostics.topTests || diagnostics.tests) {
+    lines.push("DIAGNOSTICS");
+    const tests = (diagnostics.topTests || diagnostics.tests || []).slice(0, 8)
+      .map(t => t.test || t.name || t).join(", ");
+    lines.push(`- Recommended tests: ${tests || "none prioritised"}`);
+    lines.push("");
+  }
+
+  if (routine.estimatedCalories || routine.actual) {
+    lines.push("DAILY ROUTINE");
+    if (routine.estimatedCalories) lines.push(`- Estimated daily burn: ~${routine.estimatedCalories} kcal`);
+    if (routine.actual) {
+      lines.push(`- Sleep: ${routine.actual.sleep ?? "—"}h, Exercise: ${routine.actual.exercise ?? "—"}h`);
+    }
+    lines.push("");
+  }
+
+  if (diet.type) {
+    lines.push("DIET");
+    lines.push(`- Preference: ${diet.type}${diet.cuisine ? " (" + diet.cuisine + ")" : ""}`);
+    if (diet.target?.cal) lines.push(`- Calorie target: ~${diet.target.cal} kcal/day`);
+    if (diet.priorities?.length) {
+      lines.push(`- Priority nutrients: ${diet.priorities.slice(0, 6).map(n => n.nutrient).join(", ")}`);
+    }
+    const freq = diet.frequency || {};
+    const flags = [];
+    if (freq.sugary_drinks === "Daily" || freq.sugary_drinks === "3-5x/Wk") flags.push("sugary drinks high");
+    if (freq.fried_ultraprocessed === "Daily" || freq.fried_ultraprocessed === "3-5x/Wk") flags.push("fried/ultra-processed high");
+    if (freq.leafy_greens === "Rarely") flags.push("leafy greens low");
+    if (flags.length) lines.push(`- Food quality signals: ${flags.join("; ")}`);
+    lines.push("");
+  }
+
+  lines.push("Please help me with:");
+  lines.push("1. The highest-leverage changes I should make in the next 30 days");
+  lines.push("2. How to prepare for a conversation with my doctor");
+  lines.push("3. Any red flags I should not ignore");
+
+  return lines.join("\n");
+}
+
+/* ---------- Doctor consultation prep ---------- */
+function buildDoctorPrep() {
+  const items = [];
+
+  if (symptoms.length) {
+    items.push(`Symptoms to mention: ${symptoms.slice(0, 8).join(", ")}`);
+  }
+
+  const topTests = (diagnostics.topTests || diagnostics.tests || []).slice(0, 6)
+    .map(t => t.test || t.name || t);
+  if (topTests.length) {
+    items.push(`Tests worth discussing: ${topTests.join(", ")}`);
+  }
+
+  if (diet.priorities?.length) {
+    items.push(`Nutrients currently prioritised: ${diet.priorities.slice(0, 5).map(n => n.nutrient).join(", ")}`);
+  }
+
+  if (profile.bmi >= 25 || (profile.whtr || 0) >= 0.5) {
+    items.push("Body composition (BMI / waist-to-height) is above ideal range — ask about metabolic screening.");
+  }
+
+  if (profile.famMetabolic || profile.famCardio) {
+    items.push("Family history of metabolic or heart disease is present — relevant for preventive screening.");
+  }
+
+  if (!items.length) {
+    items.push("Bring your symptom list and any recent lab reports.");
+    items.push("Ask which screening tests are appropriate for your age and risk profile.");
+  }
+
+  return items;
+}
+
+function videoSourceBlockHtml(title, videos, idPrefix) {
+  if (!videos.length) return "";
+  const top  = videos.slice(0, 3);
+  const rest = videos.slice(3, 12);
+
+  return `
+    <div class="video-source-title">${title}</div>
+    <div class="video-grid">${top.map(videoCardHtml).join("")}</div>
+    ${rest.length ? `
+      <div class="video-grid" id="${idPrefix}-extra" style="display:none; margin-top:12px;">
+        ${rest.map(videoCardHtml).join("")}
+      </div>
+      <button type="button" class="btn secondary" id="${idPrefix}-more-btn"
+              data-count="${rest.length}" style="margin-bottom:20px;">
+        Show ${rest.length} more, sorted by relevance ↓
+      </button>
+    ` : ""}
+  `;
+}
+
+function wireVideoShowMore() {
+  ["sb", "nbs"].forEach(idPrefix => {
+    const btn = document.getElementById(idPrefix + "-more-btn");
+    if (!btn) return;
+    btn.addEventListener("click", () => {
+      const extra = document.getElementById(idPrefix + "-extra");
+      const showing = extra.style.display !== "none";
+      extra.style.display = showing ? "none" : "grid";
+      btn.textContent = showing
+        ? `Show ${btn.dataset.count} more, sorted by relevance ↓`
+        : "Show fewer ↑";
+    });
+  });
+}
+
+/* ---------- Render ---------- */
+function render() {
+  if (!profile.sex) {
+    main.innerHTML = `<div class="empty-state">No profile found. <a href="profile.html">Start here →</a></div>`;
+    return;
+  }
+
+  const { symptomTags, contextTags } = deriveInterestTags(state);
+  const sbVideos  = pickTopVideos(window.SB_VIDEOS,  symptomTags, contextTags, 6);
+  const nbsVideos = pickTopVideos(window.NBS_VIDEOS, symptomTags, contextTags, 6);
+  const promptText = buildAIPrompt();
+  const doctorItems = buildDoctorPrep();
+  const sbAll  = pickTopVideos(window.SB_VIDEOS,  symptomTags, contextTags, 12);
+  const nbsAll = pickTopVideos(window.NBS_VIDEOS, symptomTags, contextTags, 12);
+
+
+
+// after setting innerHTML:
+wireVideoShowMore();
+
+  main.innerHTML = `
+    <div class="section-head">
+      <h2>Next Steps</h2>
+      <span class="section-sub">Great</span>
+    </div>
+    <p class="lede" style="margin-bottom:28px;">
+      Concrete actions, a ready-to-use AI prompt, and curated learning resources based on your profile.
+    </p>
+
+    <!-- 1. Prepare for your doctor -->
+    <div class="cat-title">Prepare for your doctor consultation</div>
+    <div class="note-block teal" style="margin-bottom:32px;">
+      <span class="k">Bring this to your next visit</span>
+      <ul style="margin:8px 0 0 18px; padding:0; line-height:1.65;">
+        ${doctorItems.map(i => `<li>${i}</li>`).join("")}
+      </ul>
+    </div>
+
+    <!-- 2. AI Prompt -->
+    <div class="cat-title">AI Prompt</div>
+    <p class="lede" style="font-size:14px; margin-bottom:12px;">
+      Copy this prompt into ChatGPT, Claude, or any AI assistant for a personalised action plan.
+    </p>
+    <div class="prompt-box" id="ai-prompt">${esc(promptText)}</div>
+    <button type="button" class="btn secondary" id="copy-prompt-btn" style="margin-bottom:36px;">Copy prompt</button>
+
+    <!-- 3. Video recommendations -->
+    <div class="cat-title">Recommended videos</div>
+    <p class="lede" style="font-size:14px; margin-bottom:8px;">
+      Ranked by relevance to your symptoms and risk profile.
+    </p>
+    ${videoSourceBlockHtml("Saurabh Bothra · Habuild Yoga", sbAll, "sb")}
+    ${videoSourceBlockHtml("Nourished by Science · Mario Kratz, PhD", nbsAll, "nbs")}
+
+    ${!sbVideos.length && !nbsVideos.length ? `
+      <p class="lede" style="color:var(--muted);">Video library not loaded.</p>
+    ` : ""}
+
+    <div class="page-footer-nav" style="margin-top:48px;">
+      <a href="summary.html" class="btn secondary">← Back to Summary</a>
+      <a href="index.html" class="btn">Done</a>
+    </div>
+  `;
+
+  wireVideoShowMore();
+
+  // Copy button
+  document.getElementById("copy-prompt-btn").addEventListener("click", () => {
+    navigator.clipboard.writeText(promptText).then(() => {
+      const btn = document.getElementById("copy-prompt-btn");
+      btn.textContent = "Copied ✓";
+      setTimeout(() => btn.textContent = "Copy prompt", 2000);
+    });
+  });
+}
+
+render();
+</script>
+</body>
+</html>
