@@ -1065,3 +1065,29 @@ footer{
 .fq-matrix td:has(input:checked) {
   background: var(--teal-soft);
 }
+
+/* Extra states for the shared header */
+.map-stop.done .map-pin {
+  border-color: var(--teal);
+  color: var(--teal);
+  background: var(--teal-soft);
+}
+.map-stop.done .label {
+  color: var(--teal);
+  opacity: 0.85;
+}
+.map-stop.dest.active .map-pin {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--paper);
+}
+.masthead-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+.brand-lockup {
+  margin-bottom: 0 !important;
+}

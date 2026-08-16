@@ -211,3 +211,88 @@ function gaugeBlock(name, lo, hi, max, unit, markerVal){
 function esc(s){
   return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
+/* ---------- Unified Header / Progress Map ---------- */
+const HEADER_STEPS = [
+  {
+    id: 'fine',
+    label: 'Fine',
+    icon: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+             <path d="M12 21s-6-5.4-6-10a6 6 0 1 1 12 0c0 4.6-6 10-6 10z"/>
+             <circle cx="12" cy="11" r="2.2"/>
+           </svg>`
+  },
+  {
+    id: 'diagnostics',
+    label: 'Diagnostics',
+    icon: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+             <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/>
+             <rect x="9" y="3" width="6" height="4" rx="1"/>
+           </svg>`
+  },
+  {
+    id: 'routine',
+    label: 'Routine',
+    icon: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+             <circle cx="12" cy="12" r="9"/>
+             <path d="M12 7v5l3.5 2"/>
+           </svg>`
+  },
+  {
+    id: 'diet',
+    label: 'Diet',
+    icon: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+             <circle cx="12" cy="12" r="9"/>
+             <circle cx="12" cy="12" r="4"/>
+           </svg>`
+  },
+  {
+    id: 'great',
+    label: 'Great',
+    icon: `<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
+             <path d="M12 2l2.4 7.4H22l-6 4.6 2.3 7.4L12 17.3 5.7 21.4 8 14 2 9.4h7.6z"/>
+           </svg>`
+  }
+];
+
+/**
+ * Renders the KYH masthead + progress map.
+ * @param {string} activeStep - one of: 'fine' | 'diagnostics' | 'routine' | 'diet' | 'great'
+ * @param {string} [targetId='app-header'] - element to inject into
+ */
+function renderHeader(activeStep = 'fine', targetId = 'app-header') {
+  const target = document.getElementById(targetId);
+  if (!target) return;
+
+  const activeIndex = HEADER_STEPS.findIndex(s => s.id === activeStep);
+
+  const stopsHtml = HEADER_STEPS.map((step, i) => {
+    let cls = 'map-stop';
+    if (i === activeIndex) cls += ' active';
+    if (i < activeIndex)   cls += ' done';          // previous steps
+    if (step.id === 'great') cls += ' dest';
+
+    return `
+      <div class="${cls}" data-step="${step.id}">
+        <div class="map-pin">${step.icon}</div>
+        <div class="label">${step.label}</div>
+      </div>
+      ${i < HEADER_STEPS.length - 1 ? '<div class="map-line"></div>' : ''}
+    `;
+  }).join('');
+
+  target.innerHTML = `
+    <div class="masthead-inner">
+      <div class="brand-lockup">
+        <a href="index.html" style="text-decoration:none;">
+          <img src="shared/assets/kyh_logo.jpg"
+               alt="KYH – Know Your Health. Own Your Path."
+               style="height:38px; width:auto; display:block;">
+        </a>
+      </div>
+
+      <div class="map-route" aria-label="Your progress from Fine to Great">
+        ${stopsHtml}
+      </div>
+    </div>
+  `;
+}
