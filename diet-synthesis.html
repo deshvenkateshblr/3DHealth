@@ -107,7 +107,7 @@ const routine = state.routine || {};
 const diet = state.diet || {};
 const symptoms = profile.symptoms || [];
 
-renderHeader('diet');
+renderHeader('diet', 'KYH-Diet Insights');
 
 const main = document.getElementById('main-content');
 
@@ -268,11 +268,7 @@ function init() {
 
   // ---------- Render ----------
   main.innerHTML = `
-    <div class="section-head">
-      <h2>Your Nutrition Map</h2>
-      <span class="section-sub">Synthesis</span>
-    </div>
-
+   
     <!-- 1. Daily Calorie Target (honest version) -->
     <div class="cat-title">Daily Calorie Target</div>
     <div class="balance-card">

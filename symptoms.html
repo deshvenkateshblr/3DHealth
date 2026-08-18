@@ -17,7 +17,7 @@
 </main>
 
 <footer>
-  <span>Vital Framework &mdash; runs entirely in your browser. No data leaves this page.</span>
+  <span>KYH — Know Your Health. Own Your Path. Nothing you enter leaves your browser.</span>
   <span>Not a substitute for professional medical advice.</span>
 </footer>
 
@@ -26,7 +26,7 @@
 <script>
 const state = loadState();
 
-renderHeader('fine'); 
+renderHeader('fine', 'KYH-Profile-Symptoms'); 
 
 const profile = state.profile;
 const main = document.getElementById('main-content');
@@ -64,7 +64,6 @@ function init(){
   main.innerHTML = `
   <div class="section-head">
     <h2>Search or browse</h2>
-    <span class="section-sub">Starting point &middot; Symptoms</span>
   </div>
   <p class="lede">Add anything you're currently experiencing. This shapes your diagnostics test list, and adds a note or two on your diet and routine pages where relevant. Nothing to add? Skip it &mdash; we'll use your risk profile instead.</p>
 

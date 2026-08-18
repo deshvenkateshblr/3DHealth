@@ -30,7 +30,7 @@ const profile = state.profile || {};
 const routine = state.routine || {};
 const userSymptoms = profile.symptoms || [];
 
-renderHeader('diet');
+renderHeader('diet', 'KYH-Diet');
 
 // Restore any previous diet answers for this session
 let dietState = Object.assign({
@@ -105,10 +105,6 @@ function renderPage() {
 
   const main = document.getElementById("main-content");
   main.innerHTML = `
-    <div class="section-head">
-      <h2>Diet Priorities</h2>
-      <span class="section-sub">Diet</span>
-    </div>
     <p class="lede" style="margin-bottom:28px;">
       Based on your symptoms, body composition, routine and preferences we prioritise the nutrients that matter most for you right now.
     </p>

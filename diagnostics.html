@@ -24,7 +24,7 @@
 <script src="shared/utils.js"></script>
 <script>
 const state = loadState();
-renderHeader('diagnostics');
+renderHeader('diagnostics', 'KYH-Diagnostics');
 
 const profile = state.profile;
 const main = document.getElementById('main-content');
@@ -170,7 +170,6 @@ function renderResultsStage(){
   main.innerHTML = `
   <div class="section-head">
     <h2>Your top 10 tests</h2>
-    <span class="section-sub">Diagnostics</span>
   </div>
   <p class="lede">${symptomLine}</p>
   <p class="section-sub" style="display:block;margin-bottom:14px;">${matches.length} tests matched your profile &middot; ${symptomDrivenCount} pulled in directly from your symptoms, the rest fill out your baseline risk panel</p>

@@ -82,7 +82,7 @@ const diet = state.diet || {};
 const diagnostics = state.diagnostics || {};
 const symptoms = profile.symptoms || [];
 
-renderHeader('great'); 
+renderHeader('great', 'KYH - Next Steps'); 
 
 const main = document.getElementById("main-content");
 
@@ -322,10 +322,7 @@ function render() {
 wireVideoShowMore();
 
   main.innerHTML = `
-    <div class="section-head">
-      <h2>Next Steps</h2>
-      <span class="section-sub">Great</span>
-    </div>
+ 
     <p class="lede" style="margin-bottom:28px;">
       Concrete actions, a ready-to-use AI prompt, and curated learning resources based on your profile.
     </p>

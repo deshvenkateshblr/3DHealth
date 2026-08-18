@@ -5,191 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>KYH — Know Your Health</title>
 <link rel="stylesheet" href="shared/styles.css">
-<style>
-  /* ===== Header – tight & vertically centred ===== */
-  .masthead {
-    padding: 12px clamp(16px, 4vw, 40px) !important;
-  }
-  .masthead-inner {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 24px;
-    flex-wrap: wrap;
-  }
-  .brand-lockup {
-    margin-bottom: 0 !important;
-    flex-shrink: 0;
-    display: flex;
-    align-items: center;
-  }
-  .brand-lockup img {
-    height: 42px;
-    width: auto;
-    max-width: 160px;
-    display: block;
-  }
 
-  /* Map route */
-  .map-route {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    margin: 0;
-    flex-wrap: wrap;
-    justify-content: center;
-  }
-  .map-stop {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 3px;
-    min-width: 64px;
-  }
-  .map-pin {
-    width: 34px;
-    height: 34px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 2px solid var(--ink);
-    background: var(--panel);
-  }
-  .map-stop.start .map-pin {
-    background: var(--teal);
-    border-color: var(--teal);
-    color: #fff;
-  }
-  .map-stop.dest .map-pin {
-    background: var(--ink);
-    border-color: var(--ink);
-    color: var(--paper);
-  }
-  .map-stop .label {
-    font-family: var(--mono);
-    font-size: 9.5px;
-    letter-spacing: .06em;
-    text-transform: uppercase;
-    color: var(--muted);
-    text-align: center;
-    line-height: 1.2;
-  }
-  .map-stop.start .label,
-  .map-stop.dest .label {
-    color: var(--ink);
-    font-weight: 600;
-  }
-  .map-line {
-    width: 22px;
-    height: 2px;
-    background: var(--line);
-    margin-bottom: 14px;
-  }
-
-  /* ===== Hero ===== */
-  .hero-question {
-    text-align: center;
-    margin: 10px 0 16px;
-  }
-  .hero-question h1 {
-    font-family: var(--serif);
-    font-weight: 400;
-    font-size: clamp(40px, 7.5vw, 64px);
-    line-height: 1.05;
-    margin: 0 0 6px;
-    letter-spacing: -0.02em;
-  }
-  .hero-question .sub {
-    font-family: var(--serif);
-    font-style: italic;
-    font-size: clamp(19px, 3vw, 24px);
-    color: var(--ink-soft);
-    margin: 0;
-  }
-  .hero-summary {
-    text-align: center;
-    max-width: 520px;
-    margin: 0 auto 32px;
-    font-size: 16px;
-    line-height: 1.55;
-    color: var(--ink-soft);
-  }
-
-  /* ===== Outcome cards ===== */
-  .outcome-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 14px;
-    margin-bottom: 36px;
-  }
-  @media (max-width: 900px) {
-    .outcome-grid {
-      grid-template-columns: repeat(2, 1fr);
-    }
-  }
-  @media (max-width: 520px) {
-    .outcome-grid {
-      grid-template-columns: 1fr;
-    }
-  }
-  .outcome-card {
-    background: var(--panel);
-    border: 1px solid var(--ink);
-    padding: 20px 18px;
-  }
-  .outcome-card .verb {
-    font-family: var(--mono);
-    font-size: 11px;
-    letter-spacing: .14em;
-    text-transform: uppercase;
-    color: var(--teal);
-    margin-bottom: 8px;
-    display: flex;
-    align-items: center;
-    gap: 7px;
-  }
-  .outcome-card h3 {
-    font-family: var(--serif);
-    font-weight: 400;
-    font-size: 17.5px;
-    margin: 0 0 7px;
-    line-height: 1.3;
-  }
-  .outcome-card p {
-    font-size: 13.5px;
-    line-height: 1.5;
-    color: var(--ink-soft);
-    margin: 0;
-  }
-
-  .start-wrap {
-    text-align: center;
-  }
-  .start-wrap .btn {
-    font-size: 14px;
-    padding: 16px 48px;
-    letter-spacing: .12em;
-  }
-  .start-wrap p {
-    font-family: var(--mono);
-    font-size: 12px;
-    color: var(--muted);
-    margin-top: 12px;
-  }
-
-  @media (max-width: 700px) {
-    .map-line { display: none; }
-    .masthead-inner {
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 14px;
-    }
-    .brand-lockup img {
-      height: 36px;
-    }
-  }
-</style>
 </head>
 <body>
 
@@ -206,56 +22,55 @@
     <p class="hero-summary">
       In under 10 minutes, get a clear map of where you are and the simple next steps toward feeling genuinely great.
     </p>
-
-    <div class="outcome-grid">
-      <div class="outcome-card">
-        <div class="verb">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/>
-            <rect x="9" y="3" width="6" height="4" rx="1"/>
-          </svg>
-          Review
-        </div>
-        <h3>What tests could help you</h3>
-        <p>Only the labs that actually matter for your age, sex, symptoms and family history — not a generic checklist.</p>
-      </div>
-
-      <div class="outcome-card">
-        <div class="verb">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="9"/>
-            <path d="M12 7v5l3.5 2"/>
-          </svg>
-          Visualize
-        </div>
-        <h3>How your day is going</h3>
-        <p>See where your daily routine sits versus an ideal built for you, and which few changes move the needle most.</p>
-      </div>
-
-      <div class="outcome-card">
-        <div class="verb">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="9"/>
-            <circle cx="12" cy="12" r="4"/>
-          </svg>
-          Audit
-        </div>
-        <h3>What you eat</h3>
-        <p>Turn your actual eating patterns into clear calorie, macro and micronutrient targets — fuel with precision.</p>
-      </div>
-
-      <div class="outcome-card">
-        <div class="verb">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-            <path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/>
-          </svg>
-          Prepare
-        </div>
-        <h3>For next steps</h3>
-        <p>A clean summary for your doctor consultation, videos to learn, plus a ready-made AI prompt to refine the plan, all in your context.</p>
-      </div>
+<div class="outcome-grid">
+  <div class="outcome-card">
+    <div class="verb">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/>
+        <rect x="9" y="3" width="6" height="4" rx="1"/>
+      </svg>
+      Review
     </div>
+    <h3>Personalized lab tests</h3>
+    <p>Only the tests that actually matter for your age, sex, symptoms and family history — not a generic checklist.</p>
+  </div>
+
+  <div class="outcome-card">
+    <div class="verb">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="9"/>
+        <path d="M12 7v5l3.5 2"/>
+      </svg>
+      Visualize
+    </div>
+    <h3>Your daily routine</h3>
+    <p>See how your current day compares to an ideal routine, and which few changes move the needle.</p>
+  </div>
+
+  <div class="outcome-card">
+    <div class="verb">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="9"/>
+        <circle cx="12" cy="12" r="4"/>
+      </svg>
+      Audit
+    </div>
+    <h3>Precision nutrition</h3>
+    <p>Turn your diet into macro and micronutrient targets tailored to your body and lifestyle.</p>
+  </div>
+
+  <div class="outcome-card">
+    <div class="verb">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+        <path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/>
+      </svg>
+      Prepare
+    </div>
+    <h3>Clear next steps</h3>
+    <p>A clean summary for your doctor, curated learning videos, and an AI prompt, all in your personal context.</p>
+  </div>
+</div>
 
     <div class="start-wrap">
       <a class="btn" href="profile.html">Start</a>
@@ -271,7 +86,9 @@
 </footer>
 
 <script src="shared/utils.js"></script>
-<script>renderHeader('fine'); </script>
+<script>document.addEventListener('DOMContentLoaded', () => {
+  renderHeader('fine', 'Know Your Health — Own Your Path');
+}); </script>
 
 </body>
 </html>

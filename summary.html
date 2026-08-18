@@ -27,7 +27,7 @@ const routine = state.routine || {};
 const diet = state.diet || {};
 const diagnostics = state.diagnostics || {};
 
-renderHeader('great'); 
+renderHeader('great', 'KYH - Health Summary'); 
 
 const main = document.getElementById("main-content");
 
@@ -82,10 +82,7 @@ function render() {
   const foodFlagText = foodFlags.length ? foodFlags.join(" · ") : "No major red flags";
 
   main.innerHTML = `
-    <div class="section-head">
-      <h2>Your Health Summary</h2>
-      <span class="section-sub">Great</span>
-    </div>
+
     <p class="lede" style="margin-bottom:28px;">
       A compact snapshot of everything you’ve told us so far.
     </p>
