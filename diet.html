@@ -145,7 +145,7 @@ function renderPage() {
     <div id="nutrient-list"></div>
 
     <div class="page-footer-nav">
-      <a href="routine.html" class="btn secondary">← Back</a>
+      <a href="routine-plan.html" class="btn secondary">← Back</a>
       <button type="button" class="btn" id="continue-btn">Synthesize Diet →</button>
     </div>
   `;
@@ -172,13 +172,16 @@ function renderPage() {
   });
 
   // Frequency matrix change
-  document.getElementById("markers-container").addEventListener("change", e => {
-    if (e.target.type === "radio") {
-      dietState.frequency[e.target.dataset.food] = e.target.value;
-      saveDietProgress();
-      renderNutrients();
+ document.getElementById("markers-container").addEventListener("change", e => {
+    const foodId = e.target.dataset.food;
+    if (!foodId) return;
+
+    if (e.target.type === "radio" || e.target.tagName === "SELECT") {
+    dietState.frequency[foodId] = e.target.value;
+    saveDietProgress();
+    renderNutrients();
     }
-  });
+ });
 
   // Continue
   document.getElementById("continue-btn").addEventListener("click", () => {
@@ -221,8 +224,9 @@ function renderFrequencyMatrix() {
   const foods = window.FOOD_QUALITY || [];
   const freqs = window.FOOD_QUALITY_OPTIONS || ["Daily", "3-5x/Wk", "1-2x/Wk", "Rarely"];
 
-  let html = `
-    <div class="fq-matrix-wrapper">
+  // ----- Desktop: radio matrix (unchanged) -----
+  let tableHtml = `
+    <div class="fq-matrix-wrapper fq-desktop-only">
       <table class="fq-matrix">
         <thead>
           <tr>
@@ -232,12 +236,11 @@ function renderFrequencyMatrix() {
         </thead>
         <tbody>
   `;
-
   freqs.forEach(freq => {
-    html += `<tr><th scope="row">${freq}</th>`;
+    tableHtml += `<tr><th scope="row">${freq}</th>`;
     foods.forEach(food => {
       const checked = dietState.frequency[food.id] === freq ? "checked" : "";
-      html += `
+      tableHtml += `
         <td>
           <input type="radio"
                  name="fq_${food.id}"
@@ -247,11 +250,32 @@ function renderFrequencyMatrix() {
                  aria-label="${freq} for ${food.label}">
         </td>`;
     });
-    html += `</tr>`;
+    tableHtml += `</tr>`;
   });
+  tableHtml += `</tbody></table></div>`;
 
-  html += `</tbody></table></div>`;
-  document.getElementById("markers-container").innerHTML = html;
+  // ----- Mobile: one row per food + frequency dropdown -----
+  let mobileHtml = `<div class="fq-mobile-list fq-mobile-only">`;
+  foods.forEach(food => {
+    const current = dietState.frequency[food.id] || "";
+    const options = freqs.map(f =>
+      `<option value="${f}" ${current === f ? "selected" : ""}>${f}</option>`
+    ).join("");
+
+    mobileHtml += `
+      <div class="fq-mobile-row">
+        <label class="fq-mobile-label" for="fq-sel-${food.id}">${food.label}</label>
+        <select id="fq-sel-${food.id}"
+                class="fq-mobile-select"
+                data-food="${food.id}">
+          <option value="">How often?</option>
+          ${options}
+        </select>
+      </div>`;
+  });
+  mobileHtml += `</div>`;
+
+  document.getElementById("markers-container").innerHTML = tableHtml + mobileHtml;
 }
 
 function renderNutrients() {

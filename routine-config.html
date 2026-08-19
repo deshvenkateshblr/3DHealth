@@ -1,0 +1,244 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Routine Configuration &mdash; KYH</title>
+<link rel="stylesheet" href="shared/styles.css">
+<style>
+  .config-grid { display: grid; grid-template-columns: 1fr; gap: 12px; margin-bottom: 24px; }
+  .act-card-inner { display: grid; grid-template-columns: 1fr auto; gap: 16px; align-items: center; }
+  .act-inputs { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-top: 12px; }
+  .act-inputs select { font-family: var(--mono); font-size: 13px; padding: 6px 8px; border: 1px solid var(--line); background: var(--paper); }
+  .time-input-group { display: flex; align-items: center; gap: 4px; }
+  .time-input-group input { font-family: var(--mono); font-size: 13px; padding: 6px; border: 1px solid var(--line); background: var(--paper); width: 54px; text-align: center; }
+  .time-input-group span { font-size: 12px; color: var(--muted); }
+  .cal-readout { font-family: var(--mono); font-size: 14px; font-weight: 600; color: var(--teal); min-width: 90px; text-align: right; }
+  @media(max-width: 600px) { .act-card-inner { grid-template-columns: 1fr; } .cal-readout { text-align: left; margin-top: 8px; } }
+</style>
+</head>
+<body>
+
+<header class="masthead" id="app-header"></header>
+
+<main id="main-content">
+  <div class="empty-state">Loading your profile&hellip;</div>
+</main>
+
+<footer>
+  <span>KYH — Know Your Health. Own Your Path. Runs entirely in your browser.</span>
+</footer>
+
+<script src="shared/data.activities.js"></script>
+<script src="shared/utils.js"></script>
+<script>
+const state = loadState();
+const profile = state.profile;
+const main = document.getElementById('main-content');
+const weightKg = profile?.weightKg || 70; 
+
+renderHeader('routine', 'KYH-Daily Routine'); 
+
+let selectedActivities = state.routine?.activities || [];
+
+function init() {
+  main.innerHTML = `
+  <div class="section-head">
+    <h2>2. Configure Schedule</h2>
+  </div>
+  <p class="lede">Set the frequency and duration for the activities you selected. Ensure your Daily activities add up to roughly 24 hours.</p>
+
+  <div class="stat-strip" style="margin-top:24px;">
+    <div class="stat-card hero" id="tdee-card">
+      <div class="k">Est. Daily Burn (TDEE)</div>
+      <div class="v" id="tdee-val">0</div>
+      <div class="u">kcal / day</div>
+    </div>
+    <div class="stat-card" id="time-card">
+      <div class="k">Daily Time Logged</div>
+      <div class="v" id="time-val">0</div>
+      <div class="u">out of 24 hrs</div>
+    </div>
+  </div>
+  
+  <div class="validation-msg" id="time-msg" style="text-align:right; margin-top:-16px; margin-bottom:12px;"></div>
+
+  <div class="note-block" style="margin-bottom: 24px; font-size: 13.5px;">
+    <strong>How is this calculated?</strong> We use the <em>Metabolic Equivalent of Task (MET)</em> formula: 
+    <code>METs × Weight (kg) × Duration (hrs)</code>. 
+    Because your profile indicates you weigh ${weightKg}kg, these calculations are completely personalized to your specific body mass.
+  </div>
+
+  <div class="config-grid" id="config-grid"></div>
+
+  <div class="note-block teal" id="weekly-summary" style="display:none; margin-bottom: 36px;">
+    <span class="k">Weekly Extras</span>
+    <span id="weekly-text"></span>
+  </div>
+
+  <div class="page-footer-nav">
+    <a href="#" id="back-btn" class="btn secondary">&larr; Back to Selection</a>
+    <button type="button" class="btn" id="continue-btn">Get Movement Plan &rarr;</button>
+  </div>
+  `;
+
+  const configGrid = document.getElementById('config-grid');
+  
+  document.getElementById('back-btn').addEventListener('click', (e) => {
+    e.preventDefault();
+    // Save state so if they go back, their hours are preserved
+    const routineState = Object.assign({}, state.routine, { activities: selectedActivities });
+    goTo('routine.html', Object.assign({}, state, { routine: routineState })); 
+  });
+
+  document.getElementById('continue-btn').addEventListener('click', () => {
+    const routineState = Object.assign({}, state.routine, { 
+      activities: selectedActivities,
+      tdee: window.currentTDEE || 2000
+    });
+    const next = Object.assign({}, state, { routine: routineState });
+    goTo('routine-plan.html', next); // Move to step 3!
+  });
+
+  function calculateCalories(met, freq, hours, mins) {
+    const durationHours = (Number(hours) || 0) + ((Number(mins) || 0) / 60);
+    return Math.round(met * weightKg * durationHours);
+  }
+
+  function renderConfiguration() {
+    if (selectedActivities.length === 0) {
+      configGrid.innerHTML = `<div class="empty-state">No activities selected. Please go back.</div>`;
+      return;
+    }
+
+    // Render static inputs, using the targetable classes for anti-jump math updates
+    configGrid.innerHTML = selectedActivities.map((sa, index) => {
+      const def = window.ACTIVITIES.find(a => a.id === sa.id);
+      if (!def) return '';
+      
+      const cals = calculateCalories(def.met, sa.freq, sa.hours, sa.mins);
+      const suffix = sa.freq === 'daily' ? 'kcal/day' : 'kcal/session';
+
+      return `
+      <div class="test-card" data-idx="${index}">
+        <div class="act-card-inner">
+          <div>
+            <div class="name">${esc(def.name)}</div>
+            <div class="symptom">${def.category} &middot; ${def.met.toFixed(1)} METs</div>
+            
+            <div class="act-inputs">
+              <select class="conf-freq">
+                <option value="daily" ${sa.freq === 'daily' ? 'selected' : ''}>Daily (Baseline)</option>
+                <option value="weekly" ${sa.freq === 'weekly' ? 'selected' : ''}>Weekly (Extra)</option>
+              </select>
+              <div class="time-input-group">
+                <input type="number" class="conf-hr" min="0" max="24" value="${sa.hours !== undefined ? sa.hours : 0}">
+                <span>hrs</span>
+              </div>
+              <div class="time-input-group">
+                <input type="number" class="conf-min" min="0" max="59" step="5" value="${sa.mins !== undefined ? sa.mins : 0}">
+                <span>mins</span>
+              </div>
+            </div>
+          </div>
+          <div class="cal-readout"><span class="cal-text">~${cals}</span> <span style="font-size:10px; color:var(--muted);"><br><span class="cal-suffix">${suffix}</span></span></div>
+        </div>
+      </div>
+      `;
+    }).join('');
+
+    // Update ONLY the text elements for smooth typing
+    function updateCardMath(idx, card) {
+      const sa = selectedActivities[idx];
+      const def = window.ACTIVITIES.find(a => a.id === sa.id);
+      if (!def) return;
+      const cals = calculateCalories(def.met, sa.freq, sa.hours, sa.mins);
+      const suffix = sa.freq === 'daily' ? 'kcal/day' : 'kcal/session';
+      card.querySelector('.cal-text').textContent = `~${cals}`;
+      card.querySelector('.cal-suffix').textContent = suffix;
+      updateTotals();
+    }
+
+    configGrid.querySelectorAll('.test-card').forEach(card => {
+      const idx = card.dataset.idx;
+      card.querySelector('.conf-freq').addEventListener('change', (e) => {
+        selectedActivities[idx].freq = e.target.value;
+        updateCardMath(idx, card);
+      });
+      card.querySelector('.conf-hr').addEventListener('input', (e) => {
+        selectedActivities[idx].hours = Number(e.target.value) || 0;
+        updateCardMath(idx, card);
+      });
+      card.querySelector('.conf-min').addEventListener('input', (e) => {
+        selectedActivities[idx].mins = Number(e.target.value) || 0;
+        updateCardMath(idx, card);
+      });
+    });
+
+    updateTotals();
+  }
+
+  function updateTotals() {
+    let dailyHours = 0, dailyBurn = 0, weeklyBurn = 0;
+    let weeklyNames = [];
+
+    selectedActivities.forEach(sa => {
+      const def = window.ACTIVITIES.find(a => a.id === sa.id);
+      if(!def) return;
+      
+      const durationHours = (Number(sa.hours) || 0) + ((Number(sa.mins) || 0) / 60);
+      const cals = calculateCalories(def.met, sa.freq, sa.hours, sa.mins);
+
+      if (sa.freq === 'daily') {
+        dailyHours += durationHours;
+        dailyBurn += cals;
+      } else {
+        weeklyBurn += cals; 
+        weeklyNames.push(def.name);
+      }
+    });
+
+    document.getElementById('tdee-val').textContent = Math.round(dailyBurn).toLocaleString();
+    window.currentTDEE = dailyBurn;
+
+    const timeVal = document.getElementById('time-val');
+    const timeMsg = document.getElementById('time-msg');
+    const btn = document.getElementById('continue-btn');
+    timeVal.textContent = dailyHours.toFixed(1);
+
+    if (dailyHours > 24.1) { 
+      timeVal.style.color = 'var(--rose)';
+      timeMsg.textContent = "Over 24 hours of daily activities logged. Please reduce.";
+      btn.disabled = true;
+    } else if (dailyHours < 23.5) {
+      timeVal.style.color = 'var(--amber)';
+      timeMsg.textContent = "You have unaccounted time. Ensure your baseline is full.";
+      timeMsg.style.color = 'var(--amber)';
+      btn.disabled = false; 
+    } else {
+      timeVal.style.color = 'var(--teal)';
+      timeMsg.textContent = "";
+      btn.disabled = false;
+    }
+
+    const summaryBlock = document.getElementById('weekly-summary');
+    if (weeklyNames.length > 0) {
+      summaryBlock.style.display = 'block';
+      document.getElementById('weekly-text').textContent = 
+        `You also burn an estimated ${weeklyBurn.toLocaleString()} kcal per week from extra activities like ${weeklyNames.join(', ')}.`;
+    } else {
+      summaryBlock.style.display = 'none';
+    }
+  }
+
+  renderConfiguration();
+}
+
+if(!profile) {
+  main.innerHTML = `<div class="empty-state">We need your profile first. <a href="profile.html">Go back to start &rarr;</a></div>`;
+} else {
+  init();
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,368 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Exercises &mdash; Vital Framework</title>
+<link rel="stylesheet" href="shared/styles.css">
+<style>
+  /* Light extras that reuse the diagnostics card language */
+  .test-card .meta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 6px;
+  }
+  .test-card .meta-chip {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    padding: 2px 7px;
+    border: 1px solid var(--line);
+    color: var(--muted);
+    background: var(--paper);
+  }
+  .test-card .contra {
+    font-size: 12px;
+    color: var(--rose);
+    margin-top: 4px;
+  }
+  .test-card .freq-select {
+    font-family: var(--mono);
+    font-size: 13px;
+    padding: 7px 8px;
+    border: 1px solid var(--ink);
+    background: var(--panel);
+    color: var(--ink);
+    min-width: 160px;
+  }
+</style>
+</head>
+<body>
+
+<header class="masthead" id="app-header"></header>
+
+<main id="main-content">
+  <div class="empty-state" id="loading-state">Loading your profile&hellip;</div>
+</main>
+
+<footer>
+  <span>Vital Framework &mdash; runs entirely in your browser. No data leaves this page.</span>
+  <span>Not a substitute for professional medical advice.</span>
+</footer>
+
+<script src="shared/data.exercises.js"></script>
+<script src="shared/utils.js"></script>
+<script>
+const state = loadState();
+renderHeader('routine', 'KYH-Exercises');  // sits under the Routine step in the progress map
+
+const profile = state.profile;
+const main = document.getElementById('main-content');
+
+/* Profile groups used for baseline round-robin fill.
+   Order roughly mirrors common rehab → strength → cardio → rest progression. */
+const GROUP_ORDER = [
+  'Mobility & Rehab',
+  'Postural Rehab',
+  'Core Stability',
+  'Foundational Strength',
+  'Core & Lower Body',
+  'Breathwork & Nervous System',
+  'Restorative Yoga',
+  'Cardio & Metabolic',
+  'Balance & Bone Density',
+  'Pelvic Health',
+  'Joint Care',
+  'Tension Relief',
+  'Deep Rest',
+  'Low-Impact Cardio',
+  'Mental & Physical Baseline'
+];
+
+const NO_SYMPTOM_FALLBACK = {
+  'Mobility & Rehab': 'no specific symptom — general mobility baseline',
+  'Postural Rehab': 'no specific symptom — desk / posture baseline',
+  'Core Stability': 'no specific symptom — core baseline',
+  'Foundational Strength': 'no specific symptom — strength baseline',
+  'Core & Lower Body': 'no specific symptom — lower-body baseline',
+  'Breathwork & Nervous System': 'no specific symptom — nervous-system baseline',
+  'Restorative Yoga': 'no specific symptom — recovery baseline',
+  'Cardio & Metabolic': 'no specific symptom — metabolic baseline',
+  'Balance & Bone Density': 'no specific symptom — balance / bone baseline',
+  'Pelvic Health': 'no specific symptom — pelvic baseline',
+  'Joint Care': 'no specific symptom — joint baseline',
+  'Tension Relief': 'no specific symptom — tension baseline',
+  'Deep Rest': 'no specific symptom — rest baseline',
+  'Low-Impact Cardio': 'no specific symptom — low-impact cardio baseline',
+  'Mental & Physical Baseline': 'no specific symptom — general activity baseline'
+};
+
+const FREQ_OPTIONS = [
+  'Daily',
+  '3–5× / week',
+  '1–2× / week',
+  'Occasionally',
+  'Not yet'
+];
+
+/* ---- symptom → exercises index (single source of truth) ---- */
+const SYMPTOM_TO_EXERCISES = {};
+(window.EXERCISES || []).forEach(ex => {
+  (ex.symptoms || []).forEach(s => {
+    (SYMPTOM_TO_EXERCISES[s] = SYMPTOM_TO_EXERCISES[s] || []).push(ex.exercise);
+  });
+});
+
+function isContraindicated(ex, userSymptoms) {
+  if (!ex.contraindications || !ex.contraindications.length) return false;
+  return ex.contraindications.some(c => userSymptoms.includes(c));
+}
+
+function assignGroup(ex) {
+  const p = (ex.profile || '').trim();
+  // Prefer an exact match in GROUP_ORDER; otherwise use the raw profile string
+  return GROUP_ORDER.find(g => p === g || p.includes(g.split(' ')[0])) || p || 'Mental & Physical Baseline';
+}
+
+/* ---- baseline (category-driven) selection ---- */
+function selectBaseline(matches, limit, exclude) {
+  const groups = {};
+  matches.forEach(ex => {
+    if (exclude.has(ex.exercise)) return;
+    const g = assignGroup(ex);
+    (groups[g] = groups[g] || []).push(ex);
+  });
+  Object.keys(groups).forEach(g =>
+    groups[g].sort((a, b) => a.exercise.localeCompare(b.exercise))
+  );
+
+  const present = [
+    ...GROUP_ORDER.filter(g => groups[g] && groups[g].length),
+    ...Object.keys(groups).filter(g => !GROUP_ORDER.includes(g))
+  ];
+
+  const out = [];
+  let idx = 0;
+  while (out.length < limit && present.some(g => groups[g] && groups[g].length)) {
+    const g = present[idx % present.length];
+    if (groups[g] && groups[g].length) {
+      const item = groups[g].shift();
+      out.push(Object.assign({
+        group: g,
+        viaSymptoms: [],
+        bySymptom: false
+      }, item));
+    }
+    idx++;
+  }
+  return out;
+}
+
+/* ---- symptom-driven selection (highest priority) ---- */
+function selectFromSymptoms(matches, selectedSymptomsArr) {
+  const byName = {};
+  matches.forEach(ex => { byName[ex.exercise] = ex; });
+
+  const out = [];
+  const seen = new Set();
+
+  selectedSymptomsArr.forEach(sym => {
+    (SYMPTOM_TO_EXERCISES[sym] || []).forEach(name => {
+      const ex = byName[name];
+      if (!ex) return;                       // filtered out already
+      if (seen.has(name)) {
+        const existing = out.find(t => t.exercise === name);
+        if (existing && !existing.viaSymptoms.includes(sym)) {
+          existing.viaSymptoms.push(sym);
+        }
+        return;
+      }
+      seen.add(name);
+      out.push(Object.assign({
+        group: assignGroup(ex),
+        viaSymptoms: [sym],
+        bySymptom: true
+      }, ex));
+    });
+  });
+  return out;
+}
+
+function buildRecommendations(matches, selectedSymptomsArr) {
+  const symptomEx = selectFromSymptoms(matches, selectedSymptomsArr)
+    .sort((a, b) =>
+      b.viaSymptoms.length - a.viaSymptoms.length ||
+      a.exercise.localeCompare(b.exercise)
+    )
+    .slice(0, 10);
+
+  const excluded = new Set(symptomEx.map(e => e.exercise));
+  const combined = symptomEx.slice();
+
+  if (combined.length < 10) {
+    selectBaseline(matches, 10 - combined.length, excluded)
+      .forEach(e => combined.push(e));
+  }
+  return combined;
+}
+
+function renderResultsStage() {
+  const symptoms = profile.symptoms || [];
+  const userSymptoms = symptoms;
+
+  // 1. Gender + age filter
+  // 2. Hard exclude any exercise whose contraindications intersect user symptoms
+  const matches = (window.EXERCISES || []).filter(ex =>
+    genderMatch(ex.gender, profile.sex) &&
+    ageRelevancyMatch(ex.age, profile.age) &&
+    !isContraindicated(ex, userSymptoms)
+  );
+
+  const top10 = buildRecommendations(matches, symptoms);
+  const prevAnswers = (state.exercises && state.exercises.answers) || {};
+
+  let cardsHtml = '';
+  top10.forEach((ex, i) => {
+    const watchFor = (ex.symptoms && ex.symptoms.length)
+      ? ex.symptoms.slice(0, 4).join(', ')
+      : (NO_SYMPTOM_FALLBACK[ex.group] || 'general movement baseline');
+
+    const prev = prevAnswers[ex.exercise] || {};
+    const doingYes = prev.practicing === true;
+    const doingNo  = prev.practicing === false;
+
+    const freqOpts = FREQ_OPTIONS.map(f =>
+      `<option value="${f}" ${prev.frequency === f ? 'selected' : ''}>${f}</option>`
+    ).join('');
+
+    const originTag = ex.bySymptom
+      ? `<span class="tag ok">Matches: ${esc(ex.viaSymptoms.join(', '))}</span>`
+      : `<span class="tag">${esc(ex.group)}</span>`;
+
+    const contraNote = (ex.contraindications && ex.contraindications.length)
+      ? `<div class="contra">Avoid if you have: ${esc(ex.contraindications.join(', '))}</div>`
+      : '';
+
+    const intensityChip = `<span class="meta-chip">${esc(ex.intensity || '—')} intensity</span>`;
+    const equip = (ex.equipment || '').trim();
+    const equipmentChip = (equip && equip.toLowerCase() !== 'none')
+      ? `<span class="meta-chip">${esc(equip)}</span>`
+      : '';   // hide when None
+    const profileChip = ex.profile
+      ? `<span class="meta-chip">${esc(ex.profile)}</span>`
+      : '';
+
+
+
+    cardsHtml += `
+    <div class="test-card" data-exercise="${esc(ex.exercise)}">
+      <div class="head">
+        <div>
+          <div class="name">${i + 1}. ${esc(ex.exercise)}</div>
+          <div class="test-desc">${esc(ex.note)}</div>
+          <div class="meta-row">
+              ${intensityChip}
+              ${equipmentChip}
+              ${profileChip}
+          </div>
+          <div class="symptom"><b>Helpful for:</b> ${esc(watchFor)}</div>
+          ${contraNote}
+        </div>
+        ${originTag}
+      </div>
+      <div class="answers">
+        <span class="intake-label" style="margin:0;">Currently practicing?</span>
+        <div class="radio-pair">
+          <input type="radio" name="prac-${i}" id="prac-${i}-yes" value="yes" ${doingYes ? 'checked' : ''}>
+          <label for="prac-${i}-yes">Yes</label>
+          <input type="radio" name="prac-${i}" id="prac-${i}-no" value="no" ${doingNo ? 'checked' : ''}>
+          <label for="prac-${i}-no">No</label>
+        </div>
+        <select class="freq-select" id="freq-${i}" ${doingYes ? '' : 'disabled'}>
+          <option value="">How often?</option>
+          ${freqOpts}
+        </select>
+      </div>
+    </div>`;
+  });
+
+  const symptomDrivenCount = top10.filter(e => e.bySymptom).length;
+  const symptomLine = symptoms.length
+    ? `Based on: ${symptoms.map(esc).join(', ')} &middot; <a href="symptoms.html">adjust symptoms &rarr;</a>`
+    : `No symptoms on file — showing a balanced movement baseline. <a href="symptoms.html">Add symptoms &rarr;</a>`;
+
+  main.innerHTML = `
+  <div class="section-head">
+    <h2>Your top 10 exercises</h2>
+  </div>
+  <p class="lede">${symptomLine}</p>
+  <p class="section-sub" style="display:block;margin-bottom:14px;">
+    ${matches.length} exercises matched your profile
+    &middot; ${symptomDrivenCount} pulled in directly from your symptoms,
+    the rest fill out a balanced movement panel.
+    Contraindicated moves have been removed.
+  </p>
+  <div id="cards">${cardsHtml}</div>
+  <div class="page-footer-nav">
+    <a href="routine-config.html" class="btn secondary">&larr; Back to Routine</a>
+    <button class="btn" id="continue-btn"> Continue to Diet &rarr;</button>
+  </div>`;
+
+  // Wire Yes/No → enable/disable frequency select
+  document.querySelectorAll('.test-card').forEach((card, i) => {
+    const yes = card.querySelector(`#prac-${i}-yes`);
+    const no  = card.querySelector(`#prac-${i}-no`);
+    const sel = card.querySelector(`#freq-${i}`);
+
+    yes.addEventListener('change', () => { sel.disabled = false; });
+    no.addEventListener('change', () => {
+      sel.disabled = true;
+      sel.value = '';
+    });
+  });
+
+  document.getElementById('continue-btn').addEventListener('click', () => {
+    const answers = {};
+    document.querySelectorAll('.test-card').forEach((card, i) => {
+      const name = card.dataset.exercise;
+      const yesChecked = card.querySelector(`#prac-${i}-yes`).checked;
+      const noChecked  = card.querySelector(`#prac-${i}-no`).checked;
+      const frequency  = card.querySelector(`#freq-${i}`).value;
+
+      if (yesChecked || noChecked) {
+        answers[name] = {
+          practicing: yesChecked,
+          frequency: yesChecked ? (frequency || null) : null
+        };
+      }
+    });
+
+    const exercises = {
+      topExercises: top10.map(e => ({
+        exercise: e.exercise,
+        group: e.group,
+        bySymptom: e.bySymptom,
+        viaSymptoms: e.viaSymptoms,
+        intensity: e.intensity,
+        equipment: e.equipment,
+        videoTag: e.videoTag || null
+      })),
+      answers
+    };
+
+    const next = Object.assign({}, state, { exercises });
+    // Navigate wherever you prefer; diet is a natural next step after routine/exercises
+    goTo('diet.html', next);
+  });
+}
+
+if (!profile) {
+  main.innerHTML = `<div class="empty-state">We need your profile first. <a href="profile.html">Go back and fill it in &rarr;</a></div>`;
+} else {
+  renderResultsStage();
+}
+</script>
+</body>
+</html>

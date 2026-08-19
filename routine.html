@@ -3,16 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Routine &mdash; KYH</title>
+<title>Routine Selection &mdash; KYH</title>
 <link rel="stylesheet" href="shared/styles.css">
-<style>
-  /* Prevents text wrapping in the diff column */
-  .stock-ticker, .col-diff {
-    white-space: nowrap;
-    min-width: 75px; 
-    text-align: right;
-  }
-</style>
 </head>
 <body>
 
@@ -24,11 +16,9 @@
 
 <footer>
   <span>KYH — Know Your Health. Own Your Path. Runs entirely in your browser.</span>
-  <span>Not a substitute for professional medical advice.</span>
 </footer>
 
-<script src="shared/data.routine.js"></script>
-<script src="shared/data.exercises.js"></script> 
+<script src="shared/data.activities.js"></script>
 <script src="shared/utils.js"></script>
 <script>
 const state = loadState();
@@ -37,447 +27,116 @@ const main = document.getElementById('main-content');
 
 renderHeader('routine', 'KYH-Daily Routine'); 
 
-let finalTopExercises = []; 
-let userPracticing = {}; // NEW: Global tracker for checkbox states
+const categories = [...new Set(window.ACTIVITIES.map(a => a.category))];
+let activeCat = 'All';
+let searchQuery = '';
+let selectedActivities = []; 
 
-function getIdealMid(rangeStr) {
-  const [lo, hi] = parseRange(rangeStr);
-  if (lo === -Infinity || hi === Infinity) return 0;
-  return (Math.round(((lo + hi) / 2) * 2) / 2).toFixed(1); 
-}
-
-function getDiffHTML(act, idl, isBadToIncrease, decimals = 1) {
-  if (isNaN(act) || isNaN(idl)) return '<span style="color:var(--muted);">━</span>';
-  
-  const diff = act - idl;
-  
-  if (isBadToIncrease && diff <= 0) return `<span style="color:var(--teal); font-weight:600;">✓ Perfect</span>`;
-  if (!isBadToIncrease && diff >= 0) return `<span style="color:var(--teal); font-weight:600;">✓ Perfect</span>`;
-
-  if (Math.abs(diff) < 0.1) {
-    return `<span style="color:var(--teal); font-weight:600;">✓ Perfect</span>`;
-  } else if (diff > 0) {
-    return `<span style="color:var(--rose);">▲ +${diff.toFixed(decimals)}</span>`;
+function init() {
+  // Pre-populate if empty
+  if (state.routine && state.routine.activities) {
+    selectedActivities = [...state.routine.activities];
   } else {
-    return `<span style="color:var(--rose);">▼ ${Math.abs(diff).toFixed(decimals)}</span>`;
+    selectedActivities = [
+      { id: "act_011", freq: "daily", hours: 8, mins: 0 }, 
+      { id: "act_015", freq: "daily", hours: 8, mins: 0 }, 
+      { id: "act_017", freq: "daily", hours: 4, mins: 0 }, 
+      { id: "act_102", freq: "daily", hours: 4, mins: 0 }  
+    ];
   }
-}
-
-function updateExerciseEngine() {
-  const exercises = window.EXERCISES || [];
-  const userSymptoms = profile.symptoms || [];
-  const actDesk = parseFloat(document.getElementById('act-desk').value) || 0;
-  
-  let scoredExercises = exercises.map(ex => {
-    if (ex.contraindications && ex.contraindications.some(c => userSymptoms.includes(c))) {
-      return { ...ex, score: 0, blocked: true };
-    }
-    if (ex.gender !== "All" && ex.gender !== profile.sex) {
-      return { ...ex, score: 0, blocked: true };
-    }
-
-    let score = 0;
-    let matchedReasons = [];
-
-    if (ex.gender === profile.sex) score += 1.5; 
-
-    if (ex.symptoms) {
-      ex.symptoms.forEach(s => {
-        if (userSymptoms.includes(s)) {
-          score += 2;
-          matchedReasons.push(s);
-        }
-      });
-    }
-
-    if (actDesk >= 6 && (ex.profile.includes("Mobility") || ex.profile.includes("Rehab"))) {
-      score += 1;
-      if (!matchedReasons.includes("Prolonged Sitting")) matchedReasons.push("Prolonged Sitting");
-    }
-
-    if (score === 0) score = 0.5; 
-    return { ...ex, score, matchedReasons };
-  }).filter(ex => ex.score > 0 && !ex.blocked);
-
-  scoredExercises.sort((a, b) => b.score - a.score);
-  finalTopExercises = scoredExercises.slice(0, 10);
-  renderExercises(finalTopExercises);
-}
-
-function renderExercises(topExercises) {
-  const container = document.getElementById('exercise-engine-container');
-  if (!container) return;
-
-  if (topExercises.length === 0) {
-    container.innerHTML = `<p class="lede" style="color:var(--muted);">No specific exercises found. Keep up a general active routine.</p>`;
-    return;
-  }
-
-  let html = `<div style="display:grid; grid-template-columns:1fr; gap:12px;">`;
-  
-  topExercises.forEach((ex) => {
-    let reasonsHtml = "";
-    if (ex.matchedReasons.length > 0) {
-       reasonsHtml = `<div style="font-size:12.5px; color:var(--ink-soft); margin-top:8px;">
-         Recommended because you reported: <b style="color:var(--ink);">${ex.matchedReasons.join(", ")}</b>
-       </div>`;
-    } else if (ex.gender === profile.sex) {
-       reasonsHtml = `<div style="font-size:12.5px; color:var(--ink-soft); margin-top:8px;">
-         Recommended for: <b style="color:var(--ink);">Women's Foundational Health</b>
-       </div>`;
-    }
-
-    let contraHtml = "";
-    if (ex.contraindications && ex.contraindications.length > 0) {
-        contraHtml = `<div style="font-size:12px; color:var(--rose); margin-top:4px;">
-          <i>Note: Avoid if experiencing ${ex.contraindications.join(", ")}</i>
-        </div>`;
-    }
-
-    // NEW: Pull checked state directly from live memory
-    const isChecked = userPracticing[ex.exercise] ? 'checked' : '';
-
-    html += `
-      <div class="test-card" style="padding:16px;">
-        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
-          <div>
-            <div class="name" style="font-size:16px;">${ex.exercise}</div>
-            <div class="eyebrow-label" style="margin-top:4px;">${ex.profile} · Intensity: ${ex.intensity}</div>
-          </div>
-        </div>
-        <div class="test-desc" style="margin-bottom:12px;">${ex.note}</div>
-        ${reasonsHtml}
-        ${contraHtml}
-        <label class="check-field" style="margin-top:16px; border-top:1px solid var(--line); padding-top:12px;">
-          <input type="checkbox" class="practicing-chk" data-ex="${ex.exercise}" ${isChecked}>
-          <span>Currently practicing</span>
-        </label>
-      </div>
-    `;
-  });
-  
-  html += `</div>`;
-  container.innerHTML = html;
-
-  // NEW: Wire the checkboxes immediately so they update the global memory live
-  document.querySelectorAll('.practicing-chk').forEach(chk => {
-    chk.addEventListener('change', (e) => {
-      userPracticing[e.target.dataset.ex] = e.target.checked;
-    });
-  });
-}
-
-function init(){
-  // NEW: On page load, populate memory from state so it persists when returning from diet.html
-  if (state.routine && state.routine.recommendedExercises) {
-    state.routine.recommendedExercises.forEach(ex => {
-      if (ex.isPracticing) userPracticing[ex.exercise] = true;
-    });
-  }
-
-  let idealRow = pickBestRow(window.ROUTINE, profile.sex, profile);
-  if(!idealRow) {
-    idealRow = { sleep: "7.0-8.5", desk: "4.0-7.0", idle: "0.5-2.0", standing: "0.5-2.0", walking: "0.5-1.5", yoga: "0.0-1.0", exercise: "0.5-1.5", other: "1.0-3.0" };
-  }
-
-  const prior = state.routine || {};
-  const prevAct = prior.actual || {};
-  const prevIdl = prior.ideal || {};
-  const prevHabits = prior.habits || {};
-
-  const v = (val) => (val !== undefined && val !== null) ? val : '';
 
   main.innerHTML = `
-
-  <p class="lede" style="margin-bottom:24px;">Log your average 24 hours. We've pre-filled the 'Ideal' column based on your physiological profile.</p>
-
-  <div class="ledger-container">
-    <div class="ledger-top-bar">
-      <h3>1. Your 24 Hours</h3>
-      <div style="display:flex; align-items:center; gap:24px; text-align:right;">
-        <div style="line-height:1.2;">
-          <div style="font-family:var(--mono); font-size:10px; color:var(--paper); opacity:0.7; text-transform:uppercase; letter-spacing:.05em;">Est. Daily Burn</div>
-          <div id="cal-burn-display" style="font-family:var(--mono); font-size:15px; font-weight:600; color:var(--teal-soft);">~0 kcal</div>
-        </div>
-        <div class="hour-counter" id="hour-counter">24.0 / 24 hrs</div>
-      </div>
-    </div>
-
-    <div class="ledger-group-head">Rest & Focus</div>
-    <div class="ledger-row">
-      <div class="ledger-label">Sleep<span class="ledger-sub">In bed, resting</span></div>
-      <div class="col-actual"><input type="number" class="hour-input actual-input" id="act-sleep" min="0" max="24" step="0.5" value="${v(prevAct.sleep)}"></div>
-      <div class="col-ideal"><input type="number" class="hour-input ideal-input" id="idl-sleep" min="0" max="24" step="0.5" value="${v(prevIdl.sleep) || getIdealMid(idealRow.sleep)}"></div>
-      <div class="col-diff stock-ticker" id="diff-sleep">━</div>
-    </div>
-    <div class="ledger-row">
-      <div class="ledger-label">Work / Desk<span class="ledger-sub">Sitting, typing, commuting</span></div>
-      <div class="col-actual"><input type="number" class="hour-input actual-input" id="act-desk" min="0" max="24" step="0.5" value="${v(prevAct.desk)}"></div>
-      <div class="col-ideal"><input type="number" class="hour-input ideal-input" id="idl-desk" min="0" max="24" step="0.5" value="${v(prevIdl.desk) || getIdealMid(idealRow.desk)}"></div>
-      <div class="col-diff stock-ticker" id="diff-desk">━</div>
-    </div>
-    <div class="ledger-row">
-      <div class="ledger-label">Idle Sitting<span class="ledger-sub">Commute, Watching TV, social media</span></div>
-      <div class="col-actual"><input type="number" class="hour-input actual-input" id="act-idle" min="0" max="24" step="0.5" value="${v(prevAct.idle)}"></div>
-      <div class="col-ideal"><input type="number" class="hour-input ideal-input" id="idl-idle" min="0" max="24" step="0.5" value="${v(prevIdl.idle) || getIdealMid(idealRow.idle)}"></div>
-      <div class="col-diff stock-ticker" id="diff-idle">━</div>
-    </div>
-
-    <div class="ledger-group-head">Active & Upright</div>
-    <div class="ledger-row">
-      <div class="ledger-label">Chores / Cooking<span class="ledger-sub">Standing, meal prep, cleaning</span></div>
-      <div class="col-actual"><input type="number" class="hour-input actual-input" id="act-standing" min="0" max="24" step="0.5" value="${v(prevAct.standing)}"></div>
-      <div class="col-ideal"><input type="number" class="hour-input ideal-input" id="idl-standing" min="0" max="24" step="0.5" value="${v(prevIdl.standing) || getIdealMid(idealRow.standing)}"></div>
-      <div class="col-diff stock-ticker" id="diff-standing">━</div>
-    </div>
-    <div class="ledger-row">
-      <div class="ledger-label">Walking<span class="ledger-sub">Errands, casual walks</span></div>
-      <div class="col-actual"><input type="number" class="hour-input actual-input" id="act-walking" min="0" max="24" step="0.5" value="${v(prevAct.walking)}"></div>
-      <div class="col-ideal"><input type="number" class="hour-input ideal-input" id="idl-walking" min="0" max="24" step="0.5" value="${v(prevIdl.walking) || getIdealMid(idealRow.walking)}"></div>
-      <div class="col-diff stock-ticker" id="diff-walking">━</div>
-    </div>
-    <div class="ledger-row">
-      <div class="ledger-label">Exercise<span class="ledger-sub">Gym, running, high heart rate</span></div>
-      <div class="col-actual"><input type="number" class="hour-input actual-input" id="act-exercise" min="0" max="24" step="0.5" value="${v(prevAct.exercise)}"></div>
-      <div class="col-ideal"><input type="number" class="hour-input ideal-input" id="idl-exercise" min="0" max="24" step="0.5" value="${v(prevIdl.exercise) || getIdealMid(idealRow.exercise)}"></div>
-      <div class="col-diff stock-ticker" id="diff-exercise">━</div>
-    </div>
-    <div class="ledger-row">
-      <div class="ledger-label">Yoga / Stretching<span class="ledger-sub">Mobility, flow, pilates</span></div>
-      <div class="col-actual"><input type="number" class="hour-input actual-input" id="act-yoga" min="0" max="24" step="0.5" value="${v(prevAct.yoga)}"></div>
-      <div class="col-ideal"><input type="number" class="hour-input ideal-input" id="idl-yoga" min="0" max="24" step="0.5" value="${v(prevIdl.yoga) || getIdealMid(idealRow.yoga)}"></div>
-      <div class="col-diff stock-ticker" id="diff-yoga">━</div>
-    </div>
-
-    <div class="ledger-row total-row" style="border-top:1px solid var(--ink);">
-      <div class="ledger-label" style="color:var(--teal);">Unallocated Time<span class="ledger-sub">Remaining hours</span></div>
-      <div class="col-actual"><input type="number" class="hour-input" id="act-other" readonly tabindex="-1" value="24.0"></div>
-      <div class="col-ideal"><input type="number" class="hour-input ideal-input" id="idl-other" min="0" max="24" step="0.5" value="${v(prevIdl.other) || getIdealMid(idealRow.other)}"></div>
-      <div class="col-diff stock-ticker" id="diff-other">━</div>
-    </div>
+  <div class="section-head">
+    <h2>1. Select Your Activities</h2>
   </div>
-  <div class="validation-msg" id="routine-msg" style="color:var(--rose); text-align:right; margin-top:-16px; margin-bottom:24px;"></div>
+  <p class="lede">Search and tap all the activities you do in a typical week. We've pre-filled a standard baseline to get you started.</p>
 
-  <div class="routine-section-title">2. Daily Habits</div>
-  <div class="habit-grid">
-    <div class="habit-card">
-      <div class="habit-card-header">
-        <div><div class="k">Daily Steps</div><div class="sub">Ideal: 8,000+</div></div>
-        <div class="stock-ticker" id="diff-hab-steps">━</div>
-      </div>
-      <div class="habit-input-wrap">
-        <input type="number" id="hab-steps" step="500" placeholder="e.g. 6000" value="${v(prevHabits.steps)}">
-        <span class="unit">steps</span>
-      </div>
-    </div>
-    
-    <div class="habit-card">
-      <div class="habit-card-header">
-        <div><div class="k">Sunlight Exposure</div><div class="sub">Ideal: 20+ mins</div></div>
-        <div class="stock-ticker" id="diff-hab-sun">━</div>
-      </div>
-      <div class="habit-input-wrap">
-        <input type="number" id="hab-sun" min="0" step="5" placeholder="e.g. 20" value="${v(prevHabits.sun)}">
-        <span class="unit">mins</span>
-      </div>
-    </div>
-    
-    <div class="habit-card">
-      <div class="habit-card-header">
-        <div><div class="k">Dinner before Sleep</div><div class="sub">Ideal: 2.0+ hrs</div></div>
-        <div class="stock-ticker" id="diff-hab-dinner">━</div>
-      </div>
-      <div class="habit-input-wrap">
-        <input type="number" id="hab-dinner" min="0" step="0.5" placeholder="e.g. 2.0" value="${v(prevHabits.dinner)}">
-        <span class="unit">hrs</span>
-      </div>
-    </div>
-    
-    <div class="habit-card" style="justify-content:center;">
-      <label class="habit-toggle">
-        <input type="checkbox" id="hab-walk" ${prevHabits.postMealWalk ? 'checked' : ''}>
-        <span>I take a 10+ min walk after my largest meal</span>
-      </label>
-    </div>
+  <div class="symptom-search-full" style="position:sticky; top:0; background:var(--paper); padding:16px 0; z-index:10; border-bottom:1px solid var(--line);">
+    <input type="text" id="act-input" class="field" placeholder="Search activities, sports, chores&hellip;" autocomplete="off">
   </div>
 
-  <div class="routine-section-title">3. Weekly Extras</div>
-  <div class="habit-grid" style="margin-bottom:32px;">
-    <div class="habit-card">
-      <div><div class="k">Sports</div><div class="sub">Tennis, soccer, etc.</div></div>
-      <div class="habit-input-wrap">
-        <input type="number" id="hab-sports" min="0" step="0.5" placeholder="e.g. 3.0" value="${v(prevHabits.sports)}" class="weekly-input">
-        <span class="unit">hrs/wk</span><span class="weekly-thumb" id="thumb-sports">👍</span>
-      </div>
+  <div class="symptom-split-layout" style="margin-bottom: 36px;">
+    <div class="cat-sidebar" id="cat-sidebar">
+      <button type="button" class="cat-side-btn active" data-cat="All">All Categories</button>
+      ${categories.map(c => `<button type="button" class="cat-side-btn" data-cat="${esc(c)}">${esc(c)}</button>`).join('')}
     </div>
-    <div class="habit-card">
-      <div><div class="k">Strength Training</div><div class="sub">Weights, resistance</div></div>
-      <div class="habit-input-wrap">
-        <input type="number" id="hab-strength" min="0" step="0.5" placeholder="e.g. 2.5" value="${v(prevHabits.strength)}" class="weekly-input">
-        <span class="unit">hrs/wk</span><span class="weekly-thumb" id="thumb-strength">👍</span>
-      </div>
-    </div>
-    <div class="habit-card">
-      <div><div class="k">Social / Community</div><div class="sub">Quality time</div></div>
-      <div class="habit-input-wrap">
-        <input type="number" id="hab-social" min="0" step="1" placeholder="e.g. 5" value="${v(prevHabits.social)}" class="weekly-input">
-        <span class="unit">hrs/wk</span><span class="weekly-thumb" id="thumb-social">👍</span>
-      </div>
+    <div id="browse-wrapper">
+      <div class="browse-grid" id="browse-grid"></div>
     </div>
   </div>
-
-  <div class="routine-section-title">4. Personalised Movement Plan</div>
-  <p class="lede" style="font-size:14px; margin-bottom:16px;">Based on your symptoms and routine, we recommend incorporating these specific movements into your week.</p>
-  <div id="exercise-engine-container"></div>
 
   <div class="page-footer-nav">
     <a href="#" id="back-btn" class="btn secondary">&larr; Back</a>
-    <button type="button" class="btn" id="continue-btn">Continue to Diet &rarr;</button>
+    <button type="button" class="btn" id="continue-btn">Configure Schedule &rarr;</button>
   </div>
   `;
 
-  const activityKeys = ['sleep', 'desk', 'idle', 'standing', 'walking', 'exercise', 'yoga'];
-  const actualInputs = document.querySelectorAll('.actual-input');
-  const idealInputs = document.querySelectorAll('.ideal-input');
-  const actOther = document.getElementById('act-other');
-  const idlOther = document.getElementById('idl-other');
-  const hourCounter = document.getElementById('hour-counter');
-  const msg = document.getElementById('routine-msg');
-  const continueBtn = document.getElementById('continue-btn');
-  const backBtn = document.getElementById('back-btn');
-
-  backBtn.addEventListener('click', (e) => {
+  const input = document.getElementById('act-input');
+  const catSidebar = document.getElementById('cat-sidebar');
+  const browseGrid = document.getElementById('browse-grid');
+  
+  document.getElementById('back-btn').addEventListener('click', (e) => {
     e.preventDefault();
     goTo('diagnostics.html', state); 
   });
 
-  function updateHabitsAndExtras() {
-    const steps = parseFloat(document.getElementById('hab-steps').value);
-    document.getElementById('diff-hab-steps').innerHTML = getDiffHTML(steps, 8000, false, 0);
-
-    const sun = parseFloat(document.getElementById('hab-sun').value);
-    document.getElementById('diff-hab-sun').innerHTML = getDiffHTML(sun, 20, false, 0);
-
-    const dinner = parseFloat(document.getElementById('hab-dinner').value);
-    document.getElementById('diff-hab-dinner').innerHTML = getDiffHTML(dinner, 2.0, false, 1);
-
-    ['sports', 'strength', 'social'].forEach(id => {
-      const val = parseFloat(document.getElementById(`hab-${id}`).value) || 0;
-      const thumb = document.getElementById(`thumb-${id}`);
-      if (val > 0) thumb.classList.add('active');
-      else thumb.classList.remove('active');
-    });
-  }
-
-  document.getElementById('hab-steps').addEventListener('input', updateHabitsAndExtras);
-  document.getElementById('hab-sun').addEventListener('input', updateHabitsAndExtras);
-  document.getElementById('hab-dinner').addEventListener('input', updateHabitsAndExtras);
-  document.querySelectorAll('.weekly-input').forEach(input => input.addEventListener('input', updateHabitsAndExtras));
-
-  function recalculateLedger() {
-    let actTotal = 0;
-    activityKeys.forEach(key => actTotal += (parseFloat(document.getElementById(`act-${key}`).value) || 0));
-
-    const remaining = 24 - actTotal;
-    const actLeftover = Math.max(0, remaining);
-    actOther.value = actLeftover.toFixed(1);
-
-    if (remaining < 0) {
-      hourCounter.textContent = `Over by ${Math.abs(remaining).toFixed(1)} hrs`;
-      hourCounter.classList.add('over');
-      msg.textContent = "Over 24 hours logged. Please reduce some actuals.";
-      continueBtn.disabled = true;
-    } else {
-      hourCounter.textContent = `${remaining.toFixed(1)} hrs unallocated`;
-      hourCounter.classList.remove('over');
-      msg.textContent = "";
-      continueBtn.disabled = false;
-    }
-
-    activityKeys.forEach(key => {
-      const act = parseFloat(document.getElementById(`act-${key}`).value);
-      const idl = parseFloat(document.getElementById(`idl-${key}`).value);
-      const isBadToIncrease = (key === 'desk' || key === 'idle'); 
-      document.getElementById(`diff-${key}`).innerHTML = getDiffHTML(act, idl, isBadToIncrease);
-    });
-    
-    const idlLeftover = parseFloat(document.getElementById('idl-other').value) || 0;
-    document.getElementById(`diff-other`).innerHTML = getDiffHTML(actLeftover, idlLeftover, false);
-
-    const w = profile.weightKg || 70; 
-    const dailyBurn = (
-      (parseFloat(document.getElementById('act-sleep').value) || 0) * 0.9 +
-      (parseFloat(document.getElementById('act-desk').value) || 0) * 1.2 +
-      (parseFloat(document.getElementById('act-idle').value) || 0) * 1.0 +
-      (parseFloat(document.getElementById('act-standing').value) || 0) * 2.0 +
-      (parseFloat(document.getElementById('act-walking').value) || 0) * 3.0 +
-      (parseFloat(document.getElementById('act-exercise').value) || 0) * 6.0 +
-      (parseFloat(document.getElementById('act-yoga').value) || 0) * 2.5 +
-      (actLeftover) * 1.5 
-    ) * w;
-
-    const sportsDaily = (parseFloat(document.getElementById('hab-sports').value) || 0) / 7;
-    const strengthDaily = (parseFloat(document.getElementById('hab-strength').value) || 0) / 7;
-    const extraBurn = (sportsDaily * 6.0 + strengthDaily * 5.0) * w;
-
-    const totalEstCalories = Math.round(dailyBurn + extraBurn);
-    document.getElementById('cal-burn-display').textContent = `~${totalEstCalories.toLocaleString()} kcal`;
-    window.currentEstCalories = totalEstCalories;
-
-    updateExerciseEngine();
-  }
-
-  actualInputs.forEach(input => input.addEventListener('input', recalculateLedger));
-  idealInputs.forEach(input => input.addEventListener('input', recalculateLedger));
-  
-  updateHabitsAndExtras();
-  recalculateLedger(); 
-
-  continueBtn.addEventListener('click', ()=>{
-    const routineState = {
-      actual: {
-        sleep: parseFloat(document.getElementById('act-sleep').value) || 0,
-        desk: parseFloat(document.getElementById('act-desk').value) || 0,
-        idle: parseFloat(document.getElementById('act-idle').value) || 0,
-        standing: parseFloat(document.getElementById('act-standing').value) || 0,
-        walking: parseFloat(document.getElementById('act-walking').value) || 0,
-        exercise: parseFloat(document.getElementById('act-exercise').value) || 0,
-        yoga: parseFloat(document.getElementById('act-yoga').value) || 0,
-        other: parseFloat(actOther.value) || 0
-      },
-      ideal: {
-        sleep: parseFloat(document.getElementById('idl-sleep').value) || 0,
-        desk: parseFloat(document.getElementById('idl-desk').value) || 0,
-        idle: parseFloat(document.getElementById('idl-idle').value) || 0,
-        standing: parseFloat(document.getElementById('idl-standing').value) || 0,
-        walking: parseFloat(document.getElementById('idl-walking').value) || 0,
-        exercise: parseFloat(document.getElementById('idl-exercise').value) || 0,
-        yoga: parseFloat(document.getElementById('idl-yoga').value) || 0,
-        other: parseFloat(idlOther.value) || 0
-      },
-      habits: {
-        steps: parseFloat(document.getElementById('hab-steps').value) || null,
-        sun: parseFloat(document.getElementById('hab-sun').value) || null,
-        dinner: parseFloat(document.getElementById('hab-dinner').value) || null,
-        postMealWalk: document.getElementById('hab-walk').checked,
-        sports: parseFloat(document.getElementById('hab-sports').value) || 0,
-        strength: parseFloat(document.getElementById('hab-strength').value) || 0,
-        social: parseFloat(document.getElementById('hab-social').value) || 0
-      },
-      estimatedCalories: window.currentEstCalories || 2000,
-      
-      // NEW: Only save the name and boolean! This prevents the URL from crashing!
-      recommendedExercises: finalTopExercises.map(ex => {
-        return {
-           exercise: ex.exercise,
-           isPracticing: !!userPracticing[ex.exercise]
-        };
-      })
-    };
-
+  document.getElementById('continue-btn').addEventListener('click', () => {
+    const routineState = Object.assign({}, state.routine || {}, { activities: selectedActivities });
     const next = Object.assign({}, state, { routine: routineState });
-    goTo('diet.html', next);
+    goTo('routine-config.html', next); // Move to step 2!
   });
+
+  function renderBrowseGrid() {
+    let items = window.ACTIVITIES;
+    if (searchQuery.trim()) {
+      const q = searchQuery.trim().toLowerCase();
+      items = items.filter(a => a.name.toLowerCase().includes(q) || a.category.toLowerCase().includes(q));
+    } else if (activeCat !== 'All') {
+      items = items.filter(a => a.category === activeCat);
+    }
+    
+    const selectedIds = new Set(selectedActivities.map(a => a.id));
+
+    browseGrid.innerHTML = items.length ? items.map(a =>
+      `<button type="button" class="browse-chip ${selectedIds.has(a.id) ? 'selected' : ''}" data-id="${a.id}">${esc(a.name)}</button>`
+    ).join('') : `<span class="symptom-empty-hint">No matches found.</span>`;
+  }
+
+  catSidebar.addEventListener('click', (e) => {
+    const btn = e.target.closest('.cat-side-btn');
+    if(!btn) return;
+    activeCat = btn.dataset.cat;
+    input.value = '';
+    searchQuery = '';
+    catSidebar.querySelectorAll('.cat-side-btn').forEach(b => b.classList.toggle('active', b === btn));
+    renderBrowseGrid();
+  });
+
+  input.addEventListener('input', () => {
+    searchQuery = input.value;
+    if (searchQuery.trim().length > 0 && activeCat !== 'All') {
+      activeCat = 'All';
+      catSidebar.querySelectorAll('.cat-side-btn').forEach(b => b.classList.toggle('active', b.dataset.cat === 'All'));
+    }
+    renderBrowseGrid();
+  });
+
+  browseGrid.addEventListener('click', (e) => {
+    const btn = e.target.closest('.browse-chip');
+    if(!btn) return;
+    const id = btn.dataset.id;
+    const existingIdx = selectedActivities.findIndex(a => a.id === id);
+    
+    if (existingIdx >= 0) {
+      selectedActivities.splice(existingIdx, 1);
+    } else {
+      // Default to "daily" and 1 hour, as requested
+      selectedActivities.push({ id, freq: 'daily', hours: 1, mins: 0 }); 
+    }
+    renderBrowseGrid();
+  });
+
+  renderBrowseGrid();
 }
 
 if(!profile){
