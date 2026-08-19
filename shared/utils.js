@@ -5,6 +5,7 @@
    ============================================================ */
 
 const STATE_KEY = 'chart_state_v1';
+const URL_PAYLOAD_MAX = 1800; // stay safely under common proxy limits
 
 /* ---------- Cross-page state ----------
    Uses sessionStorage (cleared when the tab/window closes) rather than
@@ -43,7 +44,22 @@ function encodeStateParam(state){
 
 function goTo(url, state){
   persistState(state);
-  location.href = url + '?d=' + encodeStateParam(state);
+
+  const isFile = location.protocol === 'file:';
+  let href = url;
+
+  try {
+    const payload = encodeStateParam(state);
+    // On https deployment: only use ?d= when the payload is still small.
+    // On file:// keep the query string so multi-page local testing still works.
+    if (isFile || payload.length <= URL_PAYLOAD_MAX) {
+      href = url + (url.includes('?') ? '&' : '?') + 'd=' + payload;
+    }
+  } catch (e) {
+    // encoding failed → navigate without query string
+  }
+
+  location.href = href;
 }
 
 /* ---------- Unit conversion ---------- */
