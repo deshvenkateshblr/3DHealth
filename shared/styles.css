@@ -1400,5 +1400,83 @@ footer {
     grid-template-columns: 1fr;
   }
 }
+/* ============================================================
+   Diagnostics – improve Recency / Result Status / Notes only
+   ============================================================ */
 
+.recency-select,
+.result-row select {
+  font-family: var(--mono) !important;
+  font-size: 13px !important;
+  background-color: var(--paper) !important;
+  border: 1px solid var(--line) !important;
+  color: var(--ink) !important;
+  padding: 8px 28px 8px 10px !important;
+  min-width: 180px;
+}
+
+.result-note-input {
+  font-family: var(--mono) !important;
+  font-size: 13px !important;
+  background-color: var(--paper) !important;
+  border: 1px solid var(--line) !important;
+  color: var(--ink) !important;
+  padding: 8px 10px !important;
+}
+
+/* ---- Food Quality: mobile stack ---- */
+.fq-mobile-only { display: none; }
+.fq-desktop-only { display: block; }
+
+.fq-mobile-list {
+  border: 1px solid var(--line);
+  background: var(--panel);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.fq-mobile-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--line);
+}
+.fq-mobile-row:last-child { border-bottom: none; }
+
+.fq-mobile-label {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--ink);
+  line-height: 1.35;
+}
+
+.fq-mobile-select {
+  width: 100%;
+  font-family: var(--mono);
+  font-size: 14px;
+  padding: 10px 12px;
+  border: 1px solid var(--ink);
+  background: var(--panel);
+  color: var(--ink);
+  border-radius: 0;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--ink) 50%),
+    linear-gradient(135deg, var(--ink) 50%, transparent 50%);
+  background-position: calc(100% - 16px) 16px, calc(100% - 11px) 16px;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+}
+.fq-mobile-select:focus {
+  outline: 2px solid var(--teal);
+  outline-offset: 1px;
+}
+
+@media (max-width: 720px) {
+  .fq-desktop-only { display: none !important; }
+  .fq-mobile-only  { display: block !important; }
+}
 
