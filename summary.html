@@ -1,150 +1,478 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Summary &mdash; KYH</title>
-  <link rel="stylesheet" href="shared/styles.css">
+ <meta charset="UTF-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ <title>Summary &mdash; KYH</title>
+ <link rel="stylesheet" href="shared/styles.css">
+ <style>
+ .summary-hero {
+ text-align: center;
+ margin-bottom: 32px;
+ padding-top: 8px;
+ }
+ .summary-hero h1 {
+ font-family: var(--serif);
+ font-weight: 400;
+ font-size: clamp(28px, 5vw, 40px);
+ line-height: 1.15;
+ margin: 0 0 10px;
+ letter-spacing: -0.02em;
+ }
+ .summary-hero h1 em { font-style: italic; color: var(--teal); }
+ .summary-hero .sub {
+ font-family: var(--serif);
+ font-style: italic;
+ font-size: clamp(16px, 2.4vw, 19px);
+ color: var(--ink-soft);
+ margin: 0 0 12px;
+ }
+ .summary-hero .lede {
+ margin: 0 auto;
+ max-width: 540px;
+ text-align: center;
+ }
+
+ .action-grid .outcome-card {
+ cursor: pointer;
+ text-decoration: none;
+ color: inherit;
+ min-height: 168px;
+ }
+ .action-grid .outcome-card .icon-lg {
+ width: 44px; height: 44px; border-radius: 50%;
+ border: 1.5px solid var(--teal);
+ background: var(--teal-soft); color: var(--teal);
+ display: flex; align-items: center; justify-content: center;
+ margin-bottom: 12px;
+ }
+ .action-grid .outcome-card .verb { margin-bottom: 6px; }
+ .action-grid .outcome-card h3 { font-size: 17px; }
+
+ #insights { scroll-margin-top: 24px; }
+
+ /* One card per journey step */
+ .step-card {
+ border: 1px solid var(--line);
+ border-left: 3px solid var(--teal);
+ background: var(--panel);
+ padding: 18px 18px 12px;
+ margin-bottom: 18px;
+ }
+ .step-card-head {
+ display: flex;
+ align-items: center;
+ gap: 12px;
+ margin-bottom: 14px;
+ padding-bottom: 12px;
+ border-bottom: 1px solid var(--line);
+ }
+ .step-card-head .step-icon {
+ width: 40px; height: 40px; border-radius: 50%;
+ background: var(--teal-soft); color: var(--teal);
+ border: 1px solid color-mix(in srgb, var(--teal) 35%, transparent);
+ display: flex; align-items: center; justify-content: center;
+ flex-shrink: 0;
+ }
+ .step-card-head .step-icon svg { width: 20px; height: 20px; }
+ .step-card-head .step-title {
+ font-family: var(--serif);
+ font-size: 20px;
+ font-weight: 400;
+ line-height: 1.2;
+ margin: 0;
+ }
+ .step-card-head .step-meta {
+ font-family: var(--mono);
+ font-size: 11px;
+ color: var(--muted);
+ letter-spacing: .04em;
+ margin-top: 2px;
+ }
+
+ .tone-group { margin-bottom: 12px; }
+ .tone-group:last-child { margin-bottom: 4px; }
+ .tone-label {
+ font-family: var(--mono);
+ font-size: 10px;
+ letter-spacing: .12em;
+ text-transform: uppercase;
+ margin: 0 0 8px;
+ display: flex;
+ align-items: center;
+ gap: 8px;
+ }
+ .tone-label.act { color: var(--rose); }
+ .tone-label.watch { color: var(--amber); }
+ .tone-label.good { color: var(--teal); }
+ .tone-label::after {
+ content: "";
+ flex: 1;
+ height: 1px;
+ background: var(--line);
+ }
+
+ .insight-card {
+ border: 1px solid var(--line);
+ border-left: 3px solid var(--line);
+ background: var(--paper);
+ padding: 12px 14px;
+ margin-bottom: 8px;
+ }
+ .insight-card.tone-good { border-left-color: var(--teal); }
+ .insight-card.tone-watch { border-left-color: var(--amber); }
+ .insight-card.tone-act { border-left-color: var(--rose); }
+ .insight-card .insight-title {
+ font-weight: 600;
+ font-size: 14px;
+ line-height: 1.35;
+ margin-bottom: 4px;
+ }
+ .insight-card .insight-detail {
+ font-size: 13px;
+ color: var(--ink-soft);
+ line-height: 1.5;
+ }
+ .insight-card .insight-next {
+ margin-top: 6px;
+ font-size: 12.5px;
+ color: var(--ink);
+ line-height: 1.45;
+ }
+ .insight-card .insight-next b {
+ font-family: var(--mono);
+ font-size: 9.5px;
+ letter-spacing: .08em;
+ text-transform: uppercase;
+ color: var(--muted);
+ font-weight: 400;
+ display: block;
+ margin-bottom: 2px;
+ }
+
+ .step-empty {
+ font-size: 13.5px;
+ color: var(--muted);
+ margin: 0 0 8px;
+ }
+
+ @media print {
+ body > * { display: revert !important; }
+ .print-only { display: block !important; }
+ .no-print,
+ .masthead,
+ footer,
+ .page-footer-nav,
+ .action-grid,
+ .summary-hero,
+ .note-block {
+ display: none !important;
+ }
+ #insights { display: block !important; }
+ .step-card, .insight-card { break-inside: avoid; background: #fff; }
+ body { background: #fff; }
+ }
+ </style>
 </head>
 <body>
 
-<header class="masthead" id="app-header"></header>
+<header class="masthead no-print" id="app-header"></header>
 
 <main id="main-content">
-  <div class="empty-state">Loading your summary…</div>
+ <div class="empty-state">Loading your summary…</div>
 </main>
 
-<footer>
-  <span>KYH — Know Your Health. Own Your Path. Runs entirely in your browser.</span>
-  <span>Not a substitute for professional medical advice.</span>
+<div class="print-only" id="print-document" aria-hidden="true"></div>
+
+<footer class="no-print">
+ <span>KYH — Know Your Health. Own Your Path. Runs entirely in your browser.</span>
+ <span>Not a substitute for professional medical advice.</span>
 </footer>
 
 <script src="shared/utils.js"></script>
+<script src="shared/insights.js"></script>
 <script>
 const state = loadState() || {};
 const profile = state.profile || {};
-const routine = state.routine || {};
-const diet = state.diet || {};
-const diagnostics = state.diagnostics || {};
 
-renderHeader('great', 'KYH - Health Summary'); 
+renderHeader('great', "KYH — You're ready");
+const main = document.getElementById('main-content');
 
-const main = document.getElementById("main-content");
+let cachedInsights = [];
 
-function fmt(val, fallback = "—") {
-  return (val === undefined || val === null || val === "") ? fallback : val;
+/** Map insight.domain → journey step (matches Fine → Great flow) */
+const STEP_DEFS = [
+ {
+ id: 'profile',
+ title: 'Profile & lifestyle',
+ domains: ['body', 'lifestyle'],
+ icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c1.5-3.5 4-5 7-5s5.5 1.5 7 5"/></svg>`
+ },
+ {
+ id: 'symptoms',
+ title: 'Symptoms & vitals',
+ domains: ['symptoms', 'vitals'],
+ icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s-6-5.4-6-10a6 6 0 1 1 12 0c0 4.6-6 10-6 10z"/></svg>`
+ },
+ {
+ id: 'diagnostics',
+ title: 'Diagnostics',
+ domains: ['diagnostics'],
+ icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/></svg>`
+ },
+ {
+ id: 'routine',
+ title: 'Daily routine & movement',
+ domains: ['routine', 'movement'],
+ icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>`
+ },
+ {
+ id: 'diet',
+ title: 'Diet & nutrients',
+ domains: ['diet'],
+ icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/></svg>`
+ }
+];
+
+const KYH_REPORT_HEADER =
+ 'KYH — Know Your Health\n' +
+ 'Self-assessment findings (browser-only; not a medical diagnosis)\n' +
+ 'KYH surfaces diagnostic tests, daily routine adjustments, and diet guidance from profile, symptoms, and other inputs.\n\n';
+
+function insightCardHtml(i) {
+ return `
+ <div class="insight-card tone-${esc(i.tone)}">
+ <div class="insight-title">${esc(i.title)}</div>
+ <div class="insight-detail">${esc(i.detail)}</div>
+ ${i.next ? `
+ <div class="insight-next">
+ <b>What next</b>
+ ${esc(i.next)}
+ </div>` : ''}
+ </div>`;
+}
+
+function toneBucket(items) {
+ return {
+ act: items.filter(i => i.tone === 'act'),
+ watch: items.filter(i => i.tone === 'watch'),
+ good: items.filter(i => i.tone === 'good')
+ };
+}
+
+function toneGroupHtml(label, cls, items) {
+ if (!items.length) return '';
+ return `
+ <div class="tone-group">
+ <div class="tone-label ${cls}">${label}</div>
+ ${items.map(insightCardHtml).join('')}
+ </div>`;
+}
+
+function stepCardHtml(step, items) {
+ const b = toneBucket(items);
+ const count = items.length;
+ const meta = count
+ ? `${b.act.length} act · ${b.watch.length} watch · ${b.good.length} sustain`
+ : 'No insights from this step yet';
+
+ const body = count
+ ? (
+ toneGroupHtml('Act', 'act', b.act) +
+ toneGroupHtml('Watch', 'watch', b.watch) +
+ toneGroupHtml('Sustain', 'good', b.good)
+ )
+ : `<p class="step-empty">${esc(meta)}</p>`;
+
+ return `
+ <div class="step-card" id="step-${step.id}">
+ <div class="step-card-head">
+ <div class="step-icon" aria-hidden="true">${step.icon}</div>
+ <div>
+ <h2 class="step-title">${esc(step.title)}</h2>
+ <div class="step-meta">${esc(meta)}</div>
+ </div>
+ </div>
+ ${body}
+ </div>`;
+}
+
+function insightsByStep(insights) {
+ return STEP_DEFS.map(step => {
+ const items = insights.filter(i => step.domains.includes(i.domain));
+ return { step, items };
+ });
+}
+
+function formatAllFindingsText() {
+ const p = profile;
+ let t = KYH_REPORT_HEADER;
+ t += `${p.sex || ''} · age ${p.age || '—'}\n`;
+ t += `Generated ${new Date ().toLocaleString()}\n\n`;
+
+ insightsByStep(cachedInsights).forEach(({ step, items }) => {
+ t += `=== ${step.title.toUpperCase()} ===\n`;
+ if (!items.length) {
+ t += '(No insights)\n\n';
+ return;
+ }
+ const b = toneBucket(items);
+ [['ACT', b.act], ['WATCH', b.watch], ['SUSTAIN', b.good]].forEach(([label, list]) => {
+ if (!list.length) return;
+ t += `\n${label}\n`;
+ list.forEach((i, n) => {
+ t += `${n + 1}. ${i.title}\n ${i.detail}\n`;
+ if (i.next) t += ` → ${i.next}\n`;
+ });
+ });
+ t += '\n';
+ });
+ return t;
+}
+
+function fillPrintDocument() {
+ const el = document.getElementById('print-document');
+ if (!el) return;
+ let html = `
+ <h1 style="font-family:Georgia,serif;font-weight:400;">KYH — Health findings</h1>
+ <p style="color:#555;font-size:13px;">
+ ${esc(profile.sex || '')} · age ${esc(String(profile.age || '—'))}<br>
+ ${esc(new Date().toLocaleString())}<br>
+ Self-assessment — not a medical diagnosis
+ </p>`;
+ insightsByStep(cachedInsights).forEach(({ step, items }) => {
+ html += `<h2>${esc(step.title)}</h2>`;
+ if (!items.length) {
+ html += `<p style="color:#666;">No insights from this step.</p>`;
+ return;
+ }
+ const b = toneBucket(items);
+ [['Act', b.act], ['Watch', b.watch], ['Sustain', b.good]].forEach(([label, list]) => {
+ if (!list.length) return;
+ html += `<h3 style="font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:#666;">${label}</h3>`;
+ list.forEach(i => {
+ html += `<div style="margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid #ddd;">
+ <div style="font-weight:600;">${esc(i.title)}</div>
+ <div style="font-size:13px;margin-top:4px;">${esc(i.detail)}</div>
+ ${i.next ? `<div style="font-size:13px;margin-top:4px;"><b>What next:</b> ${esc(i.next)}</div>` : ''}
+ </div>`;
+ });
+ });
+ });
+ el.innerHTML = html;
+}
+
+function downloadText(filename, text) {
+ const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+ const url = URL.createObjectURL(blob);
+ const a = document.createElement('a');
+ a.href = url;
+ a.download = filename;
+ document.body.appendChild(a);
+ a.click();
+ a.remove();
+ setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function wireExportActions() {
+ const saveBtn = document.getElementById('btn-save-findings');
+ const printBtn = document.getElementById('btn-print-findings');
+ if (saveBtn) {
+ saveBtn.addEventListener('click', () => {
+ const stamp = new Date().toISOString().slice(0, 10);
+ downloadText(`KYH-findings-${stamp}.txt`, formatAllFindingsText());
+ });
+ }
+ if (printBtn) {
+ printBtn.addEventListener('click', () => {
+ fillPrintDocument();
+ window.print();
+ });
+ }
 }
 
 function render() {
-  if (!profile.sex) {
-    main.innerHTML = `<div class="empty-state">No profile found. <a href="profile.html">Start here →</a></div>`;
-    return;
-  }
+ if (!profile.sex) {
+ main.innerHTML = `<div class="empty-state">No profile found. <a href="profile.html">Start here →</a></div>`;
+ return;
+ }
 
-  // ----- Profile -----
-  const bmiText = profile.bmi ? `${profile.bmi.toFixed(1)}` : "—";
-  const whtrText = profile.whtr ? profile.whtr.toFixed(2) : (profile.waistCm && profile.heightCm ? (profile.waistCm / profile.heightCm).toFixed(2) : "—");
-  const symptoms = (profile.symptoms || []).slice(0, 8).join(", ") || "None recorded";
-  const vitals = state.vitals || {};
-  const sugarText = (vitals.fastingSugar != null && vitals.fastingSugar !== "")
-  ? `${vitals.fastingSugar} mg/dL` : "—";
-  const hrText = (vitals.restingHR != null && vitals.restingHR !== "")
-  ? `${vitals.restingHR} bpm` : "—";
-  const whtrVal = profile.whtr != null
-  ? profile.whtr
-  : (profile.waistCm && profile.heightCm ? profile.waistCm / profile.heightCm : null);
-  const symptomsText = (profile.symptoms || []).slice(0, 10).join(", ") || "None recorded";
+ try {
+ cachedInsights = typeof buildInsights === 'function' ? (buildInsights(state) || []) : [];
+ } catch (e) {
+ console.error(e);
+ cachedInsights = [];
+ }
 
-  // ----- Diagnostics -----
-  const topTests = diagnostics.topTests || diagnostics.tests || [];
-  const dueTests = (diagnostics.due || []).join(", ") || "None marked due";
-  const testSummary = topTests.length
-    ? topTests.slice(0, 6).map(t => t.test || t.name || t).join(", ")
-    : "No tests prioritised yet";
+ fillPrintDocument();
 
-  // ----- Routine -----
-  const estBurn = routine.estimatedCalories ? `~${routine.estimatedCalories.toLocaleString()} kcal` : "—";
-  const sleep = routine.actual?.sleep != null ? `${routine.actual.sleep}h` : "—";
-  const exercise = routine.actual?.exercise != null ? `${routine.actual.exercise}h` : "—";
-  const steps = routine.habits?.steps != null ? routine.habits.steps.toLocaleString() : "—";
+ const byStep = insightsByStep(cachedInsights);
+ const total = cachedInsights.length;
 
-  // ----- Diet -----
-  const dietType = diet.type || "—";
-  const cuisine = diet.cuisine || "";
-  const targetCal = diet.target?.cal ? `~${parseInt(diet.target.cal).toLocaleString()} kcal` : "—";
-  const topNutrients = (diet.priorities || []).slice(0, 5).map(n => n.nutrient).join(", ") || "Not yet prioritised";
-  const freq = diet.frequency || {};
-  const foodFlags = [];
-  if (freq.sugary_drinks === "Daily" || freq.sugary_drinks === "3-5x/Wk") foodFlags.push("Sugary drinks high");
-  if (freq.fried_ultraprocessed === "Daily" || freq.fried_ultraprocessed === "3-5x/Wk") foodFlags.push("Fried / ultra-processed high");
-  if (freq.leafy_greens === "Rarely" || freq.leafy_greens === "1-2x/Wk") foodFlags.push("Leafy greens low");
-  if (freq.fruits === "Rarely") foodFlags.push("Fruits low");
-  const foodFlagText = foodFlags.length ? foodFlags.join(" · ") : "No major red flags";
+ const iconDoctor = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 14h6M12 11v6"/></svg>`;
+ const iconAI = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2l2.4 7.4H22l-6 4.6 2.3 7.4L12 17.3 5.7 21.4 8 14 2 9.4h7.6z"/></svg>`;
+ const iconLearn = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>`;
+ const iconSnap = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/></svg>`;
 
-  main.innerHTML = `
+ main.innerHTML = `
+ <div class="summary-hero no-print">
+ <h1>You took the first step toward <em>great</em>.</h1>
+ <p class="sub">Your private health picture is ready. Nothing left this browser.</p>
+ <p class="lede">
+ ${total
+ ? `${total} insights organised by the steps you completed — act, watch, or sustain within each.`
+ : 'Choose how you want to use what you built.'}
+ </p>
+ </div>
 
-    <p class="lede" style="margin-bottom:28px;">
-      A compact snapshot of everything you’ve told us so far.
-    </p>
+ <div class="outcome-grid action-grid no-print" style="margin-bottom:28px;">
+ <a class="outcome-card" href="nextsteps.html#doctor">
+ <div class="icon-lg">${iconDoctor}</div>
+ <div class="verb">Consult</div>
+ <h3>Doctor brief</h3>
+ <p>Act and watch items, phrased for your next clinical visit.</p>
+ </a >
+ <a class="outcome-card" href="nextsteps.html#ai">
+ <div class="icon-lg">${iconAI}</div>
+ <div class="verb">Plan</div>
+ <h3>AI action prompt</h3>
+ <p>Copy an insight-based prompt into ChatGPT, Claude, or any assistant.</p>
+ </a>
+ <a class="outcome-card" href="nextsteps.html#learn">
+ <div class="icon-lg">${iconLearn}</div>
+ <div class="verb">Learn</div>
+ <h3>Learning resources</h3>
+ <p>Videos matched to your symptoms, routine, and diet signals.</p>
+ </a>
+ <a class="outcome-card" href="#insights">
+ <div class="icon-lg">${iconSnap}</div>
+ <div class="verb">Review</div>
+ <h3>Your insights</h3>
+ <p>Findings grouped by profile, symptoms, tests, routine, and diet.</p>
+ </a>
+ </div>
 
-    <!-- PROFILE -->
-    <div class="cat-title">Profile</div>
-    <div class="test-card">
-      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); gap:12px 18px; font-size:13.5px;">
-        <div><span class="eyebrow-label">Sex / Age</span><div>${fmt(profile.sex)} · ${fmt(profile.age)}</div></div>
-        <div><span class="eyebrow-label">BMI</span><div>${bmiText}</div></div>
-        <div><span class="eyebrow-label">Waist-to-Height</span><div>${whtrText}</div></div>
-        <div><span class="eyebrow-label">Fasting Sugar</span><div>${sugarText}</div></div>
-        <div><span class="eyebrow-label">Resting HR</span><div>${hrText}</div></div>
+ <div class="note-block teal no-print" style="margin-bottom:28px;">
+ <span class="k">You're in control</span>
+ Insights stay on this device. Save or print a copy if you want them outside the browser.
+ </div>
 
-        <div><span class="eyebrow-label">Smoking</span><div>${fmt(profile.smoking)}</div></div>
-        <div><span class="eyebrow-label">Alcohol</span><div>${fmt(profile.alcohol)}</div></div>
-      </div>
-      <div style="margin-top:14px; font-size:13px; color:var(--ink-soft);">
-        <b>Symptoms:</b> ${symptoms}
-      </div>
-    </div>
+ <div id="insights">
+ <div class="cat-title no-print">Review your insights</div>
+ ${byStep.map(({ step, items }) => stepCardHtml(step, items)).join('')}
+ </div>
 
-    <!-- DIAGNOSTICS -->
-    <div class="cat-title">Diagnostics</div>
-    <div class="test-card">
-      <div style="font-size:13.5px; margin-bottom:8px;">
-        <b>Top recommended tests:</b> ${testSummary}
-      </div>
- 
-    </div>
+ <div class="page-footer-nav no-print">
+ <a href="diet-synthesis.html" class="btn secondary">← Back</a>
+ <div style="display:flex;flex-wrap:wrap;gap:10px;">
+ <button type="button" class="btn secondary" id="btn-save-findings">Save findings</button>
+ <button type="button" class="btn secondary" id="btn-print-findings">Print findings</button>
+ <a href="index.html" class="btn">Done</a>
+ </div>
+ </div>
+ `;
 
-    <!-- ROUTINE -->
-    <div class="cat-title">Daily Routine</div>
-    <div class="test-card">
-      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(120px, 1fr)); gap:12px 18px; font-size:13.5px;">
-        <div><span class="eyebrow-label">Est. Daily Burn</span><div>${estBurn}</div></div>
-        <div><span class="eyebrow-label">Sleep</span><div>${sleep}</div></div>
-        <div><span class="eyebrow-label">Exercise</span><div>${exercise}</div></div>
-        <div><span class="eyebrow-label">Steps</span><div>${steps}</div></div>
-      </div>
-    </div>
-
-    <!-- DIET -->
-    <div class="cat-title">Diet</div>
-    <div class="test-card">
-      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); gap:12px 18px; font-size:13.5px; margin-bottom:12px;">
-        <div><span class="eyebrow-label">Preference</span><div>${dietType}${cuisine ? " · " + cuisine : ""}</div></div>
-        <div><span class="eyebrow-label">Calorie Target</span><div>${targetCal}</div></div>
-      </div>
-      <div style="font-size:13.5px; margin-bottom:8px;">
-        <b>Priority nutrients:</b> ${topNutrients}
-      </div>
-      <div style="font-size:13px; color:var(--ink-soft);">
-        <b>Food quality signals:</b> ${foodFlagText}
-      </div>
-    </div>
-
-    <div class="page-footer-nav">
-      <a href="diet-synthesis.html" class="btn secondary">← Back</a>
-      <a href="nextsteps.html" class="btn">Next Steps →</a>
-    </div>
-  `;
+ wireExportActions();
 }
 
 render();

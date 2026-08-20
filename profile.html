@@ -12,6 +12,21 @@
 
 <main>
   <form id="profile-form">
+
+    <div class="note-block teal" style="margin-bottom:22px;">
+      <span class="k">Session memory</span>
+      <div class="check-field" style="margin-top:8px;">
+        <input type="checkbox" id="f-remember">
+        <label for="f-remember">
+          Remember my progress on this device until I clear it
+          <span style="display:block;font-size:12px;color:var(--ink-soft);font-weight:400;margin-top:2px;">
+            Helps if the tab closes (for example after print). Data stays only in this browser — still not sent to any server.
+            Uncheck anytime to clear the saved copy.
+          </span>
+        </label>
+      </div>
+    </div>
+
     <div class="field-row" style="margin-bottom:22px;">
       <div class="field">
         <label class="intake-label" for="f-sex">Sex</label>
@@ -140,40 +155,52 @@
 </main>
 
 <footer>
-  <span>KYH — Know Your Health. Own Your Path. Runs entirely in your browser. Nothing is stored or sent anywhere.</span>
+  <span>KYH — Know Your Health. Own Your Path. Runs entirely in your browser. Nothing is sent to a server.</span>
   <span>Not a substitute for professional medical advice.</span>
 </footer>
 
 <script src="shared/utils.js"></script>
 <script>
-renderHeader('fine', 'KYH - Profile')
+renderHeader('fine', 'KYH - Profile');
 
 const state = loadState();
 const p = state.profile || {};
 
+/* ---- remember preference ---- */
+const rememberEl = document.getElementById('f-remember');
+if (rememberEl) {
+  rememberEl.checked = isRememberEnabled();
+  rememberEl.addEventListener('change', () => {
+    setRememberEnabled(rememberEl.checked);
+    if (rememberEl.checked) {
+      persistState(loadState());
+    }
+  });
+}
+
 /* ---- restore prior values if present ---- */
-if(p.sex) document.getElementById('f-sex').value = p.sex;
-if(p.age) document.getElementById('f-age').value = p.age;
-if(p.heightCm){
-  document.getElementById('f-height-cm').value = Math.round(p.heightCm*10)/10;
-  const {ft, inch} = cmToFtIn(p.heightCm);
+if (p.sex) document.getElementById('f-sex').value = p.sex;
+if (p.age) document.getElementById('f-age').value = p.age;
+if (p.heightCm) {
+  document.getElementById('f-height-cm').value = Math.round(p.heightCm * 10) / 10;
+  const { ft, inch } = cmToFtIn(p.heightCm);
   document.getElementById('f-height-ft').value = ft;
   document.getElementById('f-height-in').value = inch;
 }
-if(p.weightKg) document.getElementById('f-weight-kg').value = Math.round(p.weightKg*10)/10;
-if(p.waistCm){
-  document.getElementById('f-waist-cm').value = Math.round(p.waistCm*10)/10;
-  document.getElementById('f-waist-in').value = Math.round(cmToInFlat(p.waistCm)*10)/10;
+if (p.weightKg) document.getElementById('f-weight-kg').value = Math.round(p.weightKg * 10) / 10;
+if (p.waistCm) {
+  document.getElementById('f-waist-cm').value = Math.round(p.waistCm * 10) / 10;
+  document.getElementById('f-waist-in').value = Math.round(cmToInFlat(p.waistCm) * 10) / 10;
 }
-if(p.famMetabolic) document.getElementById('f-fam-metabolic').checked = true;
-if(p.famCardio) document.getElementById('f-fam-cardio').checked = true;
-if(p.smoking) document.getElementById('f-smoking').value = p.smoking;
-if(p.alcohol) document.getElementById('f-alcohol').value = p.alcohol;
-if(p.reproStatus) document.getElementById('f-repro-status').value = p.reproStatus;
-if(p.pcos) document.getElementById('f-pcos').checked = true;
+if (p.famMetabolic) document.getElementById('f-fam-metabolic').checked = true;
+if (p.famCardio) document.getElementById('f-fam-cardio').checked = true;
+if (p.smoking) document.getElementById('f-smoking').value = p.smoking;
+if (p.alcohol) document.getElementById('f-alcohol').value = p.alcohol;
+if (p.reproStatus) document.getElementById('f-repro-status').value = p.reproStatus;
+if (p.pcos) document.getElementById('f-pcos').checked = true;
 
 /* ---- reproductive health section only applies to females ---- */
-function updateReproVisibility(){
+function updateReproVisibility() {
   const show = document.getElementById('f-sex').value === 'Female';
   document.getElementById('repro-title').style.display = show ? 'flex' : 'none';
   document.getElementById('repro-field-row').style.display = show ? 'grid' : 'none';
@@ -181,115 +208,115 @@ function updateReproVisibility(){
 document.getElementById('f-sex').addEventListener('change', updateReproVisibility);
 updateReproVisibility();
 
-/* ---- per-field unit toggles: height (cm / ft+in), weight (kg / lb), waist (cm / in) ---- */
+/* ---- per-field unit toggles ---- */
 let heightUnit = 'ftin', weightUnit = 'kg', waistUnit = 'in';
 
-function wireUnitToggle(toggleId, onChange){
-  document.getElementById(toggleId).addEventListener('click', (e)=>{
+function wireUnitToggle(toggleId, onChange) {
+  document.getElementById(toggleId).addEventListener('click', (e) => {
     const btn = e.target.closest('button');
-    if(!btn) return;
-    document.querySelectorAll(`#${toggleId} button`).forEach(b=>b.classList.toggle('active', b===btn));
+    if (!btn) return;
+    document.querySelectorAll(`#${toggleId} button`).forEach(b => b.classList.toggle('active', b === btn));
     onChange(btn.dataset.unit);
   });
 }
 
-function getHeightCm(){
-  if(heightUnit==='cm') return parseFloat(document.getElementById('f-height-cm').value);
-  const ft = parseFloat(document.getElementById('f-height-ft').value)||0;
-  const inch = parseFloat(document.getElementById('f-height-in').value)||0;
-  return (ft||inch) ? ftInToCm(ft, inch) : NaN;
+function getHeightCm() {
+  if (heightUnit === 'cm') return parseFloat(document.getElementById('f-height-cm').value);
+  const ft = parseFloat(document.getElementById('f-height-ft').value) || 0;
+  const inch = parseFloat(document.getElementById('f-height-in').value) || 0;
+  return (ft || inch) ? ftInToCm(ft, inch) : NaN;
 }
-function getWeightKg(){
-  if(weightUnit==='kg') return parseFloat(document.getElementById('f-weight-kg').value);
+function getWeightKg() {
+  if (weightUnit === 'kg') return parseFloat(document.getElementById('f-weight-kg').value);
   const lb = parseFloat(document.getElementById('f-weight-lb').value);
   return isNaN(lb) ? NaN : lbToKg(lb);
 }
-function getWaistCm(){
-  if(waistUnit==='cm') return parseFloat(document.getElementById('f-waist-cm').value);
+function getWaistCm() {
+  if (waistUnit === 'cm') return parseFloat(document.getElementById('f-waist-cm').value);
   const inW = parseFloat(document.getElementById('f-waist-in').value);
   return isNaN(inW) ? NaN : inFlatToCm(inW);
 }
 
-wireUnitToggle('height-unit-toggle', (target)=>{
-  if(target===heightUnit) return;
+wireUnitToggle('height-unit-toggle', (target) => {
+  if (target === heightUnit) return;
   const cm = getHeightCm();
   heightUnit = target;
-  if(target==='ftin'){
-    const {ft, inch} = cmToFtIn(cm||0);
+  if (target === 'ftin') {
+    const { ft, inch } = cmToFtIn(cm || 0);
     document.getElementById('f-height-ft').value = cm ? ft : '';
     document.getElementById('f-height-in').value = cm ? inch : '';
-    document.getElementById('height-cm-wrap').style.display='none';
-    document.getElementById('height-ftin-wrap').style.display='grid';
-  }else{
-    document.getElementById('f-height-cm').value = cm ? Math.round(cm*10)/10 : '';
-    document.getElementById('height-cm-wrap').style.display='block';
-    document.getElementById('height-ftin-wrap').style.display='none';
+    document.getElementById('height-cm-wrap').style.display = 'none';
+    document.getElementById('height-ftin-wrap').style.display = 'grid';
+  } else {
+    document.getElementById('f-height-cm').value = cm ? Math.round(cm * 10) / 10 : '';
+    document.getElementById('height-cm-wrap').style.display = 'block';
+    document.getElementById('height-ftin-wrap').style.display = 'none';
   }
   refreshMetrics();
 });
-wireUnitToggle('weight-unit-toggle', (target)=>{
-  if(target===weightUnit) return;
+wireUnitToggle('weight-unit-toggle', (target) => {
+  if (target === weightUnit) return;
   const kg = getWeightKg();
   weightUnit = target;
-  if(target==='lb'){
-    document.getElementById('f-weight-lb').value = kg ? Math.round(kgToLb(kg)*10)/10 : '';
-    document.getElementById('weight-kg-wrap').style.display='none';
-    document.getElementById('weight-lb-wrap').style.display='block';
-  }else{
-    document.getElementById('f-weight-kg').value = kg ? Math.round(kg*10)/10 : '';
-    document.getElementById('weight-kg-wrap').style.display='block';
-    document.getElementById('weight-lb-wrap').style.display='none';
+  if (target === 'lb') {
+    document.getElementById('f-weight-lb').value = kg ? Math.round(kgToLb(kg) * 10) / 10 : '';
+    document.getElementById('weight-kg-wrap').style.display = 'none';
+    document.getElementById('weight-lb-wrap').style.display = 'block';
+  } else {
+    document.getElementById('f-weight-kg').value = kg ? Math.round(kg * 10) / 10 : '';
+    document.getElementById('weight-kg-wrap').style.display = 'block';
+    document.getElementById('weight-lb-wrap').style.display = 'none';
   }
   refreshMetrics();
 });
-wireUnitToggle('waist-unit-toggle', (target)=>{
-  if(target===waistUnit) return;
+wireUnitToggle('waist-unit-toggle', (target) => {
+  if (target === waistUnit) return;
   const cm = getWaistCm();
   waistUnit = target;
-  if(target==='in'){
-    document.getElementById('f-waist-in').value = cm ? Math.round(cmToInFlat(cm)*10)/10 : '';
-    document.getElementById('waist-cm-wrap').style.display='none';
-    document.getElementById('waist-in-wrap').style.display='block';
-  }else{
-    document.getElementById('f-waist-cm').value = cm ? Math.round(cm*10)/10 : '';
-    document.getElementById('waist-cm-wrap').style.display='block';
-    document.getElementById('waist-in-wrap').style.display='none';
+  if (target === 'in') {
+    document.getElementById('f-waist-in').value = cm ? Math.round(cmToInFlat(cm) * 10) / 10 : '';
+    document.getElementById('waist-cm-wrap').style.display = 'none';
+    document.getElementById('waist-in-wrap').style.display = 'block';
+  } else {
+    document.getElementById('f-waist-cm').value = cm ? Math.round(cm * 10) / 10 : '';
+    document.getElementById('waist-cm-wrap').style.display = 'block';
+    document.getElementById('waist-in-wrap').style.display = 'none';
   }
   refreshMetrics();
 });
 
-function refreshMetrics(){
+function refreshMetrics() {
   const heightCm = getHeightCm(), weightKg = getWeightKg(), waistCm = getWaistCm();
   const bmiEl = document.getElementById('bmi-ring');
   const bmiTagEl = document.getElementById('bmi-tag-text');
   const whtrEl = document.getElementById('whtr-ring');
   const whtrTagEl = document.getElementById('whtr-tag-text');
 
-  if(heightCm>0 && weightKg>0){
+  if (heightCm > 0 && weightKg > 0) {
     const bmi = computeBMI(weightKg, heightCm);
     const [label] = bmiTag(bmi);
     bmiEl.textContent = bmi.toFixed(1);
     bmiTagEl.textContent = label;
-  }else{
-    bmiEl.textContent = '\u2014'; bmiTagEl.textContent='';
+  } else {
+    bmiEl.textContent = '\u2014'; bmiTagEl.textContent = '';
   }
-  if(heightCm>0 && waistCm>0){
+  if (heightCm > 0 && waistCm > 0) {
     const whtr = computeWHtR(waistCm, heightCm);
     const [label] = whtrTag(whtr);
     whtrEl.textContent = whtr.toFixed(2).replace(/^0/, '');
     whtrTagEl.textContent = label;
-  }else{
-    whtrEl.textContent = '\u2014'; whtrTagEl.textContent='';
+  } else {
+    whtrEl.textContent = '\u2014'; whtrTagEl.textContent = '';
   }
 }
 
-['f-height-cm','f-height-ft','f-height-in','f-weight-kg','f-weight-lb','f-waist-cm','f-waist-in'].forEach(id=>{
+['f-height-cm', 'f-height-ft', 'f-height-in', 'f-weight-kg', 'f-weight-lb', 'f-waist-cm', 'f-waist-in'].forEach(id => {
   document.getElementById(id).addEventListener('input', refreshMetrics);
 });
 refreshMetrics();
 
 /* ---- submit ---- */
-document.getElementById('profile-form').addEventListener('submit', (e)=>{
+document.getElementById('profile-form').addEventListener('submit', (e) => {
   e.preventDefault();
   const sex = document.getElementById('f-sex').value;
   const age = parseFloat(document.getElementById('f-age').value);
@@ -299,15 +326,18 @@ document.getElementById('profile-form').addEventListener('submit', (e)=>{
   const reproStatus = document.getElementById('f-repro-status').value;
   const msg = document.getElementById('validation-msg');
 
-  if(!sex || isNaN(age) || age<=0 || isNaN(heightCm) || heightCm<=0 || isNaN(weightKg) || weightKg<=0 || isNaN(waistCm) || waistCm<=0 || !smoking || !alcohol){
+  if (!sex || isNaN(age) || age <= 0 || isNaN(heightCm) || heightCm <= 0 || isNaN(weightKg) || weightKg <= 0 || isNaN(waistCm) || waistCm <= 0 || !smoking || !alcohol) {
     msg.textContent = 'Please fill in every field above before continuing.';
     return;
   }
-  if(sex==='Female' && !reproStatus){
+  if (sex === 'Female' && !reproStatus) {
     msg.textContent = 'Please select your menstrual & menopause status before continuing.';
     return;
   }
   msg.textContent = '';
+
+  // Apply remember preference before saving this step
+  setRememberEnabled(document.getElementById('f-remember').checked);
 
   const bmi = computeBMI(weightKg, heightCm);
   const whtr = computeWHtR(waistCm, heightCm);
@@ -316,11 +346,11 @@ document.getElementById('profile-form').addEventListener('submit', (e)=>{
     famMetabolic: document.getElementById('f-fam-metabolic').checked,
     famCardio: document.getElementById('f-fam-cardio').checked,
     smoking, alcohol,
-    reproStatus: sex==='Female' ? reproStatus : null,
-    pcos: sex==='Female' ? document.getElementById('f-pcos').checked : false,
+    reproStatus: sex === 'Female' ? reproStatus : null,
+    pcos: sex === 'Female' ? document.getElementById('f-pcos').checked : false,
     symptoms: p.symptoms || []
   };
-  const next = Object.assign({}, state, {profile});
+  const next = Object.assign({}, state, { profile });
   goTo('symptoms.html', next);
 });
 </script>
