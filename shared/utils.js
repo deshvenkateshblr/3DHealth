@@ -5,44 +5,82 @@
    ============================================================ */
 
 const STATE_KEY = 'chart_state_v1';
+const REMEMBER_KEY = 'kyh_remember_v1';
 const URL_PAYLOAD_MAX = 1800; // stay safely under common proxy limits
 
 /* ---------- Cross-page state ----------
-   Uses sessionStorage (cleared when the tab/window closes) rather than
-   localStorage, so nothing is remembered between browsing sessions — only
-   while navigating forward and back through this one visit. State also
-   travels as a base64 payload on the URL between pages, as a backup for
-   browsers that isolate sessionStorage across local files opened via file://. */
-function loadState(){
+   Default: sessionStorage only (cleared when the tab/window closes).
+   Optional: localStorage when the user opts in on Profile
+   ("Remember my progress on this device").
+   State also travels as a base64 payload on the URL between pages,
+   as a backup for file:// multi-page testing. */
+
+function isRememberEnabled() {
+  try {
+    return localStorage.getItem(REMEMBER_KEY) === '1';
+  } catch (e) {
+    return false;
+  }
+}
+
+function setRememberEnabled(on) {
+  try {
+    if (on) {
+      localStorage.setItem(REMEMBER_KEY, '1');
+    } else {
+      localStorage.removeItem(REMEMBER_KEY);
+      localStorage.removeItem(STATE_KEY);
+    }
+  } catch (e) { /* ignore */ }
+}
+
+function loadState() {
   let fromUrl = null;
   const params = new URLSearchParams(location.search);
-  if(params.has('d')){
-    try{
+  if (params.has('d')) {
+    try {
       const json = decodeURIComponent(escape(atob(decodeURIComponent(params.get('d')))));
       fromUrl = JSON.parse(json);
-    }catch(e){ /* ignore malformed payloads */ }
+    } catch (e) { /* ignore malformed payloads */ }
   }
-  let fromStorage = null;
-  try{
-    const raw = sessionStorage.getItem(STATE_KEY);
-    if(raw) fromStorage = JSON.parse(raw);
-  }catch(e){ /* storage unavailable */ }
 
-  const state = Object.assign({}, fromStorage||{}, fromUrl||{});
+  let fromSession = null;
+  let fromLocal = null;
+  try {
+    const raw = sessionStorage.getItem(STATE_KEY);
+    if (raw) fromSession = JSON.parse(raw);
+  } catch (e) { /* storage unavailable */ }
+
+  try {
+    if (isRememberEnabled()) {
+      const raw = localStorage.getItem(STATE_KEY);
+      if (raw) fromLocal = JSON.parse(raw);
+    }
+  } catch (e) { /* ignore */ }
+
+  // Merge: local (resume) < session < URL (latest navigation wins)
+  const state = Object.assign({}, fromLocal || {}, fromSession || {}, fromUrl || {});
   persistState(state);
   return state;
 }
 
-function persistState(state){
-  try{ sessionStorage.setItem(STATE_KEY, JSON.stringify(state)); }catch(e){ /* ignore */ }
+function persistState(state) {
+  try {
+    sessionStorage.setItem(STATE_KEY, JSON.stringify(state));
+  } catch (e) { /* ignore */ }
+  try {
+    if (isRememberEnabled()) {
+      localStorage.setItem(STATE_KEY, JSON.stringify(state));
+    }
+  } catch (e) { /* ignore */ }
 }
 
-function encodeStateParam(state){
+function encodeStateParam(state) {
   const json = JSON.stringify(state);
   return encodeURIComponent(btoa(unescape(encodeURIComponent(json))));
 }
 
-function goTo(url, state){
+function goTo(url, state) {
   persistState(state);
 
   const isFile = location.protocol === 'file:';
@@ -66,154 +104,152 @@ function goTo(url, state){
 const CM_PER_IN = 2.54;
 const KG_PER_LB = 0.45359237;
 
-function cmToFtIn(cm){
+function cmToFtIn(cm) {
   const totalIn = cm / CM_PER_IN;
-  let ft = Math.floor(totalIn/12);
-  let inch = Math.round((totalIn - ft*12)*10)/10;
-  if(inch>=12){ ft+=1; inch-=12; }
-  return {ft, inch};
+  let ft = Math.floor(totalIn / 12);
+  let inch = Math.round((totalIn - ft * 12) * 10) / 10;
+  if (inch >= 12) { ft += 1; inch -= 12; }
+  return { ft, inch };
 }
-function ftInToCm(ft, inch){ return (Number(ft||0)*12 + Number(inch||0)) * CM_PER_IN; }
-function cmToInFlat(cm){ return cm / CM_PER_IN; }
-function inFlatToCm(inch){ return inch * CM_PER_IN; }
-function kgToLb(kg){ return kg / KG_PER_LB; }
-function lbToKg(lb){ return lb * KG_PER_LB; }
+function ftInToCm(ft, inch) { return (Number(ft || 0) * 12 + Number(inch || 0)) * CM_PER_IN; }
+function cmToInFlat(cm) { return cm / CM_PER_IN; }
+function inFlatToCm(inch) { return inch * CM_PER_IN; }
+function kgToLb(kg) { return kg / KG_PER_LB; }
+function lbToKg(lb) { return lb * KG_PER_LB; }
 
 /* ---------- Range parsing (drives the diet/routine/diagnostics matching) ---------- */
-function parseRange(str){
-  if(!str) return [-Infinity, Infinity];
+function parseRange(str) {
+  if (!str) return [-Infinity, Infinity];
   let s = String(str).trim();
-  if(s.toLowerCase()==='all') return [-Infinity, Infinity];
-  s = s.replace(/cm/gi,'').trim();
-  if(s.startsWith('>=')) return [parseFloat(s.slice(2)), Infinity];
-  if(s.startsWith('<=')) return [-Infinity, parseFloat(s.slice(2))];
-  if(s.startsWith('>')) return [parseFloat(s.slice(1)), Infinity];
-  if(s.startsWith('<')) return [-Infinity, parseFloat(s.slice(1))];
-  if(s.endsWith('+')) return [parseFloat(s.slice(0,-1)), Infinity];
-  if(s.includes('-')){
+  if (s.toLowerCase() === 'all') return [-Infinity, Infinity];
+  s = s.replace(/cm/gi, '').trim();
+  if (s.startsWith('>=')) return [parseFloat(s.slice(2)), Infinity];
+  if (s.startsWith('<=')) return [-Infinity, parseFloat(s.slice(2))];
+  if (s.startsWith('>')) return [parseFloat(s.slice(1)), Infinity];
+  if (s.startsWith('<')) return [-Infinity, parseFloat(s.slice(1))];
+  if (s.endsWith('+')) return [parseFloat(s.slice(0, -1)), Infinity];
+  if (s.includes('-')) {
     const parts = s.split('-');
     const lo = parseFloat(parts[0]);
     const hi = parseFloat(parts[1]);
-    if(!isNaN(lo) && !isNaN(hi)) return [lo,hi];
+    if (!isNaN(lo) && !isNaN(hi)) return [lo, hi];
   }
   const n = parseFloat(s);
-  return isNaN(n) ? [-Infinity,Infinity] : [n,n];
+  return isNaN(n) ? [-Infinity, Infinity] : [n, n];
 }
 
-function ageRelevancyMatch(str, age){
-  if(!str) return true;
-  return str.split(';').some(tok=>{
+function ageRelevancyMatch(str, age) {
+  if (!str) return true;
+  return str.split(';').some(tok => {
     const t = tok.trim();
-    if(t.toLowerCase()==='all') return true;
-    if(t.startsWith('>=')) return age >= parseFloat(t.slice(2));
-    if(t.startsWith('<=')) return age <= parseFloat(t.slice(2));
-    if(t.startsWith('>')) return age > parseFloat(t.slice(1));
-    if(t.startsWith('<')) return age < parseFloat(t.slice(1));
-    if(t.includes('-')){
-      const [a,b] = t.split('-').map(x=>parseFloat(x));
-      return age>=a && age<=b;
+    if (t.toLowerCase() === 'all') return true;
+    if (t.startsWith('>=')) return age >= parseFloat(t.slice(2));
+    if (t.startsWith('<=')) return age <= parseFloat(t.slice(2));
+    if (t.startsWith('>')) return age > parseFloat(t.slice(1));
+    if (t.startsWith('<')) return age < parseFloat(t.slice(1));
+    if (t.includes('-')) {
+      const [a, b] = t.split('-').map(x => parseFloat(x));
+      return age >= a && age <= b;
     }
     return age === parseFloat(t);
   });
 }
-function genderMatch(str, sex){
-  if(!str) return true;
-  return str.toLowerCase()==='all' || str.toLowerCase()===sex.toLowerCase();
+function genderMatch(str, sex) {
+  if (!str) return true;
+  return str.toLowerCase() === 'all' || str.toLowerCase() === sex.toLowerCase();
 }
-function profileMatch(str, activeCats){
-  return str.split(';').map(s=>s.trim()).some(t=>activeCats.includes(t));
+function profileMatch(str, activeCats) {
+  return str.split(';').map(s => s.trim()).some(t => activeCats.includes(t));
 }
 
 /* Nearest-match row picker — handles inconsistent/overlapping bucket labels
    in the diet & routine sheets by scoring on containment first, distance second. */
-function pickBestRow(rows, sex, crit){
-  const candidates = rows.filter(r=>r.sex.toLowerCase()===sex.toLowerCase());
-  let best=null, bestContain=-1, bestDist=Infinity;
-  for(const r of candidates){
-    let contain=0, dist=0;
-    if(crit.age!==undefined){
-      const [lo,hi]=parseRange(r.age);
-      if(crit.age>=lo && crit.age<=hi) contain++;
-      else dist += Math.min(Math.abs(crit.age-lo), Math.abs(crit.age-hi))/5;
+function pickBestRow(rows, sex, crit) {
+  const candidates = rows.filter(r => r.sex.toLowerCase() === sex.toLowerCase());
+  let best = null, bestContain = -1, bestDist = Infinity;
+  for (const r of candidates) {
+    let contain = 0, dist = 0;
+    if (crit.age !== undefined) {
+      const [lo, hi] = parseRange(r.age);
+      if (crit.age >= lo && crit.age <= hi) contain++;
+      else dist += Math.min(Math.abs(crit.age - lo), Math.abs(crit.age - hi)) / 5;
     }
-    if(crit.bmi!==undefined){
-      const [lo,hi]=parseRange(r.bmi);
-      if(crit.bmi>=lo && crit.bmi<=hi) contain++;
-      else dist += Math.min(Math.abs(crit.bmi-lo), Math.abs(crit.bmi-hi))/3;
+    if (crit.bmi !== undefined) {
+      const [lo, hi] = parseRange(r.bmi);
+      if (crit.bmi >= lo && crit.bmi <= hi) contain++;
+      else dist += Math.min(Math.abs(crit.bmi - lo), Math.abs(crit.bmi - hi)) / 3;
     }
-    if(crit.waist!==undefined){
-      const [lo,hi]=parseRange(r.waist);
-      if(crit.waist>=lo && crit.waist<=hi) contain++;
-      else dist += Math.min(Math.abs(crit.waist-lo), Math.abs(crit.waist-hi))/10;
+    if (crit.waist !== undefined) {
+      const [lo, hi] = parseRange(r.waist);
+      if (crit.waist >= lo && crit.waist <= hi) contain++;
+      else dist += Math.min(Math.abs(crit.waist - lo), Math.abs(crit.waist - hi)) / 10;
     }
-    if(crit.activity!==undefined && r.activity!==undefined){
-      if(r.activity===crit.activity) contain++;
+    if (crit.activity !== undefined && r.activity !== undefined) {
+      if (r.activity === crit.activity) contain++;
       else dist += 1.5;
     }
-    if(contain>bestContain || (contain===bestContain && dist<bestDist)){
-      best=r; bestContain=contain; bestDist=dist;
+    if (contain > bestContain || (contain === bestContain && dist < bestDist)) {
+      best = r; bestContain = contain; bestDist = dist;
     }
   }
   return best;
 }
 
 /* ---------- Derived profile metrics ---------- */
-function computeBMI(weightKg, heightCm){ return weightKg / Math.pow(heightCm/100, 2); }
-function computeWHtR(waistCm, heightCm){ return waistCm / heightCm; }
+function computeBMI(weightKg, heightCm) { return weightKg / Math.pow(heightCm / 100, 2); }
+function computeWHtR(waistCm, heightCm) { return waistCm / heightCm; }
 
-function bmiTag(bmi){
-  if(bmi<18.5) return ['Underweight','var(--amber)'];
-  if(bmi<25) return ['Normal range','var(--teal)'];
-  if(bmi<30) return ['Overweight','var(--amber)'];
-  return ['Obesity range','var(--rose)'];
+function bmiTag(bmi) {
+  if (bmi < 18.5) return ['Underweight', 'var(--amber)'];
+  if (bmi < 25) return ['Normal range', 'var(--teal)'];
+  if (bmi < 30) return ['Overweight', 'var(--amber)'];
+  return ['Obesity range', 'var(--rose)'];
 }
-function whtrTag(r){
-  if(r<0.4) return ['Low (verify BMI too)','var(--amber)'];
-  if(r<0.5) return ['Healthy range','var(--teal)'];
-  if(r<0.6) return ['Increased risk','var(--amber)'];
-  return ['High risk','var(--rose)'];
+function whtrTag(r) {
+  if (r < 0.4) return ['Low (verify BMI too)', 'var(--amber)'];
+  if (r < 0.5) return ['Healthy range', 'var(--teal)'];
+  if (r < 0.6) return ['Increased risk', 'var(--amber)'];
+  return ['High risk', 'var(--rose)'];
 }
 
-function activeCategories(profile){
+function activeCategories(profile) {
   const cats = ['Low Risk'];
-  const waistHigh = profile.sex==='Female' ? profile.waistCm>80 : profile.waistCm>94;
-  const smokingRisk = profile.smoking==='Daily' || profile.smoking==='Occasionally';
-  const heavyAlcohol = profile.alcohol==='3-5x/week' || profile.alcohol==='Daily';
-  const postMenopausal = profile.reproStatus==='Post-menopausal' || profile.reproStatus==='Perimenopausal';
+  const waistHigh = profile.sex === 'Female' ? profile.waistCm > 80 : profile.waistCm > 94;
+  const smokingRisk = profile.smoking === 'Daily' || profile.smoking === 'Occasionally';
+  const heavyAlcohol = profile.alcohol === '3-5x/week' || profile.alcohol === 'Daily';
+  const postMenopausal = profile.reproStatus === 'Post-menopausal' || profile.reproStatus === 'Perimenopausal';
   const pcos = !!profile.pcos;
-  const metabolic = profile.bmi>=25 || waistHigh || profile.famMetabolic || heavyAlcohol || pcos;
-  const cardio = profile.age>=40 || waistHigh || profile.famCardio || smokingRisk || postMenopausal;
-  if(metabolic) cats.push('Metabolic');
-  if(cardio) cats.push('Cardiovascular');
+  const metabolic = profile.bmi >= 25 || waistHigh || profile.famMetabolic || heavyAlcohol || pcos;
+  const cardio = profile.age >= 40 || waistHigh || profile.famCardio || smokingRisk || postMenopausal;
+  if (metabolic) cats.push('Metabolic');
+  if (cardio) cats.push('Cardiovascular');
   cats.push('Age Specific');
-  if(profile.sex==='Female') cats.push('Female Specific');
-  if(metabolic && cardio) cats.push('Mixed');
-  return {cats, metabolic, cardio, waistHigh, smokingRisk, heavyAlcohol, postMenopausal, pcos};
+  if (profile.sex === 'Female') cats.push('Female Specific');
+  if (metabolic && cardio) cats.push('Mixed');
+  return { cats, metabolic, cardio, waistHigh, smokingRisk, heavyAlcohol, postMenopausal, pcos };
 }
 
 /* ---------- Formatting ---------- */
-function fmtNum(n){ return (Math.round(n*10)/10).toString(); }
+function fmtNum(n) { return (Math.round(n * 10) / 10).toString(); }
 
-/* ---------- Gauge component (signature element, reused on Diet & Routine) ----------
-   Renders a reference-range band; an optional markerVal draws a diamond
-   showing where the user's own reported value sits against that band. */
-function gaugeBlock(name, lo, hi, max, unit, markerVal){
-  if(hi===Infinity) hi = max;
-  if(lo===-Infinity) lo = 0;
-  const leftPct = Math.max(0, (lo/max)*100);
-  const widthPct = Math.max(1.5, ((hi-lo)/max)*100);
+/* ---------- Gauge component ---------- */
+function gaugeBlock(name, lo, hi, max, unit, markerVal) {
+  if (hi === Infinity) hi = max;
+  if (lo === -Infinity) lo = 0;
+  const leftPct = Math.max(0, (lo / max) * 100);
+  const widthPct = Math.max(1.5, ((hi - lo) / max) * 100);
   let markerHtml = '';
-  if(markerVal!==undefined && markerVal!==null && !isNaN(markerVal)){
-    const mPct = Math.min(100, Math.max(0, (markerVal/max)*100));
-    const bad = markerVal<lo || markerVal>hi;
-    markerHtml = `<div class="gauge-marker${bad?' bad':''}" style="left:${mPct}%;" title="Your value: ${fmtNum(markerVal)} ${unit}"></div>`;
+  if (markerVal !== undefined && markerVal !== null && !isNaN(markerVal)) {
+    const mPct = Math.min(100, Math.max(0, (markerVal / max) * 100));
+    const bad = markerVal < lo || markerVal > hi;
+    markerHtml = `<div class="gauge-marker${bad ? ' bad' : ''}" style="left:${mPct}%;" title="Your value: ${fmtNum(markerVal)} ${unit}"></div>`;
   }
-  const rangeText = fmtNum(lo)===fmtNum(hi) ? `${fmtNum(lo)} ${unit}` : `${fmtNum(lo)}&ndash;${fmtNum(hi)} ${unit}`;
+  const rangeText = fmtNum(lo) === fmtNum(hi) ? `${fmtNum(lo)} ${unit}` : `${fmtNum(lo)}&ndash;${fmtNum(hi)} ${unit}`;
   return `
   <div class="gauge-block">
     <div class="gauge-label">
       <span class="name">${name}</span>
-      <span class="range-val">${rangeText}${markerVal!==undefined && markerVal!==null && !isNaN(markerVal) ? ` &middot; you: ${fmtNum(markerVal)} ${unit}` : ''}</span>
+      <span class="range-val">${rangeText}${markerVal !== undefined && markerVal !== null && !isNaN(markerVal) ? ` &middot; you: ${fmtNum(markerVal)} ${unit}` : ''}</span>
     </div>
     <div class="gauge-track">
       <div class="gauge-band" style="left:${leftPct}%; width:${widthPct}%;"></div>
@@ -223,15 +259,12 @@ function gaugeBlock(name, lo, hi, max, unit, markerVal){
   </div>`;
 }
 
-/* ---------- Small escaping helper for user-entered text ---------- */
-function esc(s){
-  return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function esc(s) {
+  return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
-/* ---------- Unified Header / Progress Map ---------- */
-
 
 /* ============================================================
-   Modern 3-Section Header
+   Modern header / progress map
    ============================================================ */
 const HEADER_STEPS = [
   {
@@ -274,7 +307,7 @@ function renderHeader(activeStep = 'fine', pageTitle = 'Know Your Health') {
   HEADER_STEPS.forEach((step, i) => {
     let cls = 'map-stop';
     if (i === activeIndex) cls += ' active';
-    if (i < activeIndex)   cls += ' done';
+    if (i < activeIndex) cls += ' done';
     if (step.id === 'great') cls += ' dest';
 
     stopsHtml += `
@@ -296,9 +329,7 @@ function renderHeader(activeStep = 'fine', pageTitle = 'Know Your Health') {
           <img src="shared/assets/kyh_logo_final.png" alt="KYH" class="brand-mark">
         </a>
       </div>
-
       <div class="brand-caption">${pageTitle}</div>
-
       <div class="map-route" aria-label="Progress from Fine to Great">
         ${stopsHtml}
       </div>
