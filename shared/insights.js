@@ -28,22 +28,35 @@ const KYH_BRAND_BLURB =
     other: 1.5
   };
 
-  /** Recompute daily burn the same way routine does (hours × MET × weightKg). */
+  /** Prefer stored estimatedCalories; otherwise sum from activities[]. */
+   /** Prefer stored estimatedCalories; otherwise sum from activities[]. */
   function estimateDailyBurn(routine, weightKg) {
-    const w = weightKg || 70;
-    const act = (routine && routine.actual) || {};
-    let daily = 0;
-    Object.keys(MET).forEach(key => {
-      const hrs = parseFloat(act[key]) || 0;
-      daily += hrs * MET[key];
-    });
-    const habits = (routine && routine.habits) || {};
-    const sportsDaily = (parseFloat(habits.sports) || 0) / 7;
-    const strengthDaily = (parseFloat(habits.strength) || 0) / 7;
-    daily += sportsDaily * 6.0 + strengthDaily * 5.0;
-    return Math.round(daily * w);
-  }
+    if (!routine) return 0;
 
+    const stored = Number(routine.estimatedCalories);
+    if (!isNaN(stored) && stored > 0) return Math.round(stored);
+
+    const w = weightKg || 70;
+    const list = routine.activities || [];
+    if (!list.length) return 0;
+
+    const defs = (typeof window !== 'undefined' && window.ACTIVITIES) || [];
+    let daily = 0;
+
+    list.forEach(sa => {
+      const def = defs.find(a => a.id === sa.id);
+      const met = def ? Number(def.met) : 1.5;
+      const durationHours = (Number(sa.hours) || 0) + ((Number(sa.mins) || 0) / 60);
+      const cals = met * w * durationHours;
+      if (sa.freq === 'daily' || !sa.freq) {
+        daily += cals;
+      } else {
+        daily += cals / 7; // weekly → average per day
+      }
+    });
+
+    return Math.round(daily);
+  }
   /**
    * Activity band used on diet.html when choosing DIET rows:
    *   estimatedCalories > 2400 → Active
@@ -366,8 +379,9 @@ const KYH_BRAND_BLURB =
       energy: ['Fatigue', 'Low Energy', 'Insomnia', 'Burnout', 'Restlessness'],
       metabolic: ['Obesity', 'Overweight', 'Diabetes', 'Sugar Cravings', 'Excessive Thirst'],
       gut: ['Bloating', 'Constipation', 'Indigestion', 'Acid Reflux', 'Irritable Bowel Syndrome'],
-      pain: ['Back Pain', 'Neck Pain', 'Knee Pain', 'Shoulder Pain', 'Joint Stiffness'],
-      mood: ['Anxiety', 'Stress', 'Depression', 'Mood Swings', 'Irritability']
+      pain: ['Back Pain', 'Neck Pain', 'Knee Pain', 'Shoulder Pain', 'Joint Stiffness', 'Leg Pain', 'Leg Cramps'],
+      mood: ['Anxiety', 'Stress', 'Depression', 'Mood Swings', 'Irritability'],
+      menopause: ['Menopause Symptoms', 'Hot Flashes', 'Night Sweats']
     };
     const hit = [];
     Object.keys(clusters).forEach(k => {
@@ -375,13 +389,16 @@ const KYH_BRAND_BLURB =
       if (m.length) hit.push({ k, m });
     });
 
+    const pattern = hit.length
+      ? hit.map(h => h.k).join(', ')
+      : 'mixed';
+    const examples = list.slice(0, 6).join(', ') + (list.length > 6 ? '…' : '');
+
     out.push(insight({
-      id: 'symptoms-overview', domain: 'symptoms', tone: 'watch', priority: 18,
-      title: `You reported ${list.length} symptom${list.length > 1 ? 's' : ''}`,
-      detail: hit.length
-        ? `Patterns lean toward: ${hit.map(h => h.k).join(', ')}. Example signals: ${list.slice(0, 6).join(', ')}${list.length > 6 ? '…' : ''}.`
-        : `Including: ${list.slice(0, 8).join(', ')}${list.length > 8 ? '…' : ''}.`,
-      next: 'Use these as the spine of your doctor conversation and of the AI plan — not as a self-diagnosis.',
+      id: 'symptoms-pattern', domain: 'symptoms', tone: 'watch', priority: 19,
+      title: 'Symptom pattern shapes your priorities',
+      detail: `${list.length} symptom${list.length > 1 ? 's' : ''} logged; pattern leans toward ${pattern}. Examples: ${examples}.`,
+      next: 'Use this pattern as context for diagnostics, movement, and nutrient focus — not as a self-diagnosis.',
       sources: ['symptoms']
     }));
 
@@ -404,36 +421,34 @@ const KYH_BRAND_BLURB =
     }
 
     const bySym = top.filter(t => t.bySymptom).length;
-    const done = [];
-    const notDone = [];
-    const flagged = [];
+    const onTrack = [];
+    const belowTarget = [];
+
     top.forEach(t => {
       const name = t.test || t.name;
       const a = answers[name];
-      if (!a) { notDone.push(name); return; }
-      if (a.done === true) {
-        done.push(name);
-        if (a.resultStatus && /attention|abnormal|high|low/i.test(a.resultStatus)) flagged.push(name);
-      } else if (a.done === false) notDone.push(name);
-      else notDone.push(name);
+      if (a && a.done === true) onTrack.push(name);
+      else belowTarget.push(name); // not done, unanswered, or explicit "no"
     });
 
     out.push(insight({
-      id: 'diag-mix', domain: 'diagnostics', tone: bySym ? 'watch' : 'good', priority: 26,
-      title: `${top.length} tests prioritised for you`,
-      detail: `${bySym} driven by symptoms; ${top.length - bySym} from baseline risk. ${done.length} marked done; ${notDone.length} still open.`,
-      next: notDone.length
-        ? `Highest-value open items to discuss: ${notDone.slice(0, 4).join(', ')}.`
+      id: 'diag-coverage', domain: 'diagnostics', tone: belowTarget.length ? 'watch' : 'good', priority: 14,
+      title: 'Screening coverage from your prioritised list',
+      detail: `${top.length} tests matched your profile${bySym ? ` (${bySym} symptom-linked)` : ''}. ` +
+        `On track (self-reported done): ${onTrack.length ? onTrack.join(', ') : 'none'}. ` +
+        `Still below target: ${belowTarget.length ? belowTarget.slice(0, 6).join(', ') + (belowTarget.length > 6 ? '…' : '') : 'none'}.`,
+      next: belowTarget.length
+        ? `Highest-value open items to discuss: ${belowTarget.slice(0, 5).join(', ')}.`
         : 'Keep results filed and recheck on the interval your clinician suggests.',
       sources: ['diagnostics.topTests', 'diagnostics.answers']
     }));
 
-    if (flagged.length) {
+    if (belowTarget.length >= 4) {
       out.push(insight({
-        id: 'diag-flagged', domain: 'diagnostics', tone: 'act', priority: 9,
-        title: 'Some completed tests need follow-up attention',
-        detail: `You flagged results on: ${flagged.join(', ')}.`,
-        next: 'Bring reports to your clinician rather than interpreting them only from memory.',
+        id: 'diag-open', domain: 'diagnostics', tone: 'act', priority: 12,
+        title: 'Several priority tests are still open',
+        detail: `${belowTarget.length} of ${top.length} prioritised tests are not marked done yet.`,
+        next: 'Take this shortlist to your next visit rather than ordering ad-hoc panels.',
         sources: ['diagnostics.answers']
       }));
     }
@@ -441,132 +456,196 @@ const KYH_BRAND_BLURB =
     return out;
   }
 
+    /* Map activity ids → buckets for sleep / sitting / movement insights */
+  const ACTIVITY_TO_BUCKET = {
+    act_011: 'sleep',          // Sleeping
+    act_012: 'idle',           // Watching TV / Lying Down
+    act_017: 'idle',           // Sitting (Idle / Relaxing)
+    act_013: 'idle',           // Passenger
+    act_015: 'desk',           // Office Work
+    act_018: 'desk',           // Reading / Studying
+    act_022: 'standing',       // Standing desk
+    act_014: 'other',          // Driving
+    act_002: 'other',          // Cooking
+    act_004: 'other',
+    act_023: 'other',
+    act_005: 'other',
+    act_016: 'other',
+    act_101: 'walking',
+    act_026: 'walking',
+    act_025: 'walking',
+    act_102: 'walking',
+    act_103: 'walking',
+    act_501: 'walking',
+    act_211: 'other',          // Meditation
+    act_212: 'other',          // Social / Community (if you added it)
+    act_203: 'yoga',
+    act_208: 'yoga',
+    act_210: 'yoga',
+    act_209: 'yoga',
+    act_412: 'exercise',
+    act_206: 'exercise',
+    act_401: 'exercise',
+    act_405: 'exercise',
+    act_403: 'exercise',
+    act_406: 'exercise',
+    act_404: 'exercise',
+    act_207: 'exercise',
+    act_301: 'exercise',
+    act_303: 'exercise',
+    act_311: 'exercise',
+    act_305: 'exercise',
+    act_307: 'exercise',
+    act_314: 'exercise',
+    act_309: 'exercise'
+  };
+
+  /** Daily hours by bucket from routine.activities (daily items only). */
+  function hoursByBucket(activities) {
+    const act = {
+      sleep: 0, desk: 0, idle: 0, standing: 0,
+      walking: 0, exercise: 0, yoga: 0, other: 0
+    };
+    if (!Array.isArray(activities)) return act;
+
+    activities.forEach(sa => {
+      if (sa.freq && sa.freq !== 'daily') return; // weekly extras don't fill the 24h ledger
+      const hrs = (Number(sa.hours) || 0) + ((Number(sa.mins) || 0) / 60);
+      if (hrs <= 0) return;
+      const bucket = ACTIVITY_TO_BUCKET[sa.id] || 'other';
+      act[bucket] += hrs;
+    });
+    return act;
+  }
+
   function insightsRoutine(routine, profile) {
     const out = [];
-    if (!routine || !routine.actual) {
+    const habits = (routine && routine.habits) || {};
+    const hasActivities = !!(routine && Array.isArray(routine.activities) && routine.activities.length);
+    const hasBurn = routine && routine.estimatedCalories != null && !isNaN(Number(routine.estimatedCalories));
+    const hasHabits =
+      habits.steps != null ||
+      habits.sun != null ||
+      habits.dinner != null ||
+      habits.postMealWalk === true ||
+      habits.postMealWalk === false;
+
+    if (!routine || (!hasActivities && !hasBurn && !hasHabits)) {
       out.push(insight({
         id: 'routine-none', domain: 'routine', tone: 'watch', priority: 42,
         title: 'Daily routine not logged',
-        detail: 'Without a 24-hour ledger, calorie burn and movement gaps are only approximate.',
-        next: 'Complete the Routine step for sleep, sitting, and exercise insights.',
+        detail: 'Without logged activities or daily signals, burn and movement insights stay approximate.',
+        next: 'Complete the Routine step to unlock sleep, sitting, burn, and habit insights.',
         sources: ['routine']
       }));
       return out;
     }
 
-    const act = routine.actual || {};
-    const idl = routine.ideal || {};
-    const habits = routine.habits || {};
+    // Hours derived from activities[] (daily items only)
+    const act = hasActivities ? hoursByBucket(routine.activities) : {
+      sleep: 0, desk: 0, idle: 0, standing: 0,
+      walking: 0, exercise: 0, yoga: 0, other: 0
+    };
 
-    // Sleep
-    const sleepGap = gapHours(act.sleep, idl.sleep);
-    if (sleepGap != null) {
-      if (sleepGap <= -1) {
-        out.push(insight({
-          id: 'sleep', domain: 'routine', tone: 'act', priority: 11,
-          title: 'Sleep is short of your ideal window',
-          detail: `About ${act.sleep}h logged vs ${idl.sleep}h ideal (gap ${sleepGap.toFixed(1)}h). Short sleep affects hunger, glucose, and recovery.`,
-          next: 'Protect a fixed wind-down and consistent wake time before adding harder workouts.',
-          sources: ['routine.actual.sleep', 'routine.ideal.sleep']
-        }));
-      } else if (Math.abs(sleepGap) < 0.75) {
-        out.push(insight({
-          id: 'sleep', domain: 'routine', tone: 'good', priority: 48,
-          title: 'Sleep is near your target',
-          detail: `${act.sleep}h vs ideal ${idl.sleep}h — close enough to support recovery.`,
-          next: 'Keep the schedule steady, especially on weeknights.',
-          sources: ['routine.actual.sleep', 'routine.ideal.sleep']
-        }));
-      } else if (sleepGap >= 1.5) {
-        out.push(insight({
-          id: 'sleep-long', domain: 'routine', tone: 'watch', priority: 36,
-          title: 'Sleep is longer than your ideal band',
-          detail: `${act.sleep}h vs ideal ${idl.sleep}h. Sometimes this is recovery; sometimes low mood, sleep apnea, or illness.`,
-          next: 'If daytime energy is still low, mention sleep quality (snoring, unrefreshing sleep) to a clinician.',
-          sources: ['routine.actual.sleep', 'routine.ideal.sleep']
-        }));
-      }
-    }
-
-    // Desk + idle (bad to be high)
-    const sit = (parseFloat(act.desk) || 0) + (parseFloat(act.idle) || 0);
-    const sitIdl = (parseFloat(idl.desk) || 0) + (parseFloat(idl.idle) || 0);
-    if (sit > 0) {
-      if (sitIdl && sit > sitIdl + 1.5) {
-        out.push(insight({
-          id: 'sitting', domain: 'routine', tone: 'watch', priority: 22,
-          title: 'Sitting time is high relative to your ideal day',
-          detail: `Desk + idle ≈ ${sit.toFixed(1)}h vs ideal ≈ ${sitIdl.toFixed(1)}h. Long sitting stacks with waist and glucose risk.`,
-          next: 'Break up long blocks with 2–3 minute stands or short walks each hour.',
-          sources: ['routine.actual.desk', 'routine.actual.idle', 'routine.ideal.desk', 'routine.ideal.idle']
-        }));
-      } else if (sit <= sitIdl + 0.5) {
-        out.push(insight({
-          id: 'sitting-ok', domain: 'routine', tone: 'good', priority: 58,
-          title: 'Sitting load is near your ideal',
-          detail: `Combined desk and idle time (~${sit.toFixed(1)}h) aligns reasonably with your target day.`,
-          next: 'Keep movement snacks on heavy desk days.',
-          sources: ['routine.actual.desk', 'routine.actual.idle']
-        }));
-      }
-    }
-
-    // Exercise + yoga
-    const move = (parseFloat(act.exercise) || 0) + (parseFloat(act.yoga) || 0);
-    const moveIdl = (parseFloat(idl.exercise) || 0) + (parseFloat(idl.yoga) || 0);
-    if (moveIdl > 0 && move + 0.25 < moveIdl) {
-      out.push(insight({
-        id: 'exercise-gap', domain: 'routine', tone: 'watch', priority: 19,
-        title: 'Structured movement is under your ideal',
-        detail: `Exercise + yoga ≈ ${move.toFixed(1)}h vs ideal ≈ ${moveIdl.toFixed(1)}h.`,
-        next: 'Start with two short sessions you can repeat weekly; use your personalised movement list.',
-        sources: ['routine.actual.exercise', 'routine.actual.yoga', 'routine.ideal.exercise', 'routine.ideal.yoga']
-      }));
-    } else if (moveIdl > 0 && move >= moveIdl - 0.25) {
-      out.push(insight({
-        id: 'exercise-ok', domain: 'routine', tone: 'good', priority: 46,
-        title: 'Movement time is near target',
-        detail: `You are close to your ideal exercise/yoga allotment (~${move.toFixed(1)}h).`,
-        next: 'Bias one session toward strength if most of your time is pure cardio or yoga.',
-        sources: ['routine.actual.exercise', 'routine.actual.yoga']
-      }));
-    }
-
-    // --- Calorie burn vs profile activity bands (aligned with diet.html) ---
-    const stored = routine.estimatedCalories;
-    const recomputed = estimateDailyBurn(routine, profile && profile.weightKg);
-    const burn = (stored != null && !isNaN(stored)) ? Number(stored) : recomputed;
-    const band = activityBandFromBurn(burn);
+    // ----- 1) Calorie burn -----
+    const burn = estimateDailyBurn(routine, profile && profile.weightKg);
+    const band = burn ? activityBandFromBurn(burn) : null;
 
     if (burn && band) {
       let tone = 'good';
-      let title = 'Daily energy burn looks in a typical range';
+      let title = 'Estimated daily burn is in a typical adult range';
       let next = 'Match food intake to hunger and your diet targets rather than chasing burn precisely.';
       if (band.id === 'Sedentary') {
         tone = 'watch';
-        title = 'Estimated daily burn is on the low side for adults';
-        next = 'Add walking and light strength — small NEAT increases raise burn more sustainably than sporadic hard sessions.';
+        title = 'Estimated daily burn is on the low side';
+        next = 'Add walking and light strength — small daily movement raises burn more sustainably than rare hard sessions.';
       } else if (band.id === 'Active') {
         tone = 'good';
         title = 'Estimated daily burn is higher than average';
-        next = 'Fuel training days adequately; still watch ultra-processed snacks if waist or sugar is a concern.';
+        next = 'Fuel active days adequately; still limit sugary drinks if waist or metabolic risk is a concern.';
       }
       out.push(insight({
-        id: 'calorie-burn', domain: 'routine', tone, priority: band.id === 'Sedentary' ? 17 : 44,
+        id: 'calorie-burn', domain: 'routine', tone,
+        priority: band.id === 'Sedentary' ? 10 : 16,
         title,
-        detail: `From your logged day (activity × body weight, same method as Routine): ~${burn.toLocaleString()} kcal. That maps to the **${band.id}** band used for diet targets (<1800 sedentary, 1800–2400 moderate, >2400 active) — ${band.label}.`,
+        detail:
+          `From your activity log and body weight: ~${burn.toLocaleString()} kcal/day. ` +
+          `Maps to the ${band.id} band used for diet targets (<1800 sedentary, 1800–2400 moderate, >2400 active).`,
         next,
-        sources: [
-          'routine.estimatedCalories',
-          'routine.actual',
-          'routine.habits.sports',
-          'routine.habits.strength',
-          'weightKg'
-        ]
+        sources: ['routine.estimatedCalories', 'routine.activities', 'weightKg']
       }));
     }
 
-    // Habits
+    // ----- 2) Sleep / sitting / movement from activities -----
+    if (hasActivities) {
+      if (act.sleep > 0) {
+        if (act.sleep < 6.5) {
+          out.push(insight({
+            id: 'sleep', domain: 'routine', tone: 'act', priority: 11,
+            title: 'Sleep looks short',
+            detail: `About ${act.sleep.toFixed(1)}h of sleep logged. Under ~7h is linked to hunger, glucose, and recovery issues for many adults.`,
+            next: 'Protect a fixed wind-down and consistent wake time before adding harder workouts.',
+            sources: ['routine.activities']
+          }));
+        } else if (act.sleep <= 9) {
+          out.push(insight({
+            id: 'sleep', domain: 'routine', tone: 'good', priority: 48,
+            title: 'Sleep duration looks reasonable',
+            detail: `${act.sleep.toFixed(1)}h logged — in a common adult target band.`,
+            next: 'Keep the schedule steady, especially on weeknights.',
+            sources: ['routine.activities']
+          }));
+        } else {
+          out.push(insight({
+            id: 'sleep-long', domain: 'routine', tone: 'watch', priority: 36,
+            title: 'Sleep is on the long side',
+            detail: `${act.sleep.toFixed(1)}h logged. Sometimes this is recovery; sometimes low mood or unrefreshing sleep.`,
+            next: 'If daytime energy is still low, mention sleep quality to a clinician.',
+            sources: ['routine.activities']
+          }));
+        }
+      }
+
+      const sit = act.desk + act.idle;
+      if (sit >= 10) {
+        out.push(insight({
+          id: 'sitting', domain: 'routine', tone: 'watch', priority: 22,
+          title: 'Sitting time is high',
+          detail: `Desk + idle ≈ ${sit.toFixed(1)}h. Long sitting stacks with waist and glucose risk.`,
+          next: 'Break up long blocks with 2–3 minute stands or short walks each hour.',
+          sources: ['routine.activities']
+        }));
+      } else if (sit > 0) {
+        out.push(insight({
+          id: 'sitting-ok', domain: 'routine', tone: 'good', priority: 58,
+          title: 'Sitting load looks manageable',
+          detail: `Combined desk and idle time ~${sit.toFixed(1)}h.`,
+          next: 'Keep movement snacks on heavy desk days.',
+          sources: ['routine.activities']
+        }));
+      }
+
+      const move = act.exercise + act.yoga;
+      if (move < 0.3) {
+        out.push(insight({
+          id: 'exercise-gap', domain: 'routine', tone: 'watch', priority: 19,
+          title: 'Little structured movement logged',
+          detail: `Exercise + yoga ≈ ${move.toFixed(1)}h in your daily activities.`,
+          next: 'Start with two short sessions you can repeat weekly; use your personalised movement list.',
+          sources: ['routine.activities']
+        }));
+      } else {
+        out.push(insight({
+          id: 'exercise-ok', domain: 'routine', tone: 'good', priority: 46,
+          title: 'Some structured movement is in your day',
+          detail: `Exercise + yoga ≈ ${move.toFixed(1)}h.`,
+          next: 'Bias one session toward strength if most of your time is pure cardio or yoga.',
+          sources: ['routine.activities']
+        }));
+      }
+    }
+
+    // ----- 3) Habits (steps / sun / dinner / post-meal walk only) -----
     if (habits.steps != null) {
       if (habits.steps < 5000) {
         out.push(insight({
@@ -588,7 +667,7 @@ const KYH_BRAND_BLURB =
         out.push(insight({
           id: 'steps-ok', domain: 'routine', tone: 'good', priority: 52,
           title: 'Daily steps look solid',
-          detail: `${Number(habits.steps).toLocaleString()} steps/day supports the “Active / Moderate” side of your energy picture.`,
+          detail: `${Number(habits.steps).toLocaleString()} steps/day supports the Active / Moderate side of your energy picture.`,
           next: 'Keep a floor on rest days so the average does not collapse.',
           sources: ['routine.habits.steps']
         }));
@@ -653,44 +732,6 @@ const KYH_BRAND_BLURB =
       }));
     }
 
-    if ((habits.strength || 0) <= 0) {
-      out.push(insight({
-        id: 'strength', domain: 'routine', tone: 'watch', priority: 27,
-        title: 'Little or no strength training logged',
-        detail: 'Resistance work supports muscle, bone, and metabolic rate beyond steps alone.',
-        next: 'Two short full-body sessions per week is enough to start.',
-        sources: ['routine.habits.strength']
-      }));
-    } else {
-      out.push(insight({
-        id: 'strength-ok', domain: 'routine', tone: 'good', priority: 53,
-        title: 'Strength work is part of your week',
-        detail: `About ${habits.strength} h/week of strength training noted.`,
-        next: 'Stay consistent; progressive overload beats random intensity.',
-        sources: ['routine.habits.strength']
-      }));
-    }
-
-    if ((habits.sports || 0) > 0) {
-      out.push(insight({
-        id: 'sports', domain: 'routine', tone: 'good', priority: 56,
-        title: 'Sports add meaningful weekly burn',
-        detail: `${habits.sports} h/week of sports — included in your estimated daily calories.`,
-        next: 'Balance with recovery sleep after intense match days.',
-        sources: ['routine.habits.sports']
-      }));
-    }
-
-    if ((habits.social || 0) > 0) {
-      out.push(insight({
-        id: 'social', domain: 'routine', tone: 'good', priority: 68,
-        title: 'Social time is present in your week',
-        detail: `${habits.social} h/week of social or community time supports stress resilience.`,
-        next: 'Protect a minimum even during busy work stretches.',
-        sources: ['routine.habits.social']
-      }));
-    }
-
     return out;
   }
 
@@ -741,158 +782,139 @@ const KYH_BRAND_BLURB =
       out.push(insight({
         id: 'diet-none', domain: 'diet', tone: 'watch', priority: 43,
         title: 'Diet preferences not completed',
-        detail: 'Food quality and nutrient priorities need the Diet step.',
-        next: 'Complete Diet to unlock nutrient and food-pattern insights.',
+        detail: 'Calorie target, macros, and nutrient priorities need the Diet step.',
+        next: 'Complete Diet to unlock energy and nutrient insights.',
         sources: ['diet']
       }));
       return out;
     }
 
-    out.push(insight({
-      id: 'diet-pref', domain: 'diet', tone: 'good', priority: 66,
-      title: 'Eating pattern constraints are clear',
-      detail: `${diet.type}${diet.cuisine ? ' · ' + diet.cuisine : ''} — plans should respect this, not fight it.`,
-      next: 'Use cuisine-familiar foods when acting on nutrient priorities.',
-      sources: ['diet.type', 'diet.cuisine']
-    }));
+    const target = diet.target || {};
+    const burn = routine && routine.estimatedCalories != null
+      ? Number(routine.estimatedCalories)
+      : null;
+    const targetCal = target.cal != null ? parseInt(target.cal, 10) : null;
 
-    const freq = diet.frequency || {};
-    const protective = [
-      ['fruits', 'Fruits'],
-      ['leafy_greens', 'Leafy greens'],
-      ['legumes', 'Legumes'],
-      ['nuts_seeds', 'Nuts & seeds']
-    ];
-    protective.forEach(([id, label]) => {
-      const f = freq[id];
-      if (!f) return;
-      if (f === 'Rarely' || f === '1-2x/Wk') {
-        out.push(insight({
-          id: 'fq-' + id, domain: 'diet', tone: f === 'Rarely' ? 'act' : 'watch', priority: f === 'Rarely' ? 18 : 31,
-          title: `${label} intake is infrequent`,
-          detail: `Marked “${f}”. These foods support fibre, micronutrients, and satiety.`,
-          next: id === 'leafy_greens'
-            ? 'Add one leafy portion on most days (dal + sabzi, salad, or sautéed greens).'
-            : `Raise ${label.toLowerCase()} toward several times per week with foods you already like.`,
-          sources: ['diet.frequency.' + id]
-        }));
-      } else if (f === 'Daily' || f === '3-5x/Wk') {
-        out.push(insight({
-          id: 'fq-ok-' + id, domain: 'diet', tone: 'good', priority: 57,
-          title: `${label} appear regularly`,
-          detail: `Frequency: ${f}.`,
-          next: 'Keep variety within this habit.',
-          sources: ['diet.frequency.' + id]
-        }));
+    // 1) Calorie target (lead)
+    if (targetCal) {
+      let detail = `Suggested intake about ${targetCal.toLocaleString()} kcal/day`;
+      if (target.note) detail += ` — ${target.note}`;
+      if (burn) {
+        const diff = targetCal - burn;
+        if (Math.abs(diff) <= 200) detail += `. Aligns with estimated burn (~${burn.toLocaleString()} kcal).`;
+        else if (diff < 0) detail += `. About ${Math.abs(diff).toLocaleString()} kcal under estimated burn (~${burn.toLocaleString()}).`;
+        else detail += `. About ${diff.toLocaleString()} kcal above estimated burn (~${burn.toLocaleString()}).`;
       }
-    });
+      out.push(insight({
+        id: 'cal-target', domain: 'diet', tone: 'watch', priority: 8,
+        title: 'Calorie guide for your profile',
+        detail,
+        next: 'Treat this as a guide; adjust with hunger, energy, and clinician advice if you are on a medical diet.',
+        sources: ['diet.target.cal', 'routine.estimatedCalories']
+      }));
+    }
 
-    [['sugary_drinks', 'Sugary drinks'], ['fried_ultraprocessed', 'Fried / ultra-processed foods']].forEach(([id, label]) => {
-      const f = freq[id];
-      if (!f) return;
-      if (f === 'Daily' || f === '3-5x/Wk') {
-        out.push(insight({
-          id: 'fq-harm-' + id, domain: 'diet', tone: 'act', priority: 13,
-          title: `${label} are frequent`,
-          detail: `Marked “${f}”. This is often the fastest lever for waist, triglycerides, and energy crashes.`,
-          next: id === 'sugary_drinks'
-            ? 'Swap the most frequent sugary drink for water, soda water, or unsweetened tea.'
-            : 'Replace one ultra-processed or deep-fried default per day with a home-cooked option.',
-          sources: ['diet.frequency.' + id]
-        }));
-      } else if (f === 'Rarely') {
-        out.push(insight({
-          id: 'fq-harm-ok-' + id, domain: 'diet', tone: 'good', priority: 54,
-          title: `${label} are rare`,
-          detail: `Frequency: ${f} — protective pattern.`,
-          next: 'Maintain this boundary on busy days.',
-          sources: ['diet.frequency.' + id]
-        }));
-      }
-    });
+    // 2) Macros
+    if (target.protein != null || target.carbs != null || target.fat != null) {
+      const parts = [];
+      if (target.protein != null) parts.push(`protein ${target.protein}${String(target.protein).includes('%') ? '' : '%'}`);
+      if (target.carbs != null) parts.push(`carbs ${target.carbs}${String(target.carbs).includes('%') ? '' : '%'}`);
+      if (target.fat != null) parts.push(`fat ${target.fat}${String(target.fat).includes('%') ? '' : '%'}`);
+      if (target.fiber != null) parts.push(`fibre ${target.fiber}g`);
+      out.push(insight({
+        id: 'macros', domain: 'diet', tone: 'watch', priority: 9,
+        title: 'Macro balance to aim for',
+        detail: `Target split: ${parts.join(' · ')}.`,
+        next: 'Prioritise protein at most meals; use carbs and fats to fill energy around activity.',
+        sources: ['diet.target']
+      }));
+    }
 
+    // 3) Top micro / nutrient priorities
     const priorities = diet.priorities || [];
     if (priorities.length) {
       const top = priorities.slice(0, 3);
       const names = top.map(p => p.nutrient);
+      const limits = top.filter(p => p.direction === 'limit').map(p => p.nutrient);
       out.push(insight({
-        id: 'nutrient-top', domain: 'diet', tone: 'watch', priority: 15,
-        title: 'Nutrient focus should follow your top priorities',
-        detail: `Highest ranked: ${names.join(', ')}. Ranking used symptoms, risk profile, and food-quality gaps.`,
-        next: `Start with ${names[0]} only for two weeks before spreading attention.`,
+        id: 'nutrient-top', domain: 'diet', tone: 'act', priority: 7,
+        title: 'Nutrient adjustments to prioritise',
+        detail: `Highest ranked: ${names.join(', ')}.` +
+          (limits.length ? ` Actively limit: ${limits.join(', ')}.` : '') +
+          ` Ranking used symptoms, risk profile, and food-quality gaps.`,
+        next: `For two weeks, focus mainly on ${names[0]} before spreading attention.`,
         sources: ['diet.priorities']
       }));
-
-      const intake = diet.intake || {};
-      top.forEach(p => {
-        const t = intake[p.nutrient];
-        if (!t) return;
-        if (t.tracking === 'no' || (t.tracking === 'yes' && (t.frequency === 'Rarely' || !t.frequency))) {
-          out.push(insight({
-            id: 'intake-' + p.nutrient, domain: 'diet', tone: 'watch', priority: 28,
-            title: `Room to raise attention on ${p.nutrient}`,
-            detail: t.tracking === 'no'
-              ? 'You marked that you are not currently focusing on this nutrient.'
-              : `Tracking yes but frequency: ${t.frequency || 'unspecified'}.`,
-            next: 'Pick one food source you already eat and increase frequency slightly.',
-            sources: ['diet.intake']
-          }));
-        } else if (t.tracking === 'yes' && (t.frequency === 'Daily' || t.frequency === 'Most days')) {
-          out.push(insight({
-            id: 'intake-ok-' + p.nutrient, domain: 'diet', tone: 'good', priority: 59,
-            title: `${p.nutrient} is already in regular rotation`,
-            detail: `Intake frequency: ${t.frequency}.`,
-            next: 'Maintain; improve variety if meals feel repetitive.',
-            sources: ['diet.intake']
-          }));
-        }
-      });
     }
 
-    // Target calories vs burn
-    const burn = routine && routine.estimatedCalories != null
-      ? Number(routine.estimatedCalories)
-      : null;
-    const targetCal = diet.target && diet.target.cal != null
-      ? parseInt(diet.target.cal, 10)
-      : null;
-    if (burn && targetCal) {
-      const diff = targetCal - burn;
-      const band = activityBandFromBurn(burn);
-      if (Math.abs(diff) <= 200) {
-        out.push(insight({
-          id: 'cal-align', domain: 'diet', tone: 'good', priority: 49,
-          title: 'Calorie target aligns with estimated daily burn',
-          detail: `Target ~${targetCal.toLocaleString()} kcal vs burn ~${burn.toLocaleString()} kcal (${band ? band.id : 'n/a'} activity band).`,
-          next: 'Use portions and hunger rather than precise tracking unless a clinician advises otherwise.',
-          sources: ['diet.target.cal', 'routine.estimatedCalories']
-        }));
-      } else if (diff < -200) {
-        out.push(insight({
-          id: 'cal-deficit', domain: 'diet', tone: 'watch', priority: 24,
-          title: 'Diet target sits below estimated burn',
-          detail: `Target ~${targetCal.toLocaleString()} kcal is about ${Math.abs(diff).toLocaleString()} kcal under estimated burn (~${burn.toLocaleString()}). That can support fat loss if sustainable.`,
-          next: 'Ensure protein stays high and energy for daily life does not crash; adjust if fatigue worsens.',
-          sources: ['diet.target.cal', 'routine.estimatedCalories']
-        }));
-      } else {
-        out.push(insight({
-          id: 'cal-surplus', domain: 'diet', tone: 'watch', priority: 24,
-          title: 'Diet target sits above estimated burn',
-          detail: `Target ~${targetCal.toLocaleString()} kcal vs burn ~${burn.toLocaleString()}. Useful if underweight or very active days were under-logged.`,
-          next: 'If waist or weight is rising unintentionally, pull snacks and sugary drinks before cutting meals.',
-          sources: ['diet.target.cal', 'routine.estimatedCalories']
-        }));
-      }
-    } else if (targetCal) {
+    // 4) Harmful food quality only (problems)
+    const freq = diet.frequency || {};
+    if (freq.sugary_drinks === 'Daily' || freq.sugary_drinks === '3-5x/Wk') {
       out.push(insight({
-        id: 'cal-target-only', domain: 'diet', tone: 'good', priority: 55,
-        title: 'A calorie target is set for your profile',
-        detail: `About ${targetCal.toLocaleString()} kcal/day${diet.target.note ? ' — ' + diet.target.note : ''}.`,
-        next: 'Treat it as a guide; match your activity band as Routine stay up to date.',
-        sources: ['diet.target']
+        id: 'fq-sugary', domain: 'diet', tone: 'act', priority: 11,
+        title: 'Sugary drinks are frequent',
+        detail: `Marked “${freq.sugary_drinks}”. Fast lever for waist, triglycerides, and energy crashes.`,
+        next: 'Replace the most frequent sugary drink with water, soda water, or unsweetened tea.',
+        sources: ['diet.frequency.sugary_drinks']
       }));
     }
+    if (freq.fried_ultraprocessed === 'Daily' || freq.fried_ultraprocessed === '3-5x/Wk') {
+      out.push(insight({
+        id: 'fq-upf', domain: 'diet', tone: 'act', priority: 11,
+        title: 'Fried / ultra-processed foods are frequent',
+        detail: `Marked “${freq.fried_ultraprocessed}”.`,
+        next: 'Swap one default fried or packaged item per day for a home-cooked option.',
+        sources: ['diet.frequency.fried_ultraprocessed']
+      }));
+    }
+    ['fruits', 'leafy_greens', 'legumes', 'nuts_seeds'].forEach(id => {
+      const labels = {
+        fruits: 'Fruits', leafy_greens: 'Leafy greens',
+        legumes: 'Legumes', nuts_seeds: 'Nuts & seeds'
+      };
+      const f = freq[id];
+      if (f === 'Rarely' || f === '1-2x/Wk') {
+        out.push(insight({
+          id: 'fq-low-' + id, domain: 'diet', tone: f === 'Rarely' ? 'act' : 'watch', priority: 18,
+          title: `${labels[id]} intake is infrequent`,
+          detail: `Marked “${f}”.`,
+          next: `Raise ${labels[id].toLowerCase()} toward several times per week with foods you already like.`,
+          sources: ['diet.frequency.' + id]
+        }));
+      }
+    });
+
+    // 5) Thin sustains (max ~3)
+    const sustains = [];
+    if (freq.sugary_drinks === 'Rarely' && freq.fried_ultraprocessed === 'Rarely') {
+      sustains.push(insight({
+        id: 'fq-protect', domain: 'diet', tone: 'good', priority: 50,
+        title: 'Sugary drinks and ultra-processed foods are rare',
+        detail: 'Protective pattern for metabolic and calorie control.',
+        next: 'Keep this boundary on busy days.',
+        sources: ['diet.frequency']
+      }));
+    }
+    const protectiveOk = ['fruits', 'leafy_greens', 'legumes', 'nuts_seeds'].filter(id =>
+      freq[id] === 'Daily' || freq[id] === '3-5x/Wk'
+    );
+    if (protectiveOk.length >= 3) {
+      sustains.push(insight({
+        id: 'fq-protective-ok', domain: 'diet', tone: 'good', priority: 52,
+        title: 'Core protective foods appear regularly',
+        detail: 'Fruits, greens, legumes, and/or nuts are in a solid weekly rhythm.',
+        next: 'Keep variety so the habit stays easy.',
+        sources: ['diet.frequency']
+      }));
+    }
+    sustains.push(insight({
+      id: 'diet-pref', domain: 'diet', tone: 'good', priority: 55,
+      title: 'Eating pattern constraints are clear',
+      detail: `${diet.type}${diet.cuisine ? ' · ' + diet.cuisine : ''} — plans should respect this.`,
+      next: 'Use cuisine-familiar foods when acting on nutrient priorities.',
+      sources: ['diet.type', 'diet.cuisine']
+    }));
+    sustains.slice(0, 3).forEach(s => out.push(s));
 
     return out;
   }

@@ -33,6 +33,7 @@ window.ACTIVITIES = [
   { id: "act_208", category: "Mind & Body", name: "Yoga (Hatha / Restorative)", met: 2.5 },
   { id: "act_210", category: "Mind & Body", name: "Pilates (Mat)", met: 3.0 },
   { id: "act_209", category: "Mind & Body", name: "Yoga (Vinyasa / Power)", met: 4.0 },
+  { id: "act_212", category: "Mind & Body", name: "Social / Community time", met: 1.8 },
 
   // --- SPORTS & AGILITY ---
   { id: "act_412", category: "Sports & Agility", name: "Table Tennis", met: 4.0 },

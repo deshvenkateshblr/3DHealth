@@ -41,6 +41,28 @@ renderHeader('routine', 'KYH-Daily Routine');
 
 let selectedActivities = state.routine?.activities || [];
 
+function readHabits() {
+  const num = (id) => {
+    const v = parseFloat(document.getElementById(id)?.value);
+    return isNaN(v) ? null : v;
+  };
+  return {
+    steps: num('hab-steps'),
+    sun: num('hab-sun'),
+    dinner: num('hab-dinner'),
+    postMealWalk: document.getElementById('hab-post-meal')?.checked === true
+  };
+}
+
+function restoreHabits() {
+  const h = (state.routine && state.routine.habits) || {};
+  if (h.steps != null) document.getElementById('hab-steps').value = h.steps;
+  if (h.sun != null) document.getElementById('hab-sun').value = h.sun;
+  if (h.dinner != null) document.getElementById('hab-dinner').value = h.dinner;
+  if (h.postMealWalk) document.getElementById('hab-post-meal').checked = true;
+}
+
+
 function init() {
   main.innerHTML = `
   <div class="section-head">
@@ -76,6 +98,37 @@ function init() {
     <span id="weekly-text"></span>
   </div>
 
+  <div class="cat-title">Daily signals</div>
+<p class="lede" style="font-size:14px; margin-bottom:16px;">
+  Optional — these fine-tune insights beyond the activity list.
+</p>
+
+<div class="field-row" style="margin-bottom:18px;">
+  <div class="field">
+    <label class="intake-label" for="hab-steps">Steps per day</label>
+    <input type="number" id="hab-steps" min="0" max="40000" step="500" placeholder="e.g. 6000">
+  </div>
+  <div class="field">
+    <label class="intake-label" for="hab-sun">Daylight outdoors</label>
+    <input type="number" id="hab-sun" min="0" max="300" step="5" placeholder="minutes / day">
+  </div>
+  <div class="field">
+    <label class="intake-label" for="hab-dinner">Dinner → sleep gap</label>
+    <input type="number" id="hab-dinner" min="0" max="8" step="0.5" placeholder="hours">
+  </div>
+</div>
+
+<div class="check-field" style="margin-bottom:12px;">
+  <input type="checkbox" id="hab-post-meal">
+  <label for="hab-post-meal">I usually walk 10+ minutes after my largest meal</label>
+</div>
+
+<div class="note-block teal" style="margin-bottom:28px;">
+  <span class="k">Why these three</span>
+  Steps, daylight, and meal timing affect recovery and glucose in ways a MET list doesn’t capture. 
+</div>
+
+
   <div class="page-footer-nav">
     <a href="#" id="back-btn" class="btn secondary">&larr; Back to Selection</a>
     <button type="button" class="btn" id="continue-btn">Get Movement Plan &rarr;</button>
@@ -85,19 +138,23 @@ function init() {
   const configGrid = document.getElementById('config-grid');
   
   document.getElementById('back-btn').addEventListener('click', (e) => {
-    e.preventDefault();
-    // Save state so if they go back, their hours are preserved
-    const routineState = Object.assign({}, state.routine, { activities: selectedActivities });
-    goTo('routine.html', Object.assign({}, state, { routine: routineState })); 
-  });
+      e.preventDefault();
+      const routineState = Object.assign({}, state.routine, {
+        activities: selectedActivities,
+        habits: readHabits()
+      });
+      goTo('routine.html', Object.assign({}, state, { routine: routineState }));
+      });
 
   document.getElementById('continue-btn').addEventListener('click', () => {
-    const routineState = Object.assign({}, state.routine, { 
-      activities: selectedActivities,
-      tdee: window.currentTDEE || 2000
+    const dailyBurn = Math.round(Number(window.currentTDEE) || 0) || 2000;
+    const routineState = Object.assign({}, state.routine, {
+    activities: selectedActivities,
+    estimatedCalories: dailyBurn,
+    habits: readHabits()
     });
     const next = Object.assign({}, state, { routine: routineState });
-    goTo('routine-plan.html', next); // Move to step 3!
+    goTo('routine-plan.html', next);
   });
 
   function calculateCalories(met, freq, hours, mins) {
@@ -232,6 +289,7 @@ function init() {
   }
 
   renderConfiguration();
+  restoreHabits();
 }
 
 if(!profile) {
