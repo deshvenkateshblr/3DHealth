@@ -21,9 +21,6 @@
 
 <script src="shared/utils.js"></script>
 <script src="shared/data.diet.js"></script>
-
-<script src="shared/utils.js"></script>
-<script src="shared/data.diet.js"></script>
 <script>
 const state   = loadState() || {};
 const profile = state.profile || {};
@@ -192,17 +189,19 @@ function renderPage() {
       return alert("Please answer all Food Quality markers.");
     }
 
-    // Calorie target from window.DIET
+    // Calorie target from window.DIET — use pickBestRow (handles age/BMI/waist ranges)
     let targetRow = null;
-    if (window.DIET && window.DIET.length) {
+    if (window.DIET && window.DIET.length && profile.sex) {
       let activeLevel = "Moderate";
       if (routine.estimatedCalories > 2400) activeLevel = "Active";
       if (routine.estimatedCalories < 1800) activeLevel = "Sedentary";
-      targetRow = window.DIET.find(r =>
-        r.sex === profile.sex &&
-        (r.age === profile.ageRange || r.age === String(profile.age)) &&
-        r.activity === activeLevel
-      ) || window.DIET[0];
+
+      targetRow = pickBestRow(window.DIET, profile.sex, {
+        age: Number(profile.age) || undefined,
+        bmi: Number(profile.bmi) || undefined,
+        waist: Number(profile.waistCm) || undefined,
+        activity: activeLevel
+      }) || window.DIET[0];
     }
 
     dietState.target = targetRow ? {
