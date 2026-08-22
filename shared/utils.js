@@ -140,13 +140,18 @@ function parseRange(str) {
 
 function ageRelevancyMatch(str, age) {
   if (!str) return true;
-  return str.split(';').some(tok => {
+  age = Number(age);
+  if (isNaN(age)) return true;
+  return String(str).split(';').some(tok => {
     const t = tok.trim();
-    if (t.toLowerCase() === 'all') return true;
+    if (!t || t.toLowerCase() === 'all') return true;
+    // Explicit inclusive operators
     if (t.startsWith('>=')) return age >= parseFloat(t.slice(2));
     if (t.startsWith('<=')) return age <= parseFloat(t.slice(2));
-    if (t.startsWith('>')) return age > parseFloat(t.slice(1));
-    if (t.startsWith('<')) return age < parseFloat(t.slice(1));
+    // Bare > / < : treat as inclusive for screening thresholds
+    // e.g. ">40" means age 40 and above (same clinical intent as ">=40")
+    if (t.startsWith('>')) return age >= parseFloat(t.slice(1));
+    if (t.startsWith('<')) return age <= parseFloat(t.slice(1));
     if (t.includes('-')) {
       const [a, b] = t.split('-').map(x => parseFloat(x));
       return age >= a && age <= b;
@@ -154,6 +159,7 @@ function ageRelevancyMatch(str, age) {
     return age === parseFloat(t);
   });
 }
+
 function genderMatch(str, sex) {
   if (!str) return true;
   return str.toLowerCase() === 'all' || str.toLowerCase() === sex.toLowerCase();
