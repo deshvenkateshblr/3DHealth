@@ -212,22 +212,45 @@ function whtrTag(r) {
   return ['High risk', 'var(--rose)'];
 }
 
-function activeCategories(profile) {
+// shared/utils.js — replace / extend activeCategories
+function deriveRiskCategories(profile) {
   const cats = ['Low Risk'];
-  const waistHigh = profile.sex === 'Female' ? profile.waistCm > 80 : profile.waistCm > 94;
-  const smokingRisk = profile.smoking === 'Daily' || profile.smoking === 'Occasionally';
+  const waistCm = Number(profile.waistCm) || 0;
+  const heightCm = Number(profile.heightCm) || 0;
+  const whtr = heightCm > 0 ? waistCm / heightCm : (Number(profile.whtr) || 0);
+  const bmi = Number(profile.bmi) || 0;
+  const age = Number(profile.age) || 0;
+
+  // Prefer WHtR (height-adjusted) as primary central-obesity signal;
+  // keep absolute waist as secondary for shorter/taller extremes if desired.
+  const centralObesity = whtr >= 0.5 ||
+    (profile.sex === 'Female' ? waistCm > 80 : waistCm > 94);
+
   const heavyAlcohol = profile.alcohol === '3-5x/week' || profile.alcohol === 'Daily';
-  const postMenopausal = profile.reproStatus === 'Post-menopausal' || profile.reproStatus === 'Perimenopausal';
+  const smokingRisk  = profile.smoking === 'Daily' || profile.smoking === 'Occasionally';
+  const postMenopausal = profile.reproStatus === 'Post-menopausal' ||
+                         profile.reproStatus === 'Perimenopausal';
   const pcos = !!profile.pcos;
-  const metabolic = profile.bmi >= 25 || waistHigh || profile.famMetabolic || heavyAlcohol || pcos;
-  const cardio = profile.age >= 40 || waistHigh || profile.famCardio || smokingRisk || postMenopausal;
+
+  const metabolic = bmi >= 25 || centralObesity || !!profile.famMetabolic ||
+                    heavyAlcohol || pcos;
+  const cardio    = age >= 40 || centralObesity || !!profile.famCardio ||
+                    smokingRisk || postMenopausal;
+
   if (metabolic) cats.push('Metabolic');
-  if (cardio) cats.push('Cardiovascular');
+  if (cardio)    cats.push('Cardiovascular');
   cats.push('Age Specific');
   if (profile.sex === 'Female') cats.push('Female Specific');
   if (metabolic && cardio) cats.push('Mixed');
-  return { cats, metabolic, cardio, waistHigh, smokingRisk, heavyAlcohol, postMenopausal, pcos };
+
+  return { cats, metabolic, cardio, centralObesity, smokingRisk, heavyAlcohol, postMenopausal, pcos };
 }
+
+// Keep the old name as a thin alias so existing callers keep working
+function activeCategories(profile) {
+  return deriveRiskCategories(profile);
+}
+
 
 /* ---------- Formatting ---------- */
 function fmtNum(n) { return (Math.round(n * 10) / 10).toString(); }

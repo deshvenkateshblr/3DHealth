@@ -55,20 +55,13 @@ function getExamples(nutrientName) {
   return base || extra || "";
 }
 
-function deriveProfiles() {
-  const cats = ["Low Risk"];
-  const whtr = (profile.waistCm && profile.heightCm) ? profile.waistCm / profile.heightCm : (profile.whtr || 0);
-  if (profile.bmi >= 25 || whtr >= 0.5 || profile.famMetabolic) cats.push("Metabolic");
-  if (whtr >= 0.5 || profile.famCardio || (profile.age || 0) > 40) cats.push("Cardiovascular");
-  return cats;
-}
 
 function scoreNutrient(n) {
   let score = 0;
   const matched = (n.symptoms || []).filter(s => userSymptoms.includes(s));
   score += matched.length * 12;
 
-  const userProfiles = deriveProfiles();
+  const userProfiles = deriveRiskCategories(profile).cats;
   score += (n.profile || "").split(";").filter(p => userProfiles.includes(p.trim())).length * 8;
 
   Object.entries(dietState.frequency || {}).forEach(([id, freq]) => {
@@ -189,25 +182,14 @@ function renderPage() {
       return alert("Please answer all Food Quality markers.");
     }
 
-    // Calorie target from window.DIET — use pickBestRow (handles age/BMI/waist ranges)
-    let targetRow = null;
-    if (window.DIET && window.DIET.length && profile.sex) {
-      let activeLevel = "Moderate";
-      if (routine.estimatedCalories > 2400) activeLevel = "Active";
-      if (routine.estimatedCalories < 1800) activeLevel = "Sedentary";
+    // Calorie target from TDEE (activity log burn) — no static DIET table
+    const estBurn = Number(routine.estimatedCalories) || 2200;
+    const targetCal = Math.round(estBurn * 0.95);
 
-      targetRow = pickBestRow(window.DIET, profile.sex, {
-        age: Number(profile.age) || undefined,
-        bmi: Number(profile.bmi) || undefined,
-        waist: Number(profile.waistCm) || undefined,
-        activity: activeLevel
-      }) || window.DIET[0];
-    }
-
-    dietState.target = targetRow ? {
-      cal: targetRow.cal, carbs: targetRow.carbs, fat: targetRow.fat,
-      protein: targetRow.protein, fiber: targetRow.fiber, note: targetRow.note
-    } : null;
+    dietState.target = {
+      cal: targetCal,
+      note: `Based on estimated daily burn (~${estBurn.toLocaleString()} kcal) × 0.95`
+    };
 
     dietState.priorities = (window.NUTRIENTS || [])
       .map(n => ({ ...n, ...scoreNutrient(n) }))

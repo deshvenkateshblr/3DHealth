@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Synthesis &mdash; KYH</title>
 <link rel="stylesheet" href="shared/styles.css">
+<script src="shared/utils.js"></script>
+<script src="shared/data.diet.js"></script>
 <style>
   /* Clean Accordion UI for Macros */
   details.macro-accordion {
@@ -111,18 +113,6 @@ renderHeader('diet', 'KYH-Diet Insights');
 
 const main = document.getElementById('main-content');
 
-// --- Helper Data for Diet Filtering ---
-const FOOD_DB = {
-  carbs: ["Oats", "Quinoa", "Brown Rice", "Sweet Potato", "Whole Wheat Roti", "Millets", "Sourdough Bread"],
-  protein: {
-    vegan: ["Tofu", "Tempeh", "Lentils / Dal", "Chickpeas", "Edamame", "Seitan"],
-    vegetarian: ["Paneer", "Greek Yogurt", "Whey Protein"],
-    eggetarian: ["Eggs"],
-    pescetarian: ["Salmon", "White Fish", "Shrimp"],
-    omnivore: ["Chicken Breast", "Lean Turkey"]
-  },
-  fats: ["Avocado", "Olive Oil", "Almonds", "Walnuts", "Chia Seeds", "Flaxseeds", "Ghee (in moderation)"]
-};
 
 function estimateIntake(rhythm) {
   let intake = 0;
@@ -170,14 +160,7 @@ function generateClinicalInsight() {
   return insights[0]; // Return the highest priority insight
 }
 
-function getProteinSources(dietType) {
-  let sources = [...FOOD_DB.protein.vegan];
-  if (dietType !== 'Vegan') sources = sources.concat(FOOD_DB.protein.vegetarian);
-  if (dietType === 'Eggetarian' || dietType === 'Pescetarian' || dietType === 'Omnivore') sources = sources.concat(FOOD_DB.protein.eggetarian);
-  if (dietType === 'Pescetarian' || dietType === 'Omnivore') sources = sources.concat(FOOD_DB.protein.pescetarian);
-  if (dietType === 'Omnivore') sources = sources.concat(FOOD_DB.protein.omnivore);
-  return sources;
-}
+
 
 function init() {
   if (!diet.type) {
@@ -197,13 +180,11 @@ function init() {
   function getFoodIdeas(nutrientKey) {
     const dietType = diet.type || "Vegetarian";
     const cuisine  = diet.cuisine || "Indian";
-
-    // Prefer cuisine-specific examples (especially Indian)
-    if (window.CUISINE_EXTRAS?.[cuisine]?.[nutrientKey]) {
-      return window.CUISINE_EXTRAS[cuisine][nutrientKey];
-    }
-    // Fall back to dietary preference
-    return window.PREF_FOOD_EXAMPLES?.[dietType]?.[nutrientKey] || "";
+    const byDiet    = (window.PREF_FOOD_EXAMPLES?.[dietType] || {})[nutrientKey] || "";
+    const byCuisine = (window.CUISINE_EXTRAS?.[cuisine] || {})[nutrientKey] || "";
+    // Diet type owns animal foods; cuisine adds regional context — never replace
+    if (byDiet && byCuisine) return `${byDiet} · ${byCuisine}`;
+    return byDiet || byCuisine || "";
   }
 
   function buildPriorityParagraph() {
@@ -316,6 +297,10 @@ function init() {
   <div style="font-size:13px; color:var(--ink-soft); margin-top:6px;">
     Prioritise protein at most meals to support muscle, recovery and satiety.
   </div>
+  ${proteinIdeas ? `
+  <div style="margin-top:8px;padding:8px 10px;background:var(--paper);border-radius:4px;font-size:12.5px;">
+    <b style="color:var(--teal);">Ideas for you:</b> ${esc(proteinIdeas)}
+  </div>` : ""}
 </div>
 
 <div class="test-card" style="margin-bottom:10px;">
@@ -326,6 +311,10 @@ function init() {
   <div style="font-size:13px; color:var(--ink-soft); margin-top:6px;">
     Prefer whole grains, millets, oats and root vegetables for steadier energy.
   </div>
+  ${carbIdeas ? `
+  <div style="margin-top:8px;padding:8px 10px;background:var(--paper);border-radius:4px;font-size:12.5px;">
+    <b style="color:var(--teal);">Ideas for you:</b> ${esc(carbIdeas)}
+  </div>` : ""}
 </div>
 
 <div class="test-card" style="margin-bottom:10px;">
@@ -336,7 +325,12 @@ function init() {
   <div style="font-size:13px; color:var(--ink-soft); margin-top:6px;">
     Keep portions modest (roughly thumb-sized) to stay within the calorie target.
   </div>
+  ${fatIdeas ? `
+  <div style="margin-top:8px;padding:8px 10px;background:var(--paper);border-radius:4px;font-size:12.5px;">
+    <b style="color:var(--teal);">Ideas for you:</b> ${esc(fatIdeas)}
+  </div>` : ""}
 </div>
+
 <div class="page-footer-nav" style="margin-top:48px;">
   <a href="diet.html" class="btn secondary">← Back to Diet</a>
   <a href="summary.html" class="btn">Finish →</a>

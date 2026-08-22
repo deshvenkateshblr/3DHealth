@@ -814,23 +814,8 @@ const KYH_BRAND_BLURB =
       }));
     }
 
-    // 2) Macros
-    if (target.protein != null || target.carbs != null || target.fat != null) {
-      const parts = [];
-      if (target.protein != null) parts.push(`protein ${target.protein}${String(target.protein).includes('%') ? '' : '%'}`);
-      if (target.carbs != null) parts.push(`carbs ${target.carbs}${String(target.carbs).includes('%') ? '' : '%'}`);
-      if (target.fat != null) parts.push(`fat ${target.fat}${String(target.fat).includes('%') ? '' : '%'}`);
-      if (target.fiber != null) parts.push(`fibre ${target.fiber}g`);
-      out.push(insight({
-        id: 'macros', domain: 'diet', tone: 'watch', priority: 9,
-        title: 'Macro balance to aim for',
-        detail: `Target split: ${parts.join(' · ')}.`,
-        next: 'Prioritise protein at most meals; use carbs and fats to fill energy around activity.',
-        sources: ['diet.target']
-      }));
-    }
 
-    // 3) Top micro / nutrient priorities
+    // 2) Top micro / nutrient priorities
     const priorities = diet.priorities || [];
     if (priorities.length) {
       const top = priorities.slice(0, 3);
@@ -847,7 +832,7 @@ const KYH_BRAND_BLURB =
       }));
     }
 
-    // 4) Harmful food quality only (problems)
+    // 3) Harmful food quality only (problems)
     const freq = diet.frequency || {};
     if (freq.sugary_drinks === 'Daily' || freq.sugary_drinks === '3-5x/Wk') {
       out.push(insight({
@@ -884,7 +869,7 @@ const KYH_BRAND_BLURB =
       }
     });
 
-    // 5) Thin sustains (max ~3)
+    // 4) Thin sustains (max ~3)
     const sustains = [];
     if (freq.sugary_drinks === 'Rarely' && freq.fried_ultraprocessed === 'Rarely') {
       sustains.push(insight({
