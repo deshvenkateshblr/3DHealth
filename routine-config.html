@@ -87,7 +87,7 @@ function init() {
 
   <div class="note-block" style="margin-bottom: 24px; font-size: 13.5px;">
     <strong>How is this calculated?</strong> We use the <em>Metabolic Equivalent of Task (MET)</em> formula: 
-    <code>METs × Weight (kg) × Duration (hrs)</code>. 
+    <code>METs × Weight (kg) × Duration (hrs) × 1.05</code>
     Because your profile indicates you weigh ${weightKg}kg, these calculations are completely personalized to your specific body mass.
   </div>
 
@@ -157,10 +157,11 @@ function init() {
     goTo('routine-plan.html', next);
   });
 
-  function calculateCalories(met, freq, hours, mins) {
-    const durationHours = (Number(hours) || 0) + ((Number(mins) || 0) / 60);
-    return Math.round(met * weightKg * durationHours);
-  }
+function calculateCalories(met, freq, hours, mins) {
+  const durationHours = (Number(hours) || 0) + ((Number(mins) || 0) / 60);
+  // Compendium: kcal = MET × 3.5 × kg × min / 200  ≡  MET × kg × hours × 1.05
+  return Math.round(met * weightKg * durationHours * 1.05);
+}
 
   function renderConfiguration() {
     if (selectedActivities.length === 0) {
