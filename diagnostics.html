@@ -51,6 +51,7 @@ DIAG.forEach(d=>{
 });
 
 /* ---- baseline (category-driven) selection, used to fill any slots symptoms don't cover ---- */
+/* ---- baseline (category-driven) selection, used to fill any slots symptoms don't cover ---- */
 function selectBaseline(matches, cats, limit, exclude){
   const groups = {};
   matches.forEach(d=>{
@@ -59,7 +60,15 @@ function selectBaseline(matches, cats, limit, exclude){
     const g = GROUP_ORDER.find(o=>tokens.includes(o) && cats.includes(o)) || 'Low Risk';
     (groups[g]=groups[g]||[]).push(d);
   });
-  Object.keys(groups).forEach(g=>groups[g].sort((a,b)=>a.test.localeCompare(b.test)));
+  
+  // UPDATED: Sort baselines by clinical_tier first, then alphabetically
+  Object.keys(groups).forEach(g => 
+    groups[g].sort((a, b) => 
+      (a.clinical_tier || 3) - (b.clinical_tier || 3) || 
+      a.test.localeCompare(b.test)
+    )
+  );
+  
   const present = GROUP_ORDER.filter(g=>groups[g] && groups[g].length);
   const out = [];
   let idx = 0;
@@ -97,24 +106,49 @@ function selectFromSymptoms(matches, cats, selectedSymptomsArr){
 
 function buildRecommendations(matches, cats, selectedSymptomsArr){
   const symptomTests = selectFromSymptoms(matches, cats, selectedSymptomsArr)
-    .sort((a,b)=> b.viaSymptoms.length - a.viaSymptoms.length || a.test.localeCompare(b.test))
+    // UPDATED: Sort by matched symptoms, then clinical_tier, then alphabetically
+    .sort((a, b) => 
+      b.viaSymptoms.length - a.viaSymptoms.length || 
+      (a.clinical_tier || 3) - (b.clinical_tier || 3) || 
+      a.test.localeCompare(b.test)
+    )
     .slice(0,10);
+    
   const excluded = new Set(symptomTests.map(t=>t.test));
   const combined = symptomTests.slice();
+  
   if(combined.length<10){
     selectBaseline(matches, cats, 10-combined.length, excluded).forEach(t=>combined.push(t));
   }
   return combined;
 }
 
+
+/* ---- Exclusion Filter ---- */
+function isExcluded(d, userTraits) {
+  if (!d.exclusions || !d.exclusions.length) return false;
+  return d.exclusions.some(ext => userTraits.includes(ext));
+}
+
 function renderResultsStage(){
   const symptoms = profile.symptoms || [];
   const {cats} = activeCategories(profile);
+
+  // Build the user's traits array for the exclusion check
+  const userExclusionTraits = [
+    profile.reproStatus,
+    profile.alcohol ? `Alcohol: ${profile.alcohol}` : null,
+    profile.smoking ? `Smoking: ${profile.smoking}` : null
+  ].filter(Boolean);
+
+  // Filter DIAG using gender, age, profile, and our new exclusion check
   const matches = DIAG.filter(d =>
     genderMatch(d.gender, profile.sex) &&
     ageRelevancyMatch(d.age, profile.age) &&
-    profileMatch(d.profile, cats)
+    profileMatch(d.profile, cats) &&
+    !isExcluded(d, userExclusionTraits)
   );
+
   const top10 = buildRecommendations(matches, cats, symptoms);
   const prevAnswers = (state.diagnostics && state.diagnostics.answers) || {};
 
@@ -129,13 +163,36 @@ function renderResultsStage(){
     const originTag = d.bySymptom
       ? `<span class="tag ok">Matches: ${esc(d.viaSymptoms.join(', '))}</span>`
       : `<span class="tag">${esc(d.group)}</span>`;
+
+    // ADDED: UI chips for Sample Type and Prep
+    const sampleChip = d.sample_type ? `<span class="tag" style="background:var(--paper);border:none;">${esc(d.sample_type)}</span>` : '';
+    const prepChip = d.prep && d.prep !== "None" ? `<span class="tag" style="background:var(--paper);border:none;">Prep: ${esc(d.prep)}</span>` : '';
+
+    // ADDED: The Info Tooltip icon and content
+    const infoIcon = d.extended_info ? `
+      <div class="info-tooltip-wrap" tabindex="0" aria-label="More info about ${esc(d.test)}">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+          <line x1="12" y1="17" x2="12.01" y2="17"></line>
+        </svg>
+        <div class="info-tooltip-content">${esc(d.extended_info)}</div>
+      </div>
+    ` : '';
+
     cardsHtml += `
     <div class="test-card" data-test="${esc(d.test)}">
       <div class="head">
         <div>
-          <div class="name">${i+1}. ${esc(d.test)}</div>
+          <div class="name" style="display:flex; align-items:center;">
+            ${i+1}. ${esc(d.test)}
+            ${infoIcon}
+          </div>
           <div class="test-desc">${esc(d.note)}.</div>
-          <div class="symptom"><b>Watch for:</b> ${esc(watchFor)}</div>
+          <div style="display:flex; gap:6px; margin-top:6px;">
+            ${sampleChip} ${prepChip}
+          </div>
+          <div class="symptom" style="margin-top:8px;"><b>Watch for:</b> ${esc(watchFor)}</div>
         </div>
         ${originTag}
       </div>
