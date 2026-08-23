@@ -135,6 +135,27 @@
       </div>
     </div>
 
+    <div class="cat-title">Current medical status</div>
+    <div class="note-block" style="margin-bottom:22px;">
+      <span class="k">Help us understand your current situation</span>
+      <p style="font-size:13px; color:var(--ink-soft); margin:8px 0 0 0; line-height:1.5;">
+        If you're in active treatment, recently recovering, or under close medical supervision, we need to pause this general assessment so your care team can guide you.
+      </p>
+    </div>
+    <div style="margin-bottom:22px; max-width:550px;">
+      <div class="field">
+        <label class="intake-label" for="f-medical-status">Current medical situation</label>
+        <select id="f-medical-status">
+          <option value="" selected disabled>&mdash; Select &mdash;</option>
+          <option value="stable">Stable, no active medical issues</option>
+          <option value="surgery">Recent surgery or procedure (within 3 months)</option>
+          <option value="hospitalization">Recent hospitalization (within 6 months)</option>
+          <option value="treatment">Currently under active medical treatment</option>
+          <option value="medication">Started new medication (within 3 months)</option>
+        </select>
+      </div>
+    </div>
+
     <div class="cat-title">Family history</div>
     <div class="field-row" style="grid-template-columns:1fr 1fr; margin-bottom:22px;">
       <div class="check-field">
@@ -198,6 +219,7 @@ if (p.smoking) document.getElementById('f-smoking').value = p.smoking;
 if (p.alcohol) document.getElementById('f-alcohol').value = p.alcohol;
 if (p.reproStatus) document.getElementById('f-repro-status').value = p.reproStatus;
 if (p.pcos) document.getElementById('f-pcos').checked = true;
+if (p.medicalStatus) document.getElementById('f-medical-status').value = p.medicalStatus;
 
 /* ---- reproductive health section only applies to females ---- */
 function updateReproVisibility() {
@@ -315,6 +337,47 @@ function refreshMetrics() {
 });
 refreshMetrics();
 
+/* ---- IMMEDIATE BAILOUT CHECK FOR MEDICAL STATUS ---- */
+function checkImmediateBailout() {
+  const medicalStatus = document.getElementById('f-medical-status').value;
+  
+  const bailoutMap = {
+    'surgery': 'surgery',
+    'hospitalization': 'hospitalization',
+    'treatment': 'treatment',
+    'medication': 'medication'
+  };
+  
+  const bailoutReason = bailoutMap[medicalStatus];
+  
+  if (bailoutReason) {
+    const sex = document.getElementById('f-sex').value;
+    const age = parseFloat(document.getElementById('f-age').value);
+    const heightCm = getHeightCm();
+    const weightKg = getWeightKg();
+    const waistCm = getWaistCm();
+    
+    persistState({
+      profile: {
+        sex, age, heightCm, weightKg, waistCm, 
+        bmi: (heightCm > 0 && weightKg > 0) ? computeBMI(weightKg, heightCm) : null,
+        whtr: (heightCm > 0 && waistCm > 0) ? computeWHtR(waistCm, heightCm) : null,
+        reproStatus: sex === 'Female' ? document.getElementById('f-repro-status').value : null,
+        smoking: document.getElementById('f-smoking').value,
+        alcohol: document.getElementById('f-alcohol').value,
+        famMetabolic: document.getElementById('f-fam-metabolic').checked,
+        famCardio: document.getElementById('f-fam-cardio').checked,
+        pcos: sex === 'Female' ? document.getElementById('f-pcos').checked : false,
+        medicalStatus
+      }
+    });
+    
+    window.location.href = `not-ready.html?reason=${bailoutReason}`;
+  }
+}
+
+document.getElementById('f-medical-status').addEventListener('change', checkImmediateBailout);
+
 /* ---- submit ---- */
 document.getElementById('profile-form').addEventListener('submit', (e) => {
   e.preventDefault();
@@ -324,6 +387,8 @@ document.getElementById('profile-form').addEventListener('submit', (e) => {
   const smoking = document.getElementById('f-smoking').value;
   const alcohol = document.getElementById('f-alcohol').value;
   const reproStatus = document.getElementById('f-repro-status').value;
+  const medicalStatus = document.getElementById('f-medical-status').value;
+  
   const msg = document.getElementById('validation-msg');
 
   if (!sex || isNaN(age) || age <= 0 || isNaN(heightCm) || heightCm <= 0 || isNaN(weightKg) || weightKg <= 0 || isNaN(waistCm) || waistCm <= 0 || !smoking || !alcohol) {
@@ -334,6 +399,38 @@ document.getElementById('profile-form').addEventListener('submit', (e) => {
     msg.textContent = 'Please select your menstrual & menopause status before continuing.';
     return;
   }
+  if (!medicalStatus) {
+    msg.textContent = 'Please select your current medical situation before continuing.';
+    return;
+  }
+
+  // ---- BAILOUT CONDITIONS CHECK ON SUBMIT ----
+  let bailoutReason = null;
+  
+  if (reproStatus === 'Currently pregnant') {
+    bailoutReason = 'pregnancy';
+  } else if (medicalStatus !== 'stable') {
+    bailoutReason = medicalStatus;
+  }
+
+  if (bailoutReason) {
+    persistState({
+      profile: {
+        sex, age, heightCm, weightKg, waistCm,
+        bmi: computeBMI(weightKg, heightCm),
+        whtr: computeWHtR(waistCm, heightCm),
+        reproStatus: sex === 'Female' ? reproStatus : null,
+        smoking, alcohol,
+        famMetabolic: document.getElementById('f-fam-metabolic').checked,
+        famCardio: document.getElementById('f-fam-cardio').checked,
+        pcos: sex === 'Female' ? document.getElementById('f-pcos').checked : false,
+        medicalStatus
+      }
+    });
+    window.location.href = `not-ready.html?reason=${bailoutReason}`;
+    return;
+  }
+
   msg.textContent = '';
 
   // Apply remember preference before saving this step
@@ -348,11 +445,13 @@ document.getElementById('profile-form').addEventListener('submit', (e) => {
     smoking, alcohol,
     reproStatus: sex === 'Female' ? reproStatus : null,
     pcos: sex === 'Female' ? document.getElementById('f-pcos').checked : false,
+    medicalStatus,
     symptoms: p.symptoms || []
   };
-  const next = Object.assign({}, state, { profile });
+  const next = Object.assign({}, state, {profile});
   goTo('symptoms.html', next);
 });
 </script>
+
 </body>
 </html>

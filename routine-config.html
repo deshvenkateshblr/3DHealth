@@ -144,14 +144,39 @@ function init() {
         habits: readHabits()
       });
       goTo('routine.html', Object.assign({}, state, { routine: routineState }));
-      });
+  });
 
   document.getElementById('continue-btn').addEventListener('click', () => {
+    const dailyHours = parseFloat(document.getElementById('time-val').textContent);
+    
+    // Strict 24-hour requirement - show alert instead of disabling button
+    if (dailyHours < 23.5 || dailyHours > 24.1) {
+      const msg = document.getElementById('time-msg');
+      msg.style.color = 'var(--rose)';
+      msg.innerHTML = dailyHours < 23.5 
+        ? `You have unaccounted time (${dailyHours.toFixed(1)} hrs). <a href="#" id="add-link" style="color:var(--rose); text-decoration:underline; font-weight:600;">Add activities</a> or adjust durations.`
+        : `Over 24 hours logged (${dailyHours.toFixed(1)} hrs). Please reduce durations.`;
+      
+      if (dailyHours < 23.5) {
+        document.getElementById('add-link').addEventListener('click', (e) => {
+          e.preventDefault();
+          const routineState = Object.assign({}, state.routine, {
+            activities: selectedActivities,
+            habits: readHabits()
+          });
+          goTo('routine.html', Object.assign({}, state, { routine: routineState }));
+        });
+      }
+      
+      window.scrollTo(0, 0);
+      return;
+    }
+
     const dailyBurn = Math.round(Number(window.currentTDEE) || 0) || 2000;
     const routineState = Object.assign({}, state.routine, {
-    activities: selectedActivities,
-    estimatedCalories: dailyBurn,
-    habits: readHabits()
+      activities: selectedActivities,
+      estimatedCalories: dailyBurn,
+      habits: readHabits()
     });
     const next = Object.assign({}, state, { routine: routineState });
     goTo('routine-plan.html', next);
@@ -261,23 +286,20 @@ function calculateCalories(met, freq, hours, mins) {
 
     const timeVal = document.getElementById('time-val');
     const timeMsg = document.getElementById('time-msg');
-    const btn = document.getElementById('continue-btn');
     timeVal.textContent = dailyHours.toFixed(1);
 
+    // Update time display color based on range
     if (dailyHours > 24.1) { 
       timeVal.style.color = 'var(--rose)';
-      timeMsg.textContent = "Over 24 hours of daily activities logged. Please reduce.";
-      btn.disabled = true;
     } else if (dailyHours < 23.5) {
       timeVal.style.color = 'var(--amber)';
-      timeMsg.textContent = "You have unaccounted time. Ensure your baseline is full.";
-      timeMsg.style.color = 'var(--amber)';
-      btn.disabled = false; 
     } else {
       timeVal.style.color = 'var(--teal)';
-      timeMsg.textContent = "";
-      btn.disabled = false;
     }
+
+    // Clear any existing message when values update
+    timeMsg.textContent = '';
+    timeMsg.style.color = '';
 
     const summaryBlock = document.getElementById('weekly-summary');
     if (weeklyNames.length > 0) {

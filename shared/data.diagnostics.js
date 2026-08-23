@@ -56,7 +56,7 @@ window.DIAG = [
     "profile": "Low Risk",
     "gender": "All",
     "age": "All",
-    "note": "Evaluates kidney",
+    "note": "Evaluates your metabolism, kidney and electrolyte balance",
     "symptoms": ["Fatigue", "Nausea", "Vomiting", "Muscle Weakness", "Underweight", "Pregnancy Discomfort"],
     "exclusions": [],
     "clinical_tier": 1,

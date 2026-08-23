@@ -250,21 +250,31 @@ function init() {
   // ---------- Render ----------
   main.innerHTML = `
    
-    <!-- 1. Daily Calorie Target (honest version) -->
+    <!-- Daily Calorie Target - with both estimates visible -->
     <div class="cat-title">Daily Calorie Target</div>
-    <div class="balance-card">
-      <div>
-        <div class="balance-metric">
-          <div class="lbl">Recommended Daily Intake</div>
-          <div class="val">~${targetCal.toLocaleString()} kcal</div>
-        </div>
-        <div style="margin-top:10px; font-size:13.5px; color:var(--ink-soft); max-width:420px;">
-          Based on your profile, body composition and activity level.
-          ${estBurn ? `<div style="margin-top:6px; font-family:var(--mono); font-size:11px; color:var(--muted);">
-            Estimated burn from your routine: ~${estBurn.toLocaleString()} kcal
-          </div>` : ""}
-        </div>
+    <div class="stat-strip" style="margin-bottom:24px;">
+      <div class="stat-card hero">
+        <div class="k">Recommended Daily Intake</div>
+        <div class="v">~${targetCal.toLocaleString()}</div>
+        <div class="u">kcal / day</div>
       </div>
+      <div class="stat-card">
+        <div class="k">Your Estimated Burn</div>
+        <div class="v">~${estBurn.toLocaleString()}</div>
+        <div class="u">kcal / day</div>
+      </div>
+    </div>
+
+    <div class="note-block" style="margin-bottom:24px; font-size:13px;">
+      <span class="k">How it's calculated</span>
+      <p style="margin:8px 0 0 0; line-height:1.6;">
+        We estimate your daily energy burn from your routine activities using METs (Metabolic Equivalents). 
+        Your target intake is <strong>95% of your estimated burn</strong> — a conservative buffer that accounts for 
+        activity variability and supports sustainable energy balance.
+      </p>
+      <p style="margin:8px 0 0 0; line-height:1.6; font-size:12px; color:var(--ink-soft);">
+        <strong>Formula:</strong> ${estBurn.toLocaleString()} kcal × 0.95 = ${targetCal.toLocaleString()} kcal
+      </p>
     </div>
 
     <!-- 2. Clinical Insight -->
