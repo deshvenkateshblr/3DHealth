@@ -3,7 +3,6 @@
 // -------------------------------------------------------
 // Contains:
 // 1. window.dietaryDiagnostics   (original)
-// 2. window.DIET                 (original large calorie/macro table)
 // 3. window.NUTRIENTS            (new ranked priorities)
 // 4. window.FOOD_QUALITY         (new)
 // 5. window.PREF_FOOD_EXAMPLES   (new)

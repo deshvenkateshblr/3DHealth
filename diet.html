@@ -182,13 +182,15 @@ function renderPage() {
       return alert("Please answer all Food Quality markers.");
     }
 
-    // Calorie target from TDEE (activity log burn) — no static DIET table
     const estBurn = Number(routine.estimatedCalories) || 2200;
-    const targetCal = Math.round(estBurn * 0.95);
+    const { cal: targetCal, factor } = estimateTargetCalories(estBurn, profile);
+    const waterL = estimateWaterLiters(profile, estBurn);
 
     dietState.target = {
       cal: targetCal,
-      note: `Based on estimated daily burn (~${estBurn.toLocaleString()} kcal) × 0.95`
+      waterL: waterL,
+      factor: factor,
+      note: `Burn ~${estBurn.toLocaleString()} kcal × ${factor} (body-composition adjusted)`
     };
 
     dietState.priorities = (window.NUTRIENTS || [])

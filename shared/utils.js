@@ -365,3 +365,51 @@ function renderHeader(activeStep = 'fine', pageTitle = 'Know Your Health') {
     </div>
   `;
 }
+
+/** Daily fluid target (litres) from weight; small bump if burn is higher. */
+function estimateWaterLiters(profile, estimatedCalories) {
+  const kg = Number(profile && profile.weightKg) || 70;
+  let liters = kg * 0.033; // ~33 mL/kg
+
+  const burn = Number(estimatedCalories) || 0;
+  if (burn > 2400) liters += 0.4;
+  else if (burn > 1800) liters += 0.2;
+
+  liters = Math.max(1.5, Math.min(4.0, liters));
+  return Math.round(liters * 10) / 10;
+}
+
+/**
+ * Intake as a fraction of estimated daily burn.
+ * Underweight: slight surplus; healthy: near maintenance;
+ * overweight/obese: mild deficit (still conservative for a self-serve app).
+ */
+function intakeFactorFromBody(profile) {
+  const bmi = Number(profile && profile.bmi);
+  const whtr = Number(profile && profile.whtr);
+
+  if (!bmi || isNaN(bmi)) return 0.95;
+
+  let factor;
+  if (bmi < 18.5) factor = 1.05;
+  else if (bmi < 25) factor = 0.98;
+  else if (bmi < 30) factor = 0.93;
+  else factor = 0.90;
+
+  // Central adiposity with "normal" BMI → gentle nudge down
+  if (bmi >= 18.5 && bmi < 25 && !isNaN(whtr) && whtr >= 0.5) {
+    factor = Math.min(factor, 0.95);
+  }
+
+  return factor;
+}
+
+function estimateTargetCalories(estimatedCalories, profile) {
+  const burn = Number(estimatedCalories) || 2200;
+  const factor = intakeFactorFromBody(profile);
+  return {
+    cal: Math.round(burn * factor),
+    factor,
+    burn: Math.round(burn)
+  };
+}
