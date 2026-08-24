@@ -218,7 +218,7 @@ window.PREF_FOOD_EXAMPLES = {
     "Carbohydrates": "oats, brown rice, millets, whole wheat, quinoa",
     "Fats": "nuts, seeds, ghee (moderation), olive oil, avocado",
     "Fibre": "lentils, oats, vegetables, fruit, whole grains",
-    "Added Sugars / Refined Carbohydrates": "limit sweets, sugary drinks, refined flour items",
+    "Added Sugars / Refined Carbohydrates": "sweets, sugary drinks, refined flour items",
     "Vitamin D": "milk, curd, fortified cereals, sunlight",
     "Magnesium": "pumpkin seeds, almonds, spinach, yogurt",
     "Iron": "lentils, beans, paneer, spinach + vitamin C",
@@ -234,7 +234,7 @@ window.PREF_FOOD_EXAMPLES = {
     "Carbohydrates": "oats, brown rice, millets, whole wheat, quinoa",
     "Fats": "egg yolk, nuts, seeds, olive oil, ghee (moderation)",
     "Fibre": "lentils, oats, vegetables, fruit",
-    "Added Sugars / Refined Carbohydrates": "limit sweets, sugary drinks, refined snacks",
+    "Added Sugars / Refined Carbohydrates": "sweets, sugary drinks, refined snacks",
     "Vitamin D": "egg yolk, milk, curd, fortified cereals, sunlight",
     "Magnesium": "pumpkin seeds, almonds, spinach, yogurt",
     "Iron": "eggs, lentils, spinach + vitamin C",
@@ -250,7 +250,7 @@ window.PREF_FOOD_EXAMPLES = {
     "Carbohydrates": "rice, whole wheat, millets, oats, quinoa",
     "Fats": "nuts, seeds, ghee, olive oil",
     "Fibre": "split lentils, oats, allowable vegetables and fruit",
-    "Added Sugars / Refined Carbohydrates": "limit sweets, sugary drinks, refined flour",
+    "Added Sugars / Refined Carbohydrates": "sweets, sugary drinks, refined flour",
     "Vitamin D": "milk, curd, paneer, sunlight",
     "Magnesium": "pumpkin seeds, almonds, allowable greens, dairy",
     "Iron": "lentils, sesame seeds + vitamin C",
@@ -296,42 +296,164 @@ window.PREF_FOOD_EXAMPLES = {
 };
 
 /* ============================================================
-   6. NEW – Cuisine extras
+   6. NEW – Cuisine extras (Fully Mapped by Cuisine -> Diet -> Nutrient)
    ============================================================ */
 window.CUISINE_EXTRAS = {
   "Indian": {
-    "Protein": "dal, sambar, idli, dosa (with sambar/chutney), paneer, curd, sprouts",
-    "Carbohydrates": "rice, idli, dosa, poori (occasional), whole-wheat roti, millets",
-    "Fats": "ghee (moderation), groundnut oil, sesame, coconut (regional)",
-    "Fibre": "sabji, sambar, dal, salads, millets",
-    "Added Sugars / Refined Carbohydrates": "limit sweetened coffee, mithai, sugary drinks, maida snacks",
-    "Magnesium": "dal, leafy sabji, seeds, nuts, millets",
-    "Iron": "dal, sambar, dark leafy sabji + lemon/amla",
-    "Calcium": "curd, buttermilk, raita, sesame (til), paneer",
-    "Omega-3 (EPA/DHA)": "flaxseed (alsi), walnuts",
-    "Zinc": "dal, seeds, nuts, whole grains",
-    "Potassium": "coconut water, banana, sabji, curd, potato",
-    "Vitamin D": "sunlight + fortified milk / curd",
-    "Vitamin B12": "milk, curd, paneer",
-    "Chromium": "whole grains, broccoli"
-  },
-  "Mediterranean": {
-    "Protein": "Greek yogurt, lentils, chickpeas, fish",
-    "Fats": "extra-virgin olive oil, olives, tahini",
-    "Omega-3 (EPA/DHA)": "sardines, mackerel, anchovies"
-  },
-  "East Asian": {
-    "Protein": "tofu, edamame, fish",
-    "Fats": "sesame oil, sesame seeds",
-    "Calcium": "calcium-set tofu, fortified soy milk"
-  },
-  "Middle Eastern": {
-    "Protein": "labneh, lentils, chickpeas, fava",
-    "Fats": "tahini, olive oil"
+    "Vegan": {
+      "Protein": "dal, sambar, idli, dosa (with sambar/chutney), sprouts",
+      "Carbohydrates": "rice, idli, dosa, poori (occasional), whole-wheat roti, millets",
+      "Fats": "groundnut oil, sesame, coconut (regional)",
+      "Fibre": "sabji, sambar, dal, salads, millets",
+      "Added Sugars / Refined Carbohydrates": "Tea coffee with sugar, mithai, sugary drinks, maida snacks",
+      "Magnesium": "dal, leafy sabji, seeds, nuts, millets",
+      "Iron": "dal, sambar, dark leafy sabji + lemon/amla",
+      "Calcium": "sesame (til), fortified plant milks",
+      "Omega-3 (EPA/DHA)": "flaxseed (alsi), walnuts",
+      "Zinc": "dal, seeds, nuts, whole grains",
+      "Potassium": "coconut water, banana, sabji, sweet potato",
+      "Chromium": "whole grains, broccoli"
+    },
+    "Vegetarian": {
+      "Protein": "dal, sambar, idli, dosa, paneer, curd, sprouts",
+      "Fats": "ghee (moderation), groundnut oil, sesame, coconut",
+      "Calcium": "curd, buttermilk, raita, sesame (til), paneer",
+      "Potassium": "coconut water, banana, sabji, curd, potato",
+      "Vitamin D": "sunlight + fortified milk / curd",
+      "Vitamin B12": "milk, curd, paneer"
+    },
+    "Jain": {
+      "Protein": "dal, paneer, curd, sprouts",
+      "Fats": "ghee (moderation), groundnut oil, sesame, coconut",
+      "Calcium": "curd, buttermilk, raita, sesame (til), paneer",
+      "Potassium": "coconut water, banana, allowable sabji, curd" 
+    },
+    "Eggetarian": {
+      "Protein": "egg bhurji, boiled eggs, dal, paneer, curd",
+      "Vitamin B12": "eggs, milk, curd, paneer",
+      "Iron": "eggs, dal, dark leafy sabji"
+    },
+    "Pescatarian": {
+      "Protein": "fish curry, fish tikka, eggs, dal, paneer",
+      "Omega-3 (EPA/DHA)": "fatty fish (rohu, surmai), flaxseed, walnuts",
+      "Vitamin B12": "fish, eggs, milk, curd"
+    },
+    "Non-Vegetarian": {
+      "Protein": "chicken tikka, fish curry, eggs, dal, paneer",
+      "Iron": "chicken, fish, dal, sambar, dark leafy sabji + lemon",
+      "Omega-3 (EPA/DHA)": "fatty fish (rohu, surmai), flaxseed, walnuts",
+      "Vitamin B12": "chicken, fish, eggs, milk, curd"
+    }
   },
   "Western / Continental": {
-    "Protein": "Greek yogurt, cottage cheese, eggs, chicken/fish",
-    "Fats": "olive oil, avocado, nuts"
+    "Vegan": {
+      "Protein": "tofu scramble, edamame, lentil soup",
+      "Fats": "olive oil, avocado, walnuts"
+    },
+    "Vegetarian": {
+      "Protein": "Greek yogurt, cottage cheese, lentil soup",
+      "Fats": "olive oil, avocado, nuts"
+    },
+    "Jain": {
+      "Protein": "cottage cheese, Greek yogurt (no root veg/alliums)",
+      "Fats": "olive oil, avocado, nuts"
+    },
+    "Eggetarian": {
+      "Protein": "eggs, Greek yogurt, cottage cheese",
+      "Fats": "olive oil, avocado, nuts, egg yolks"
+    },
+    "Pescatarian": {
+      "Protein": "baked salmon, eggs, Greek yogurt",
+      "Omega-3 (EPA/DHA)": "salmon, walnuts",
+      "Fats": "olive oil, avocado, fatty fish"
+    },
+    "Non-Vegetarian": {
+      "Protein": "grilled chicken, baked fish, eggs, Greek yogurt",
+      "Fats": "olive oil, avocado, nuts, fatty fish"
+    }
+  },
+  "Mediterranean": {
+    "Vegan": {
+      "Protein": "lentils, chickpeas, falafel, hummus",
+      "Fats": "extra-virgin olive oil, olives, tahini"
+    },
+    "Vegetarian": {
+      "Protein": "Greek yogurt, feta cheese, lentils, chickpeas, falafel",
+      "Fats": "extra-virgin olive oil, olives, tahini"
+    },
+    "Jain": {
+      "Protein": "Greek yogurt, feta cheese, chickpeas (hummus without garlic)",
+      "Fats": "extra-virgin olive oil, olives"
+    },
+    "Eggetarian": {
+      "Protein": "shakshuka (eggs), Greek yogurt, feta, chickpeas",
+      "Fats": "extra-virgin olive oil, olives, tahini"
+    },
+    "Pescatarian": {
+      "Protein": "grilled fish, Greek yogurt, lentils, chickpeas",
+      "Omega-3 (EPA/DHA)": "sardines, mackerel, anchovies",
+      "Fats": "extra-virgin olive oil, olives, tahini"
+    },
+    "Non-Vegetarian": {
+      "Protein": "chicken souvlaki, grilled fish, Greek yogurt, chickpeas",
+      "Fats": "extra-virgin olive oil, olives, tahini",
+      "Omega-3 (EPA/DHA)": "sardines, mackerel, anchovies"
+    }
+  },
+  "East Asian": {
+    "Vegan": {
+      "Protein": "tofu, edamame",
+      "Fats": "sesame oil, sesame seeds",
+      "Calcium": "calcium-set tofu, fortified soy milk"
+    },
+    "Vegetarian": {
+      "Protein": "tofu, edamame",
+      "Fats": "sesame oil, sesame seeds",
+      "Calcium": "calcium-set tofu, fortified soy milk"
+    },
+    "Jain": {
+      "Protein": "tofu, edamame (stir-fried without garlic/onions)",
+      "Fats": "sesame oil, sesame seeds"
+    },
+    "Eggetarian": {
+      "Protein": "egg drop soup, egg fried rice, tofu, edamame",
+      "Fats": "sesame oil, sesame seeds"
+    },
+    "Pescatarian": {
+      "Protein": "steamed fish, eggs, tofu, edamame",
+      "Fats": "sesame oil, sesame seeds",
+      "Omega-3 (EPA/DHA)": "fish, seaweed"
+    },
+    "Non-Vegetarian": {
+      "Protein": "chicken stir-fry, steamed fish, eggs, tofu",
+      "Fats": "sesame oil, sesame seeds"
+    }
+  },
+  "Middle Eastern": {
+    "Vegan": {
+      "Protein": "lentils, chickpeas, fava beans",
+      "Fats": "tahini, olive oil"
+    },
+    "Vegetarian": {
+      "Protein": "labneh, lentils, chickpeas, fava beans",
+      "Fats": "tahini, olive oil"
+    },
+    "Jain": {
+      "Protein": "labneh, chickpeas (prepared without alliums)",
+      "Fats": "tahini, olive oil"
+    },
+    "Eggetarian": {
+      "Protein": "eggs, labneh, lentils, chickpeas",
+      "Fats": "tahini, olive oil"
+    },
+    "Pescatarian": {
+      "Protein": "grilled fish, labneh, chickpeas",
+      "Fats": "tahini, olive oil"
+    },
+    "Non-Vegetarian": {
+      "Protein": "chicken shawarma, kebabs, labneh, lentils",
+      "Fats": "tahini, olive oil"
+    }
   }
 };
 

@@ -168,8 +168,6 @@ function init() {
     return;
   }
 
-
-
   const estBurn = Number(routine.estimatedCalories) || 2200;
   const saved = diet.target || {};
   const factor = (saved.factor != null)
@@ -181,6 +179,56 @@ function init() {
   const waterL = (saved.waterL != null)
     ? Number(saved.waterL)
     : estimateWaterLiters(profile, estBurn);
+
+  function buildMeetingNotes() {
+      const intake = diet.intake || {};
+      const priorities = diet.priorities || [];
+      if (!priorities.length) return "";
+
+      const lines = [];
+      priorities.slice(0, 6).forEach(p => {
+        const name = p.nutrient;
+        const raw = intake[name] || {};
+        // support new + legacy shapes
+        const meeting = raw.meeting
+          || (raw.tracking === "yes" ? "yes" : raw.tracking === "no" ? "no" : "");
+
+        if (meeting !== "no" && meeting !== "partial") return;
+
+        const isLimit = p.direction === "limit";
+        const guide = (typeof nutrientTargetLabel === "function")
+          ? nutrientTargetLabel(name, profile, estBurn)
+          : null;
+
+        if (isLimit) {
+          lines.push(
+            meeting === "no"
+              ? `<b>${name}</b>: you marked this as not well limited — worth tightening.`
+              : `<b>${name}</b>: partially limited — small cuts still help.`
+          );
+        } else if (guide) {
+          lines.push(
+            meeting === "no"
+              ? `<b>${name}</b>: below the guide (${guide}).`
+              : `<b>${name}</b>: only partially meeting the guide (${guide}).`
+          );
+        } else {
+          lines.push(
+            meeting === "no"
+              ? `<b>${name}</b>: little current intake noted — food examples above are a practical start.`
+              : `<b>${name}</b>: partial intake — a bit more consistency would help.`
+          );
+        }
+      });
+
+      if (!lines.length) return "";
+
+      return `
+        <div class="note-block" style="margin-bottom:24px; margin-top:12px; font-size:13px;">
+          <span class="k">Recap on targets</span>
+          <p style="margin:8px 0 0 0; line-height:1.7;">${lines.join("<br>")}</p>
+        </div>`;
+  }
 
 function factorLabel(f) {
   if (f >= 1.02) return 'slight surplus (support healthy weight gain)';
@@ -196,14 +244,16 @@ function factorLabel(f) {
 
   // ---------- Helpers ----------
   function getFoodIdeas(nutrientKey) {
-    const dietType = diet.type || "Vegetarian";
-    const cuisine  = diet.cuisine || "Indian";
-    const byDiet    = (window.PREF_FOOD_EXAMPLES?.[dietType] || {})[nutrientKey] || "";
-    const byCuisine = (window.CUISINE_EXTRAS?.[cuisine] || {})[nutrientKey] || "";
-    // Diet type owns animal foods; cuisine adds regional context — never replace
-    if (byDiet && byCuisine) return `${byDiet} · ${byCuisine}`;
-    return byDiet || byCuisine || "";
-  }
+      const dietType = diet.type || "Vegetarian";
+      const cuisine  = diet.cuisine || "Indian";
+
+      const base = (window.PREF_FOOD_EXAMPLES?.[dietType] || {})[nutrientKey] || "";
+      // New shape: CUISINE_EXTRAS[cuisine][dietType][nutrient]
+      const extra = (window.CUISINE_EXTRAS?.[cuisine]?.[dietType] || {})[nutrientKey] || "";
+
+      if (extra) return extra; // diet-specific regional wins (avoids vegan + dairy)
+      return base;
+    }
 
   function buildPriorityParagraph() {
     const priorities = diet.priorities || [];
@@ -264,6 +314,7 @@ function factorLabel(f) {
   const fatIdeas     = getFoodIdeas("Fats");
   const insightText  = generateClinicalInsight();
   const priorityText = buildPriorityParagraph();
+  const meetingNotesHtml = buildMeetingNotes();
 
   // ---------- Render ----------
   main.innerHTML = `
@@ -320,10 +371,11 @@ function factorLabel(f) {
 
     <!-- 3. Nutrient Priorities (collapsed into one paragraph) -->
     <div class="cat-title">Nutrient Priorities</div>
-    <div class="note-block teal" style="margin-bottom:36px; margin-top:12px;">
+    <div class="note-block teal" style="margin-bottom:12px; margin-top:12px;">
       <span class="k">Personalised for you</span>
       ${priorityText}
     </div>
+    ${buildMeetingNotes()}
 
     <!-- 4. Daily Macro Targets (portions only) -->
 <div class="cat-title">Daily Macro Targets</div>

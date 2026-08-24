@@ -413,3 +413,46 @@ function estimateTargetCalories(estimatedCalories, profile) {
     burn: Math.round(burn)
   };
 }
+
+function proteinTargetGrams(profile, estimatedCalories) {
+  const kg = Number(profile && profile.weightKg) || 70;
+  const bmi = Number(profile && profile.bmi);
+  let perKg = 1.2;
+  if (!isNaN(bmi)) {
+    if (bmi < 18.5) perKg = 1.5;
+    else if (bmi >= 25) perKg = 1.5;
+  }
+  const burn = Number(estimatedCalories) || 0;
+  if (burn > 2400) perKg = Math.min(perKg + 0.1, 1.6);
+  const mid = Math.round(kg * perKg);
+  return {
+    min: Math.round(mid * 0.9),
+    max: Math.round(mid * 1.1),
+    mid,
+    label: `~${Math.round(mid * 0.9)}–${Math.round(mid * 1.1)} g/day`
+  };
+}
+
+function fibreTargetGrams(profile) {
+  const g = (profile && profile.sex === 'Male') ? 30 : 25;
+  return { grams: g, label: `~${g} g/day` };
+}
+
+/** Guide line for priority cards; null if no numeric target. */
+function nutrientTargetLabel(nutrientName, profile, estimatedCalories) {
+  const name = (nutrientName || '').toLowerCase();
+  if (name === 'protein') {
+    return proteinTargetGrams(profile, estimatedCalories).label;
+  }
+  if (name === 'fibre' || name === 'fiber' || name === 'dietary fiber') {
+    return fibreTargetGrams(profile).label;
+  }
+  if (name === 'carbohydrates' || name === 'carbs') {
+    return '~45–55% of calorie target';
+  }
+  if (name === 'fats' || name === 'healthy fats') {
+    return '~25–35% of calorie target';
+  }
+  // micros / limit nutrients: no chip
+  return null;
+}

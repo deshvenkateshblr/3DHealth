@@ -34,7 +34,7 @@ let dietState = Object.assign({
   type: "",
   cuisine: "",
   frequency: {},
-  intake: {},      // { [nutrient]: { tracking: "yes"|"no", frequency: "..." } }
+  intake: {},  // { [nutrient]: { meeting: "yes"|"partial"|"no" } }
   priorities: [],
   target: null
 }, state.diet || {});
@@ -44,17 +44,16 @@ function saveDietProgress() {
   persistState(next);
 }
 
-/* ---------- Helpers ---------- */
 function getExamples(nutrientName) {
   const diet = dietState.type || "Vegetarian";
   const cuisine = dietState.cuisine || "Indian";
-  const base  = (window.PREF_FOOD_EXAMPLES?.[diet] || {})[nutrientName] || "";
-  const extra = (window.CUISINE_EXTRAS?.[cuisine] || {})[nutrientName] || "";
-  if (cuisine === "Indian" && extra) return extra;
-  if (base && extra) return `${base} · ${extra}`;
-  return base || extra || "";
-}
 
+  const base = (window.PREF_FOOD_EXAMPLES?.[diet] || {})[nutrientName] || "";
+  const extra = (window.CUISINE_EXTRAS?.[cuisine]?.[diet] || {})[nutrientName] || "";
+
+  if (extra) return extra;  // diet-specific regional wins
+  return base;
+}
 
 function scoreNutrient(n) {
   let score = 0;
@@ -265,6 +264,8 @@ function renderNutrients() {
   const list = document.getElementById("nutrient-list");
   if (!list) return;
 
+  const estBurn = Number(routine.estimatedCalories) || 0;
+
   const ranked = (window.NUTRIENTS || [])
     .map(n => ({ ...n, ...scoreNutrient(n) }))
     .sort((a, b) => b.score - a.score)
@@ -283,9 +284,25 @@ function renderNutrients() {
     const tagText  = isLimit ? "LIMIT"
       : (n.matched.length ? "MATCHES: " + n.matched.slice(0, 2).join(", ").toUpperCase() : "BASELINE");
 
-    const current  = dietState.intake?.[n.nutrient] || {};
-    const isYes    = current.tracking === "yes";
-    const selectedFreq = current.frequency || "";
+    const current = dietState.intake?.[n.nutrient] || {};
+    // migrate old tracking → meeting if needed
+    const meeting = current.meeting
+      || (current.tracking === "yes" ? "yes" : current.tracking === "no" ? "no" : "");
+
+    const targetLabel = isLimit
+      ? null
+      : nutrientTargetLabel(n.nutrient, profile, estBurn);
+
+    const promptLabel = isLimit
+      ? "KEEPING THIS LIMITED?"
+      : (targetLabel ? "ARE YOU MEETING THIS?" : "CURRENT INTAKE?");
+
+    const targetHtml = targetLabel
+      ? `<div style="margin-top:8px;font-size:13px;">
+           <b>Target:</b> ${targetLabel}
+           <span style="font-size:11px;color:var(--ink-soft);"> (guide)</span>
+         </div>`
+      : "";
 
     return `
       <div class="test-card" data-nutrient="${n.nutrient}">
@@ -296,67 +313,39 @@ function renderNutrients() {
             <div class="symptom"><b>Watch for:</b> ${(n.symptoms || []).slice(0, 5).join(", ")}</div>
             ${examples ? `
               <div style="margin-top:8px;padding:8px 10px;background:var(--paper);border-radius:4px;font-size:12.5px;">
-                <b style="color:var(--teal);">Ideas for you:</b> ${examples}
+                <b style="color:var(--teal);">Examples:</b> ${examples}
               </div>` : ""}
+            ${targetHtml}
           </div>
           <span class="tag ${tagClass}">${tagText}</span>
         </div>
 
         <div class="answers">
           <span style="font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:.04em;">
-            CURRENT INTAKE?
+            ${promptLabel}
           </span>
           <div class="radio-pair">
-            <input type="radio" name="track_${idx}" id="track_${idx}_yes" value="yes" ${isYes ? "checked" : ""}>
-            <label for="track_${idx}_yes">Yes</label>
-            <input type="radio" name="track_${idx}" id="track_${idx}_no" value="no" ${current.tracking === "no" ? "checked" : ""}>
-            <label for="track_${idx}_no">No</label>
+            <input type="radio" name="meet_${idx}" id="meet_${idx}_yes" value="yes"
+              ${meeting === "yes" ? "checked" : ""}>
+            <label for="meet_${idx}_yes">Yes</label>
+            <input type="radio" name="meet_${idx}" id="meet_${idx}_partial" value="partial"
+              ${meeting === "partial" ? "checked" : ""}>
+            <label for="meet_${idx}_partial">Partially</label>
+            <input type="radio" name="meet_${idx}" id="meet_${idx}_no" value="no"
+              ${meeting === "no" ? "checked" : ""}>
+            <label for="meet_${idx}_no">No</label>
           </div>
-
-          <select class="recency-select intake-freq"
-                  data-nutrient="${n.nutrient}"
-                  ${isYes ? "" : "disabled"}
-                  style="min-width:140px;">
-            <option value="">How often?</option>
-            <option value="Daily"      ${selectedFreq === "Daily" ? "selected" : ""}>Daily</option>
-            <option value="Most days"  ${selectedFreq === "Most days" ? "selected" : ""}>Most days</option>
-            <option value="1-2x / week"${selectedFreq === "1-2x / week" ? "selected" : ""}>1-2× / week</option>
-            <option value="Rarely"     ${selectedFreq === "Rarely" ? "selected" : ""}>Rarely</option>
-          </select>
         </div>
       </div>
     `;
   }).join("");
 
-  // Wire intake radios + selects
   list.querySelectorAll(".radio-pair input").forEach(radio => {
     radio.addEventListener("change", function () {
       const card = this.closest(".test-card");
       const nutrient = card.dataset.nutrient;
-      const select = card.querySelector(".intake-freq");
-
       if (!dietState.intake) dietState.intake = {};
-      if (!dietState.intake[nutrient]) dietState.intake[nutrient] = {};
-
-      dietState.intake[nutrient].tracking = this.value;
-
-      if (this.value === "yes") {
-        select.disabled = false;
-      } else {
-        select.disabled = true;
-        select.value = "";
-        dietState.intake[nutrient].frequency = "";
-      }
-      saveDietProgress();
-    });
-  });
-
-  list.querySelectorAll(".intake-freq").forEach(select => {
-    select.addEventListener("change", function () {
-      const nutrient = this.dataset.nutrient;
-      if (!dietState.intake) dietState.intake = {};
-      if (!dietState.intake[nutrient]) dietState.intake[nutrient] = {};
-      dietState.intake[nutrient].frequency = this.value;
+      dietState.intake[nutrient] = { meeting: this.value };
       saveDietProgress();
     });
   });
