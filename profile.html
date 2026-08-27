@@ -198,7 +198,7 @@ if (p.smoking) document.getElementById('f-smoking').value = p.smoking;
 if (p.alcohol) document.getElementById('f-alcohol').value = p.alcohol;
 if (p.reproStatus) document.getElementById('f-repro-status').value = p.reproStatus;
 if (p.pcos) document.getElementById('f-pcos').checked = true;
-if (p.medicalStatus) document.getElementById('f-medical-status').value = p.medicalStatus;
+
 
 /* ---- reproductive health section only applies to females ---- */
 function updateReproVisibility() {
@@ -316,46 +316,9 @@ function refreshMetrics() {
 });
 refreshMetrics();
 
-/* ---- IMMEDIATE BAILOUT CHECK FOR MEDICAL STATUS ---- */
-function checkImmediateBailout() {
-  const medicalStatus = document.getElementById('f-medical-status').value;
-  
-  const bailoutMap = {
-    'surgery': 'surgery',
-    'hospitalization': 'hospitalization',
-    'treatment': 'treatment',
-    'medication': 'medication'
-  };
-  
-  const bailoutReason = bailoutMap[medicalStatus];
-  
-  if (bailoutReason) {
-    const sex = document.getElementById('f-sex').value;
-    const age = parseFloat(document.getElementById('f-age').value);
-    const heightCm = getHeightCm();
-    const weightKg = getWeightKg();
-    const waistCm = getWaistCm();
-    
-    persistState({
-      profile: {
-        sex, age, heightCm, weightKg, waistCm, 
-        bmi: (heightCm > 0 && weightKg > 0) ? computeBMI(weightKg, heightCm) : null,
-        whtr: (heightCm > 0 && waistCm > 0) ? computeWHtR(waistCm, heightCm) : null,
-        reproStatus: sex === 'Female' ? document.getElementById('f-repro-status').value : null,
-        smoking: document.getElementById('f-smoking').value,
-        alcohol: document.getElementById('f-alcohol').value,
-        famMetabolic: document.getElementById('f-fam-metabolic').checked,
-        famCardio: document.getElementById('f-fam-cardio').checked,
-        pcos: sex === 'Female' ? document.getElementById('f-pcos').checked : false,
-        medicalStatus
-      }
-    });
-    
-    window.location.href = `not-ready.html?reason=${bailoutReason}`;
-  }
-}
 
-document.getElementById('f-medical-status').addEventListener('change', checkImmediateBailout);
+
+
 
 /* ---- submit ---- */
 document.getElementById('profile-form').addEventListener('submit', (e) => {
@@ -366,7 +329,8 @@ document.getElementById('profile-form').addEventListener('submit', (e) => {
   const smoking = document.getElementById('f-smoking').value;
   const alcohol = document.getElementById('f-alcohol').value;
   const reproStatus = document.getElementById('f-repro-status').value;
-  const medicalStatus = document.getElementById('f-medical-status').value;
+  
+ medicalStatus = (state.profile && state.profile.medicalStatus) || 'stable';
   
   const msg = document.getElementById('validation-msg');
 
@@ -378,10 +342,7 @@ document.getElementById('profile-form').addEventListener('submit', (e) => {
     msg.textContent = 'Please select your menstrual & menopause status before continuing.';
     return;
   }
-  if (!medicalStatus) {
-    msg.textContent = 'Please select your current medical situation before continuing.';
-    return;
-  }
+ 
 
   // ---- BAILOUT CONDITIONS CHECK ON SUBMIT ----
   let bailoutReason = null;
@@ -403,7 +364,7 @@ document.getElementById('profile-form').addEventListener('submit', (e) => {
         famMetabolic: document.getElementById('f-fam-metabolic').checked,
         famCardio: document.getElementById('f-fam-cardio').checked,
         pcos: sex === 'Female' ? document.getElementById('f-pcos').checked : false,
-        medicalStatus
+        medicalStatus: (state.profile && state.profile.medicalStatus) || 'stable'
       }
     });
     window.location.href = `not-ready.html?reason=${bailoutReason}`;
@@ -424,7 +385,7 @@ document.getElementById('profile-form').addEventListener('submit', (e) => {
     smoking, alcohol,
     reproStatus: sex === 'Female' ? reproStatus : null,
     pcos: sex === 'Female' ? document.getElementById('f-pcos').checked : false,
-    medicalStatus,
+    medicalStatus: (state.profile && state.profile.medicalStatus) || 'stable',
     symptoms: p.symptoms || []
   };
   const next = Object.assign({}, state, {profile});

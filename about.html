@@ -241,15 +241,23 @@ document.addEventListener('DOMContentLoaded', () => {
     if (cb.checked) err.textContent = '';
   });
 
-  btn.addEventListener('click', () => {
-    if (!cb.checked) {
-      err.textContent = 'Please confirm you understand the limitations before continuing.';
-      return;
-    }
-    const state = loadState();
-    persistState(Object.assign({}, state, { acknowledgedLimitations: true }));
-    goTo('profile.html', loadState());
+ btn.addEventListener('click', () => {
+  if (!cb.checked) {
+    err.textContent = 'Please confirm you understand the limitations before continuing.';
+    return;
+  }
+
+  const state = loadState();
+  const next = Object.assign({}, state, {
+    acknowledgedLimitations: true,
+    // so older profile logic / any remaining references stay safe
+    profile: Object.assign({}, state.profile || {}, {
+      medicalStatus: 'stable'
+    })
   });
+  persistState(next);
+  goTo('profile.html', next);
+ });
 });
 </script>
 </body>
