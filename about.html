@@ -1,0 +1,256 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>About KYH — Know Your Health</title>
+<link rel="stylesheet" href="shared/styles.css?v=3">
+<style>
+  .about-intro {
+    text-align: center;
+    max-width: 560px;
+    margin: 0 auto 36px;
+  }
+  .about-intro h1 {
+    font-family: var(--serif);
+    font-weight: 400;
+    font-size: clamp(28px, 4vw, 40px);
+    margin: 0 0 14px;
+    line-height: 1.2;
+  }
+  .about-intro p {
+    font-size: 16.5px;
+    line-height: 1.65;
+    color: var(--ink-soft);
+    margin: 0;
+  }
+
+  .about-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 22px;
+    margin-bottom: 36px;
+  }
+  @media (max-width: 720px) {
+    .about-grid { grid-template-columns: 1fr; }
+  }
+
+  .about-box {
+    background: var(--panel);
+    border: 0px solid var(--ink);
+    padding: 0 0 28px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Caption bar: line with centered label */
+  .caption-bar {
+    position: relative;
+    text-align: center;
+    margin: 0 0 22px;
+    padding: 0 20px;
+  }
+  .caption-bar::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    height: 3px;
+    transform: translateY(-50%);
+  }
+  .about-box.is .caption-bar::before {
+    background: var(--teal);
+  }
+  .about-box.is-not .caption-bar::before {
+    background: var(--amber);
+  }
+  .caption-bar span {
+    position: relative;
+    z-index: 1;
+    display: inline-block;
+    background: var(--panel);
+    padding: 0 14px;
+    font-family: var(--mono);
+    font-size: 11.5px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+  .about-box.is .caption-bar span {
+    color: var(--teal);
+  }
+  .about-box.is-not .caption-bar span {
+    color: var(--amber);
+  }
+
+  .about-box-body {
+    padding: 0 26px;
+  }
+  .about-box h2 {
+    font-family: var(--serif);
+    font-weight: 400;
+    font-size: 26px;
+    line-height: 1.25;
+    margin: 0 0 16px;
+    text-align: center;
+  }
+  .about-box p,
+  .about-box li {
+    font-size: 15.5px;
+    line-height: 1.7;
+    color: var(--ink-soft);
+    margin: 0 0 14px;
+  }
+  .about-box ul {
+    margin: 0 0 4px;
+    padding-left: 20px;
+  }
+  .about-box li {
+    margin-bottom: 10px;
+  }
+
+  .about-ack {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    padding: 18px 20px;
+    margin-bottom: 28px;
+  }
+  .about-ack .check-field label {
+    font-size: 14.5px;
+    color: var(--ink);
+    line-height: 1.45;
+  }
+
+  .about-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+</style>
+</head>
+<body>
+
+<header class="masthead" id="app-header"></header>
+
+<main style="max-width:880px;">
+  <section style="padding-top:8px;">
+
+    <div class="about-intro">
+      <h1>Before you begin</h1>
+      <p>
+        A quick, honest picture of what KYH does — and what it does not —
+        so you can decide if this tool is right for you right now.
+      </p>
+    </div>
+
+    <div class="about-grid">
+
+      <!-- What it is -->
+      <div class="about-box is">
+        <div class="caption-bar"><span>What it is</span></div>
+        <div class="about-box-body">
+          <h2>Your health, in three dimensions</h2>
+          <p>
+            KYH helps you understand your own health across
+            <strong>Diet</strong>, <strong>Daily Routine</strong>, and
+            <strong>Diagnostics</strong>.
+          </p>
+          <p>
+            It organizes your details in a clear, insightful way so you can
+            take more informed decisions — always in partnership with a
+            qualified healthcare professional.
+          </p>
+          <p>
+            You can expand your learning with AI prompts and curated videos
+            from popular, reputed sources.
+          </p>
+          <p style="margin-bottom:0;">
+            Everything stays private: <strong>no data leaves your browser</strong>,
+            and we store nothing about you on any server.
+          </p>
+        </div>
+      </div>
+
+      <!-- What it is not -->
+      <div class="about-box is-not">
+        <div class="caption-bar"><span>What it is not</span></div>
+        <div class="about-box-body">
+          <h2>Not advice. Not for special care.</h2>
+          <p>
+            It is <strong>not</strong> health advice of any kind. All
+            recommendations are exploratory and must not be taken literally
+            without explicit consultation with a healthcare professional.
+          </p>
+          <p style="margin-bottom:8px;">
+            It is <strong>not</strong> intended for special cases, including:
+          </p>
+          <ul>
+            <li>Pregnancy</li>
+            <li>Recent surgery</li>
+            <li>Recent hospitalization</li>
+            <li>Allergies requiring specialized management</li>
+            <li>Any other special-care scenario</li>
+          </ul>
+          <p style="margin-bottom:0; margin-top:12px;">
+            If any of these apply, please work with your care team first.
+            You can return when your situation is stable.
+          </p>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="about-ack">
+      <div class="check-field">
+        <input type="checkbox" id="ack-limitations">
+        <label for="ack-limitations">
+          I understand the limitations of this tool. I am not in a special-care
+          situation listed above, and I will treat all output as exploratory —
+          not medical advice.
+        </label>
+      </div>
+      <p id="ack-error" class="validation-msg" style="margin:10px 0 0;"></p>
+    </div>
+
+    <div class="about-actions">
+      <a href="index.html" class="btn secondary">← Back</a>
+      <button type="button" class="btn" id="btn-continue" disabled>Continue to Profile →</button>
+    </div>
+
+  </section>
+</main>
+
+<footer>
+  <span>KYH — Know Your Health. Own Your Path. Nothing you enter leaves your browser.</span>
+  <span>Not a substitute for professional medical advice.</span>
+</footer>
+
+<script src="shared/utils.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  renderHeader('fine', 'About this tool');
+
+  const cb = document.getElementById('ack-limitations');
+  const btn = document.getElementById('btn-continue');
+  const err = document.getElementById('ack-error');
+
+  cb.addEventListener('change', () => {
+    btn.disabled = !cb.checked;
+    if (cb.checked) err.textContent = '';
+  });
+
+  btn.addEventListener('click', () => {
+    if (!cb.checked) {
+      err.textContent = 'Please confirm you understand the limitations before continuing.';
+      return;
+    }
+    const state = loadState();
+    persistState(Object.assign({}, state, { acknowledgedLimitations: true }));
+    goTo('profile.html', loadState());
+  });
+});
+</script>
+</body>
+</html>
