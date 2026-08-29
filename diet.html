@@ -31,13 +31,17 @@ renderHeader('diet', 'KYH-Diet');
 
 // Restore any previous diet answers for this session
 let dietState = Object.assign({
-  type: "",
-  cuisine: "",
+  type: profile.dietType || "",
+  cuisine: profile.cuisine || "",
   frequency: {},
   intake: {},  // { [nutrient]: { meeting: "yes"|"partial"|"no" } }
   priorities: [],
   target: null
 }, state.diet || {});
+// Dietary & cuisine preference now live on the Profile step — always trust
+// the profile value over anything stale saved earlier in diet state.
+if (profile.dietType) dietState.type = profile.dietType;
+if (profile.cuisine)  dietState.cuisine = profile.cuisine;
 
 function saveDietProgress() {
   const next = Object.assign({}, state, { diet: dietState });
@@ -91,6 +95,11 @@ function renderPage() {
       `<div class="empty-state">We need your profile first. <a href="profile.html">Go back to start →</a></div>`;
     return;
   }
+  if (!profile.dietType || !profile.cuisine) {
+    document.getElementById("main-content").innerHTML =
+      `<div class="empty-state">We need your dietary &amp; cuisine preference first. <a href="profile.html">Go back to Profile →</a></div>`;
+    return;
+  }
 
   const main = document.getElementById("main-content");
   main.innerHTML = `
@@ -98,30 +107,11 @@ function renderPage() {
       Based on your symptoms, body composition, routine and preferences we prioritise the nutrients that matter most for you right now.
     </p>
 
-    <div class="cat-title">Dietary & Cuisine Preference</div>
-    <div class="field-row" style="margin-bottom:28px;">
-      <div class="field">
-        <label class="eyebrow-label" for="diet-type">Dietary preference</label>
-        <select id="diet-type">
-          <option value="">Select…</option>
-          <option value="Vegetarian">Vegetarian</option>
-          <option value="Vegan">Vegan</option>
-          <option value="Eggetarian">Eggetarian</option>
-          <option value="Jain">Jain</option>
-          <option value="Pescatarian">Pescatarian</option>
-          <option value="Non-Vegetarian">Non-Vegetarian</option>
-        </select>
-      </div>
-      <div class="field">
-        <label class="eyebrow-label" for="cuisine-type">Cuisine preference</label>
-        <select id="cuisine-type">
-          <option value="">Select…</option>
-          <option value="Indian">Indian</option>
-          <option value="Mediterranean">Mediterranean</option>
-          <option value="East Asian">East Asian</option>
-          <option value="Middle Eastern">Middle Eastern</option>
-          <option value="Western / Continental">Western / Continental</option>
-        </select>
+    <div class="note-block" style="margin-bottom:28px;">
+      <span class="k">Dietary &amp; cuisine preference</span>
+      <div style="margin-top:6px;font-size:14px;">
+        <b>${profile.dietType}</b> &middot; <b>${profile.cuisine}</b>
+        &nbsp;&mdash;&nbsp;<a href="profile.html">change on Profile →</a>
       </div>
     </div>
 
@@ -139,26 +129,10 @@ function renderPage() {
     </div>
   `;
 
-  // Restore preference selects
-  if (dietState.type)    document.getElementById("diet-type").value = dietState.type;
-  if (dietState.cuisine) document.getElementById("cuisine-type").value = dietState.cuisine;
-
   // Food Quality Matrix
   renderFrequencyMatrix();
   // Nutrient cards
   renderNutrients();
-
-  // Preference change handlers
-  document.getElementById("diet-type").addEventListener("change", e => {
-    dietState.type = e.target.value;
-    saveDietProgress();
-    renderNutrients();
-  });
-  document.getElementById("cuisine-type").addEventListener("change", e => {
-    dietState.cuisine = e.target.value;
-    saveDietProgress();
-    renderNutrients();
-  });
 
   // Frequency matrix change
  document.getElementById("markers-container").addEventListener("change", e => {
@@ -174,9 +148,6 @@ function renderPage() {
 
   // Continue
   document.getElementById("continue-btn").addEventListener("click", () => {
-    if (!dietState.type || !dietState.cuisine) {
-      return alert("Please select both Dietary preference and Cuisine preference.");
-    }
     if (Object.keys(dietState.frequency || {}).length < (window.FOOD_QUALITY || []).length) {
       return alert("Please answer all Food Quality markers.");
     }

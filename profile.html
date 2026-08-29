@@ -20,7 +20,7 @@
         <label for="f-remember">
           Remember my progress on this device until I clear it
           <span style="display:block;font-size:12px;color:var(--ink-soft);font-weight:400;margin-top:2px;">
-            Helps if the tab closes (for example after print). Data stays only in this browser � still not sent to any server.
+            Helps if the tab closes (for example after print). Data stays only in this browser &mdash; still not sent to any server.
             Uncheck anytime to clear the saved copy.
           </span>
         </label>
@@ -135,6 +135,33 @@
       </div>
     </div>
 
+    <div class="cat-title">Dietary &amp; cuisine preference</div>
+    <div class="field-row" style="margin-bottom:22px;">
+      <div class="field">
+        <label class="intake-label" for="f-diet-type">Dietary preference</label>
+        <select id="f-diet-type">
+          <option value="" selected disabled>&mdash; Select &mdash;</option>
+          <option value="Vegetarian">Vegetarian</option>
+          <option value="Vegan">Vegan</option>
+          <option value="Eggetarian">Eggetarian</option>
+          <option value="Jain">Jain</option>
+          <option value="Pescatarian">Pescatarian</option>
+          <option value="Non-Vegetarian">Non-Vegetarian</option>
+        </select>
+      </div>
+      <div class="field">
+        <label class="intake-label" for="f-cuisine-type">Cuisine preference</label>
+        <select id="f-cuisine-type">
+          <option value="" selected disabled>&mdash; Select &mdash;</option>
+          <option value="Indian">Indian</option>
+          <option value="Mediterranean">Mediterranean</option>
+          <option value="East Asian">East Asian</option>
+          <option value="Middle Eastern">Middle Eastern</option>
+          <option value="Western / Continental">Western / Continental</option>
+        </select>
+      </div>
+    </div>
+
     <div class="cat-title">Family history</div>
     <div class="field-row" style="grid-template-columns:1fr 1fr; margin-bottom:22px;">
       <div class="check-field">
@@ -198,6 +225,12 @@ if (p.smoking) document.getElementById('f-smoking').value = p.smoking;
 if (p.alcohol) document.getElementById('f-alcohol').value = p.alcohol;
 if (p.reproStatus) document.getElementById('f-repro-status').value = p.reproStatus;
 if (p.pcos) document.getElementById('f-pcos').checked = true;
+if (p.dietType || (state.diet && state.diet.type)) {
+  document.getElementById('f-diet-type').value = p.dietType || state.diet.type;
+}
+if (p.cuisine || (state.diet && state.diet.cuisine)) {
+  document.getElementById('f-cuisine-type').value = p.cuisine || state.diet.cuisine;
+}
 
 
 /* ---- reproductive health section only applies to females ---- */
@@ -329,6 +362,8 @@ document.getElementById('profile-form').addEventListener('submit', (e) => {
   const smoking = document.getElementById('f-smoking').value;
   const alcohol = document.getElementById('f-alcohol').value;
   const reproStatus = document.getElementById('f-repro-status').value;
+  const dietType = document.getElementById('f-diet-type').value;
+  const cuisine = document.getElementById('f-cuisine-type').value;
   
  medicalStatus = (state.profile && state.profile.medicalStatus) || 'stable';
   
@@ -336,6 +371,39 @@ document.getElementById('profile-form').addEventListener('submit', (e) => {
 
   if (!sex || isNaN(age) || age <= 0 || isNaN(heightCm) || heightCm <= 0 || isNaN(weightKg) || weightKg <= 0 || isNaN(waistCm) || waistCm <= 0 || !smoking || !alcohol) {
     msg.textContent = 'Please fill in every field above before continuing.';
+    return;
+  }
+
+  // ---- Explicit bounds check (defense-in-depth) ----
+  // The number inputs also carry HTML min/max, but this page's "Continue"
+  // button submits a real <form>, so native browser validation normally
+  // catches this too. We check again here in JS so this page doesn't rely
+  // on that alone — the same bounds are enforced explicitly regardless of
+  // which unit (cm/ft-in, kg/lb) was used to enter the value.
+  const AGE_MIN = 16, AGE_MAX = 100;
+  const HEIGHT_CM_MIN = 120, HEIGHT_CM_MAX = 230;
+  const WEIGHT_KG_MIN = 30, WEIGHT_KG_MAX = 250;
+  const WAIST_CM_MIN = 50, WAIST_CM_MAX = 200;
+
+  if (age < AGE_MIN || age > AGE_MAX) {
+    msg.textContent = `Age looks out of range — please enter a value between ${AGE_MIN} and ${AGE_MAX}.`;
+    return;
+  }
+  if (heightCm < HEIGHT_CM_MIN || heightCm > HEIGHT_CM_MAX) {
+    msg.textContent = `Height looks out of range — please enter a value between ${HEIGHT_CM_MIN}cm and ${HEIGHT_CM_MAX}cm (about ${cmToFtIn(HEIGHT_CM_MIN).ft}'${cmToFtIn(HEIGHT_CM_MIN).inch}" to ${cmToFtIn(HEIGHT_CM_MAX).ft}'${cmToFtIn(HEIGHT_CM_MAX).inch}").`;
+    return;
+  }
+  if (weightKg < WEIGHT_KG_MIN || weightKg > WEIGHT_KG_MAX) {
+    msg.textContent = `Weight looks out of range — please enter a value between ${WEIGHT_KG_MIN}kg and ${WEIGHT_KG_MAX}kg.`;
+    return;
+  }
+  if (waistCm < WAIST_CM_MIN || waistCm > WAIST_CM_MAX) {
+    msg.textContent = `Waist looks out of range — please enter a value between ${WAIST_CM_MIN}cm and ${WAIST_CM_MAX}cm.`;
+    return;
+  }
+
+  if (!dietType || !cuisine) {
+    msg.textContent = 'Please select both Dietary preference and Cuisine preference before continuing.';
     return;
   }
   if (sex === 'Female' && !reproStatus) {
@@ -364,6 +432,7 @@ document.getElementById('profile-form').addEventListener('submit', (e) => {
         famMetabolic: document.getElementById('f-fam-metabolic').checked,
         famCardio: document.getElementById('f-fam-cardio').checked,
         pcos: sex === 'Female' ? document.getElementById('f-pcos').checked : false,
+        dietType, cuisine,
         medicalStatus: (state.profile && state.profile.medicalStatus) || 'stable'
       }
     });
@@ -385,6 +454,7 @@ document.getElementById('profile-form').addEventListener('submit', (e) => {
     smoking, alcohol,
     reproStatus: sex === 'Female' ? reproStatus : null,
     pcos: sex === 'Female' ? document.getElementById('f-pcos').checked : false,
+    dietType, cuisine,
     medicalStatus: (state.profile && state.profile.medicalStatus) || 'stable',
     symptoms: p.symptoms || []
   };
