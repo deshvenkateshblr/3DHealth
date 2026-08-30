@@ -46,7 +46,7 @@ window.EXERCISES = [
     "intensity": "Low",
     "equipment": "Towel",
     "note": "Strengthens the arch of the foot and stretches the Achilles tendon.",
-    "symptoms": ["Plantar Fasciitis", "Leg Pain", "Leg Cramps", "Balance Issues"],
+    "symptoms": ["Plantar Fasciitis", "Leg Pain", "Leg Cramps", "Balance Issues", "Foot Pain", "Toe Pain"],
     "contraindications": ["Sprain", "Strain", "Recent Surgery / Injury"],
     "videoTag": "towel_scrunch"
   },
@@ -390,7 +390,7 @@ window.EXERCISES = [
     "intensity": "Low",
     "equipment": "None",
     "note": "Slow, mindful weight transfers that build joint resilience, balance, and lower blood pressure.",
-    "symptoms": ["Balance Issues", "Arthritis", "Joint Stiffness", "Stress", "High Blood Pressure", "Parkinson’s Symptoms"],
+    "symptoms": ["Balance Issues", "Arthritis", "Joint Stiffness", "Stress", "High Blood Pressure"],
     "contraindications": ["Vertigo", "Fainting / Passing Out"],
     "videoTag": "tai_chi_shifting"
   },
@@ -707,7 +707,7 @@ window.EXERCISES = [
     "intensity": "Moderate to High",
     "equipment": "None",
     "note": "Cross-body movements elevate heart rate while forcing the left and right brain hemispheres to communicate.",
-    "symptoms": ["Brain Fog", "Parkinson’s Symptoms", "Low Energy", "Overweight", "High Cholesterol", "Poor Concentration"],
+    "symptoms": ["Brain Fog", "Low Energy", "Overweight", "High Cholesterol", "Poor Concentration"],
     "contraindications": ["High Blood Pressure", "Fainting / Passing Out", "Joint Stiffness", "Shoulder Pain"],
     "videoTag": "shadow_boxing"
   },
@@ -794,7 +794,7 @@ window.EXERCISES = [
     "intensity": "Low",
     "equipment": "None",
     "note": "Tracing the alphabet with your big toe flushes swelling out of the foot and strengthens the stabilizing ligaments.",
-    "symptoms": ["Poor Circulation", "Swelling", "Edema", "Plantar Fasciitis", "Leg Cramps", "Joint Stiffness"],
+    "symptoms": ["Poor Circulation", "Swelling", "Edema", "Plantar Fasciitis", "Leg Cramps", "Joint Stiffness", "Foot Pain", "Toe Pain"],
     "contraindications": ["Sprain", "Strain", "Recent Surgery / Injury"], // Blocked for acute ankle sprains
     "videoTag": "ankle_alphabets"
   },

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>About You &mdash; KYH</title>
+<title>About You — KYH</title>
 <link rel="stylesheet" href="shared/styles.css">
 </head>
 <body>
@@ -135,7 +135,6 @@
       </div>
     </div>
 
-    <div class="cat-title">Dietary &amp; cuisine preference</div>
     <div class="field-row" style="margin-bottom:22px;">
       <div class="field">
         <label class="intake-label" for="f-diet-type">Dietary preference</label>
@@ -378,7 +377,7 @@ document.getElementById('profile-form').addEventListener('submit', (e) => {
   // The number inputs also carry HTML min/max, but this page's "Continue"
   // button submits a real <form>, so native browser validation normally
   // catches this too. We check again here in JS so this page doesn't rely
-  // on that alone â€” the same bounds are enforced explicitly regardless of
+  // on that alone — the same bounds are enforced explicitly regardless of
   // which unit (cm/ft-in, kg/lb) was used to enter the value.
   const AGE_MIN = 16, AGE_MAX = 100;
   const HEIGHT_CM_MIN = 120, HEIGHT_CM_MAX = 230;
@@ -386,19 +385,19 @@ document.getElementById('profile-form').addEventListener('submit', (e) => {
   const WAIST_CM_MIN = 50, WAIST_CM_MAX = 200;
 
   if (age < AGE_MIN || age > AGE_MAX) {
-    msg.textContent = `Age looks out of range â€” please enter a value between ${AGE_MIN} and ${AGE_MAX}.`;
+    msg.textContent = `Age looks out of range — please enter a value between ${AGE_MIN} and ${AGE_MAX}.`;
     return;
   }
   if (heightCm < HEIGHT_CM_MIN || heightCm > HEIGHT_CM_MAX) {
-    msg.textContent = `Height looks out of range â€” please enter a value between ${HEIGHT_CM_MIN}cm and ${HEIGHT_CM_MAX}cm (about ${cmToFtIn(HEIGHT_CM_MIN).ft}'${cmToFtIn(HEIGHT_CM_MIN).inch}" to ${cmToFtIn(HEIGHT_CM_MAX).ft}'${cmToFtIn(HEIGHT_CM_MAX).inch}").`;
+    msg.textContent = `Height looks out of range — please enter a value between ${HEIGHT_CM_MIN}cm and ${HEIGHT_CM_MAX}cm (about ${cmToFtIn(HEIGHT_CM_MIN).ft}'${cmToFtIn(HEIGHT_CM_MIN).inch}" to ${cmToFtIn(HEIGHT_CM_MAX).ft}'${cmToFtIn(HEIGHT_CM_MAX).inch}").`;
     return;
   }
   if (weightKg < WEIGHT_KG_MIN || weightKg > WEIGHT_KG_MAX) {
-    msg.textContent = `Weight looks out of range â€” please enter a value between ${WEIGHT_KG_MIN}kg and ${WEIGHT_KG_MAX}kg.`;
+    msg.textContent = `Weight looks out of range — please enter a value between ${WEIGHT_KG_MIN}kg and ${WEIGHT_KG_MAX}kg.`;
     return;
   }
   if (waistCm < WAIST_CM_MIN || waistCm > WAIST_CM_MAX) {
-    msg.textContent = `Waist looks out of range â€” please enter a value between ${WAIST_CM_MIN}cm and ${WAIST_CM_MAX}cm.`;
+    msg.textContent = `Waist looks out of range — please enter a value between ${WAIST_CM_MIN}cm and ${WAIST_CM_MAX}cm.`;
     return;
   }
 

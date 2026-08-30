@@ -147,6 +147,51 @@ function init() {
   });
 
   document.getElementById('continue-btn').addEventListener('click', () => {
+    const timeMsgEl = document.getElementById('time-msg');
+
+    // Explicit bounds check (defense-in-depth) -- these inputs aren't
+    // inside a <form>, so the browser's native min/max validation never
+    // runs on this page. A typo (extra digit, stray "0") shouldn't be
+    // able to silently produce nonsense like "5,000,000 steps/day" on
+    // Summary, or a per-activity duration that quietly distorts the
+    // calorie math while still summing to ~24h by coincidence.
+    const CHECKS = [
+      { id: 'hab-steps', label: 'Steps per day', min: 0, max: 40000 },
+      { id: 'hab-sun', label: 'Daylight outdoors', min: 0, max: 300 },
+      { id: 'hab-dinner', label: 'Dinner → sleep gap', min: 0, max: 8 }
+    ];
+    for (const c of CHECKS) {
+      const el = document.getElementById(c.id);
+      if (!el || el.value === '') continue;
+      const v = parseFloat(el.value);
+      if (isNaN(v) || v < c.min || v > c.max) {
+        timeMsgEl.style.color = 'var(--rose)';
+        timeMsgEl.textContent = `${c.label} looks out of range — please enter a value between ${c.min} and ${c.max}.`;
+        el.focus();
+        window.scrollTo(0, 0);
+        return;
+      }
+    }
+    for (let i = 0; i < selectedActivities.length; i++) {
+      const sa = selectedActivities[i];
+      const def = window.ACTIVITIES.find(a => a.id === sa.id);
+      const name = def ? def.name : `Activity ${i + 1}`;
+      const hrs = Number(sa.hours) || 0, mins = Number(sa.mins) || 0;
+      if (hrs < 0 || hrs > 24) {
+        timeMsgEl.style.color = 'var(--rose)';
+        timeMsgEl.textContent = `"${name}" hours looks out of range — please enter a value between 0 and 24.`;
+        window.scrollTo(0, 0);
+        return;
+      }
+      if (mins < 0 || mins > 59) {
+        timeMsgEl.style.color = 'var(--rose)';
+        timeMsgEl.textContent = `"${name}" minutes looks out of range — please enter a value between 0 and 59.`;
+        window.scrollTo(0, 0);
+        return;
+      }
+    }
+    timeMsgEl.textContent = '';
+
     const dailyHours = parseFloat(document.getElementById('time-val').textContent);
     
     // Strict 24-hour requirement - show alert instead of disabling button

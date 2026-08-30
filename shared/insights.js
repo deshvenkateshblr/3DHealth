@@ -776,15 +776,31 @@ const KYH_BRAND_BLURB =
     return out;
   }
 
-  function insightsDiet(diet, routine) {
+  function insightsDiet(diet, routine, profile) {
     const out = [];
-    if (!diet || !diet.type) {
+    profile = profile || {};
+    // Dietary & cuisine preference now live on the Profile step, so they're
+    // always known even if the user hasn't been through the Diet step yet.
+    // Fall back to the profile value so we don't wrongly claim "not
+    // completed" for the one part that's actually already captured.
+    const effDiet = Object.assign({}, diet, {
+      type: (diet && diet.type) || profile.dietType || null,
+      cuisine: (diet && diet.cuisine) || profile.cuisine || null
+    });
+    diet = effDiet;
+    // The deeper nutrient/calorie analysis genuinely does require the Diet
+    // step (it needs the food-quality matrix + intake answers), so gate on
+    // `target` (only set once that step is completed) rather than on
+    // `type`, which is now available from Profile alone.
+    if (!diet.target) {
       out.push(insight({
         id: 'diet-none', domain: 'diet', tone: 'watch', priority: 43,
         title: 'Diet preferences not completed',
-        detail: 'Calorie target, macros, and nutrient priorities need the Diet step.',
+        detail: diet.type
+          ? `Preference on file: ${diet.type}${diet.cuisine ? ' · ' + diet.cuisine : ''}. Calorie target, macros, and nutrient priorities still need the Diet step.`
+          : 'Calorie target, macros, and nutrient priorities need the Diet step.',
         next: 'Complete Diet to unlock energy and nutrient insights.',
-        sources: ['diet']
+        sources: ['diet', 'profile.dietType', 'profile.cuisine']
       }));
       return out;
     }
@@ -918,7 +934,7 @@ const KYH_BRAND_BLURB =
       .concat(insightsDiagnostics(state.diagnostics))
       .concat(insightsRoutine(state.routine, profile))
       .concat(insightsMovement(state.routine, state.exercises))
-      .concat(insightsDiet(state.diet, state.routine));
+      .concat(insightsDiet(state.diet, state.routine, profile));
 
     const toneOrder = { act: 0, watch: 1, good: 2 };
     list.sort((a, b) => {
@@ -942,7 +958,10 @@ const KYH_BRAND_BLURB =
     insights = insights || buildInsights(state);
     const g = groupInsights(insights);
     const p = (state && state.profile) || {};
-    const diet = (state && state.diet) || {};
+    const diet = Object.assign({}, state && state.diet, {
+      type: (state && state.diet && state.diet.type) || p.dietType || null,
+      cuisine: (state && state.diet && state.diet.cuisine) || p.cuisine || null
+    });
     const lines = [];
 
     lines.push(KYH_BRAND_BLURB);

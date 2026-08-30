@@ -35,19 +35,22 @@ const main = document.getElementById('main-content');
    no gaps and no duplicates (each test's symptoms[] array is the single source of truth). */
 const CATEGORIES = [
   {name:'Energy, Sleep & Mood', items:['Insomnia','Fatigue','Low Energy','Restlessness','Stress','Anxiety','Depression','Mood Swings','Irritability','Burnout','Snoring']},
-  {name:'Musculoskeletal & Joints', items:['Back Pain','Neck Pain','Shoulder Pain','Knee Pain','Hip Pain','Leg Pain','Leg Cramps','Sciatica','Arthritis','Osteoporosis','Carpal Tunnel','Frozen Shoulder','Joint Stiffness','Poor Posture','Slouching','Weak Core','Muscle Weakness','Balance Issues','Sports Injury','Sprain','Strain','Recovery Fatigue','Overtraining','Plantar Fasciitis']},
+  {name:'Musculoskeletal & Joints', items:['Back Pain','Neck Pain','Shoulder Pain','Knee Pain','Hip Pain','Leg Pain','Foot Pain','Toe Pain','Leg Cramps','Sciatica','Arthritis','Osteoporosis','Carpal Tunnel','Frozen Shoulder','Joint Stiffness','Poor Posture','Slouching','Weak Core','Muscle Weakness','Balance Issues','Sports Injury','Sprain','Strain','Recovery Fatigue','Overtraining','Plantar Fasciitis']},
   {name:'Digestive', items:['Indigestion','Acid Reflux','Constipation','Diarrhea','Bloating','Irritable Bowel Syndrome','Gastritis','Ulcer','Nausea','Vomiting','Gut Health','Hemorrhoids','Loss of Appetite','Blood in Stool']},
   {name:'Heart & Circulation', items:['High Blood Pressure','Low Blood Pressure','Heart Palpitations','Chest Pain','Poor Circulation','Varicose Veins','Edema','Swelling','Fainting / Passing Out']},
   {name:'Weight & Metabolic', items:['Obesity','Overweight','Underweight','Weight Loss','Diabetes','High Cholesterol','Sugar Cravings','Emotional Eating','Excessive Thirst']},
   {name:'Hormonal & Reproductive', items:['Thyroid Disorder','PCOS','Menstrual Pain','Menopause Symptoms','Hot Flashes','Night Sweats','Infertility','Pregnancy Discomfort','Postpartum Recovery']},
-  {name:'Head & Neurological', items:['Migraine','Headache','Vertigo','Memory Loss','Poor Concentration','Brain Fog','Cognitive Decline','Parkinson\u2019s Symptoms','Numbness or Tingling']},
+  {name:'Head & Neurological', items:['Migraine','Headache','Vertigo','Memory Loss','Poor Concentration','Brain Fog','Cognitive Decline','Numbness or Tingling']},
   {name:'Respiratory & Allergy', items:['Asthma','Bronchitis','Shortness of Breath','Allergies','Cold','Sinus Congestion','Chronic Cough']},
   {name:'Skin & Hair', items:['Skin Acne','Eczema','Psoriasis','Dry Skin','Hair Loss','Dandruff','Itching','Skin Rash','Bruising Easily','Sweaty Hands']},
   {name:'Urinary, Liver & Kidney', items:['Urinary Tract Infection','Kidney Stones','Frequent Urination','Liver Disorder','Fatty Liver','Gallstones','Pancreatitis']},
-  {name:'Eyes, Ears & Mouth', items:['Eye Strain','Eye Dryness','Hearing Loss','Dental Pain','Jaw Pain','Blurry Vision','Ringing in Ears']},
+  {name:'Eyes, Ears & Mouth', items:['Eye Strain','Eye Dryness','Watery Eyes','Hearing Loss','Dental Pain','Mouth Ulcers','Jaw Pain','Blurry Vision','Ringing in Ears']},
   {name:'Immune & General', items:['Immune Weakness','Frequent Infections','Fever','Inflammation','Cold Intolerance','Heat Intolerance','Palpable Lump']}
 ];
-const SYMPTOM_LIST_RAW = [...new Set(DIAG.flatMap(d=>d.symptoms||[]))].sort();
+const SYMPTOM_LIST_RAW = [...new Set([
+  ...DIAG.flatMap(d=>d.symptoms||[]),
+  ...CATEGORIES.flatMap(c=>c.items)
+])].sort();
 const FEMALE_ONLY = new Set(['PCOS','Menstrual Pain','Menopause Symptoms','Pregnancy Discomfort','Postpartum Recovery']);
 const isMale = profile && profile.sex === 'Male';
 const SYMPTOM_LIST = isMale ? SYMPTOM_LIST_RAW.filter(s=>!FEMALE_ONLY.has(s)) : SYMPTOM_LIST_RAW;
@@ -111,6 +114,7 @@ function init(){
 
   <div class="page-footer-nav">
     <a href="profile.html" class="btn secondary">&larr; Back</a>
+    <span class="validation-msg" id="validation-msg" style="margin-right:14px;"></span>
     <button type="button" class="btn" id="continue-btn">Continue to Diagnostics &rarr;</button>
   </div>
   `;
@@ -206,6 +210,33 @@ function init(){
   });
 
   document.getElementById('continue-btn').addEventListener('click', ()=>{
+    const msg = document.getElementById('validation-msg');
+    msg.textContent = '';
+
+    // Explicit bounds check (defense-in-depth) -- these inputs aren't
+    // inside a <form>, so the browser's native min/max validation never
+    // runs on this page; a typo like an extra digit shouldn't be able to
+    // sail through and trigger a false clinical alarm on Summary.
+    const SUGAR_MIN = 40, SUGAR_MAX = 400;
+    const HR_MIN = 30, HR_MAX = 220;
+
+    if (!sugarUnknown.checked && sugarInput.value !== '') {
+      const v = parseFloat(sugarInput.value);
+      if (isNaN(v) || v < SUGAR_MIN || v > SUGAR_MAX) {
+        msg.textContent = `Fasting blood sugar looks out of range — please enter a value between ${SUGAR_MIN} and ${SUGAR_MAX} mg/dL, or mark it unknown.`;
+        sugarInput.focus();
+        return;
+      }
+    }
+    if (!hrUnknown.checked && hrInput.value !== '') {
+      const v = parseFloat(hrInput.value);
+      if (isNaN(v) || v < HR_MIN || v > HR_MAX) {
+        msg.textContent = `Resting heart rate looks out of range — please enter a value between ${HR_MIN} and ${HR_MAX} bpm, or mark it unknown.`;
+        hrInput.focus();
+        return;
+      }
+    }
+
     const nextProfile = Object.assign({}, profile, {symptoms: [...selectedSymptoms]});
     const fastingSugar = sugarUnknown.checked ? null : (parseFloat(sugarInput.value) || null);
     const restingHR = hrUnknown.checked ? null : (parseFloat(hrInput.value) || null);
