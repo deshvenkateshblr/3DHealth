@@ -88,7 +88,8 @@ function init() {
   <div class="note-block" style="margin-bottom: 24px; font-size: 13.5px;">
     <strong>How is this calculated?</strong> We use the <em>Metabolic Equivalent of Task (MET)</em> formula: 
     <code>METs × Weight (kg) × Duration (hrs) × 1.05</code>
-    Because your profile indicates you weigh ${weightKg}kg, these calculations are completely personalized to your specific body mass.
+    Because your profile indicates you weigh ${weightKg}kg, these calculations are personalized to your body mass.
+    Weekly extras show kcal per session for comparison, but they do not change estimated daily burn.
   </div>
 
   <div class="config-grid" id="config-grid"></div>
@@ -228,9 +229,7 @@ function init() {
   });
 
 function calculateCalories(met, freq, hours, mins) {
-  const durationHours = (Number(hours) || 0) + ((Number(mins) || 0) / 60);
-  // Compendium: kcal = MET × 3.5 × kg × min / 200  ≡  MET × kg × hours × 1.05
-  return Math.round(met * weightKg * durationHours * 1.05);
+  return Math.round(activitySessionKcal(met, weightKg, hours, mins));
 }
 
   function renderConfiguration() {
@@ -243,9 +242,11 @@ function calculateCalories(met, freq, hours, mins) {
     configGrid.innerHTML = selectedActivities.map((sa, index) => {
       const def = window.ACTIVITIES.find(a => a.id === sa.id);
       if (!def) return '';
-      
+
+      const isWeekly = sa.freq === 'weekly';
       const cals = calculateCalories(def.met, sa.freq, sa.hours, sa.mins);
-      const suffix = sa.freq === 'daily' ? 'kcal/day' : 'kcal/session';
+      const calText = `~${cals}`;
+      const suffix = isWeekly ? 'kcal/session · not in daily burn' : 'kcal/day';
 
       return `
       <div class="test-card" data-idx="${index}">
@@ -269,7 +270,7 @@ function calculateCalories(met, freq, hours, mins) {
               </div>
             </div>
           </div>
-          <div class="cal-readout"><span class="cal-text">~${cals}</span> <span style="font-size:10px; color:var(--muted);"><br><span class="cal-suffix">${suffix}</span></span></div>
+          <div class="cal-readout"><span class="cal-text">${calText}</span> <span style="font-size:10px; color:var(--muted);"><br><span class="cal-suffix">${suffix}</span></span></div>
         </div>
       </div>
       `;
@@ -280,10 +281,10 @@ function calculateCalories(met, freq, hours, mins) {
       const sa = selectedActivities[idx];
       const def = window.ACTIVITIES.find(a => a.id === sa.id);
       if (!def) return;
+      const isWeekly = sa.freq === 'weekly';
       const cals = calculateCalories(def.met, sa.freq, sa.hours, sa.mins);
-      const suffix = sa.freq === 'daily' ? 'kcal/day' : 'kcal/session';
       card.querySelector('.cal-text').textContent = `~${cals}`;
-      card.querySelector('.cal-suffix').textContent = suffix;
+      card.querySelector('.cal-suffix').textContent = isWeekly ? 'kcal/session · not in daily burn' : 'kcal/day';
       updateTotals();
     }
 
@@ -307,8 +308,8 @@ function calculateCalories(met, freq, hours, mins) {
   }
 
   function updateTotals() {
-    let dailyHours = 0, dailyBurn = 0, weeklyBurn = 0;
-    let weeklyNames = [];
+    let dailyHours = 0, dailyBurn = 0;
+    let weeklyBits = [];
 
     selectedActivities.forEach(sa => {
       const def = window.ACTIVITIES.find(a => a.id === sa.id);
@@ -321,13 +322,13 @@ function calculateCalories(met, freq, hours, mins) {
         dailyHours += durationHours;
         dailyBurn += cals;
       } else {
-        weeklyBurn += cals; 
-        weeklyNames.push(def.name);
+        weeklyBits.push(`${def.name} (~${cals.toLocaleString()} kcal/session)`);
       }
     });
 
-    document.getElementById('tdee-val').textContent = Math.round(dailyBurn).toLocaleString();
-    window.currentTDEE = dailyBurn;
+    const tdee = Math.round(dailyBurn);
+    document.getElementById('tdee-val').textContent = tdee.toLocaleString();
+    window.currentTDEE = tdee;
 
     const timeVal = document.getElementById('time-val');
     const timeMsg = document.getElementById('time-msg');
@@ -347,10 +348,10 @@ function calculateCalories(met, freq, hours, mins) {
     timeMsg.style.color = '';
 
     const summaryBlock = document.getElementById('weekly-summary');
-    if (weeklyNames.length > 0) {
+    if (weeklyBits.length > 0) {
       summaryBlock.style.display = 'block';
-      document.getElementById('weekly-text').textContent = 
-        `You also burn an estimated ${weeklyBurn.toLocaleString()} kcal per week from extra activities like ${weeklyNames.join(', ')}.`;
+      document.getElementById('weekly-text').textContent =
+        `${weeklyBits.join('; ')}. Shown so you can see how much these sessions are worth compared with a typical daily hour — they are not added to estimated daily burn.`;
     } else {
       summaryBlock.style.display = 'none';
     }

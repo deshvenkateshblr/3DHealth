@@ -28,34 +28,18 @@ const KYH_BRAND_BLURB =
     other: 1.5
   };
 
-  /** Prefer stored estimatedCalories; otherwise sum from activities[]. */
-   /** Prefer stored estimatedCalories; otherwise sum from activities[]. */
+  /** Prefer recomputing from the 24-hour ledger; else stored TDEE. Weekly extras are ignored here. */
   function estimateDailyBurn(routine, weightKg) {
     if (!routine) return 0;
 
+    const list = routine.activities || [];
+    if (list.length && typeof estimateTdeeFromActivities === 'function') {
+      return estimateTdeeFromActivities(list, weightKg || 70);
+    }
+
     const stored = Number(routine.estimatedCalories);
     if (!isNaN(stored) && stored > 0) return Math.round(stored);
-
-    const w = weightKg || 70;
-    const list = routine.activities || [];
-    if (!list.length) return 0;
-
-    const defs = (typeof window !== 'undefined' && window.ACTIVITIES) || [];
-    let daily = 0;
-
-    list.forEach(sa => {
-      const def = defs.find(a => a.id === sa.id);
-      const met = def ? Number(def.met) : 1.5;
-      const durationHours = (Number(sa.hours) || 0) + ((Number(sa.mins) || 0) / 60);
-      const cals = met * w * durationHours;
-      if (sa.freq === 'daily' || !sa.freq) {
-        daily += cals;
-      } else {
-        daily += cals / 7; // weekly → average per day
-      }
-    });
-
-    return Math.round(daily);
+    return 0;
   }
   /**
    * Activity band used on diet.html when choosing DIET rows:
@@ -174,7 +158,10 @@ const KYH_BRAND_BLURB =
       }
     }
 
-    if (profile.smoking === 'Never') {
+    const smoke = normalizeLifestyle(profile.smoking);
+    const drink = normalizeLifestyle(profile.alcohol);
+
+    if (smoke === 'Never') {
       out.push(insight({
         id: 'smoking', domain: 'lifestyle', tone: 'good', priority: 55,
         title: 'No smoking reported',
@@ -182,18 +169,25 @@ const KYH_BRAND_BLURB =
         next: 'Protect this — avoid second-hand smoke where you can.',
         sources: ['smoking']
       }));
-    } else if (profile.smoking === 'Occasionally' || profile.smoking === 'Daily') {
+    } else if (smoke === 'Former') {
+      out.push(insight({
+        id: 'smoking', domain: 'lifestyle', tone: 'watch', priority: 28,
+        title: 'Past smoking still matters for heart screening',
+        detail: 'You reported being a former smoker. Residual cardiovascular risk stays relevant even after quitting.',
+        next: 'Keep smoke-free; mention this history when discussing lipids and blood pressure.',
+        sources: ['smoking']
+      }));
+    } else if (isCurrentUse(smoke)) {
       out.push(insight({
         id: 'smoking', domain: 'lifestyle', tone: 'act', priority: 10,
         title: 'Smoking is raising cardiovascular risk',
-        detail: `You reported smoking: ${profile.smoking}. This stacks with age and family history when prioritising heart screening.`,
+        detail: `You reported smoking: ${lifestyleLabel('smoking', smoke)}. This stacks with age and family history when prioritising heart screening.`,
         next: 'Cutting down or quitting is higher leverage than almost any other single change — ask for support options.',
         sources: ['smoking']
       }));
     }
 
-    // Alcohol — values must match profile.html: Never | Occasional | 1-2x/week | 3-5x/week | Daily
-    if (profile.alcohol === 'Never') {
+    if (drink === 'Never') {
       out.push(insight({
         id: 'alcohol', domain: 'lifestyle', tone: 'good', priority: 55,
         title: 'No alcohol reported',
@@ -201,19 +195,27 @@ const KYH_BRAND_BLURB =
         next: 'Protect this — there is no need to add alcohol for “heart health” or social default.',
         sources: ['alcohol']
       }));
-    } else if (profile.alcohol === 'Occasional' || profile.alcohol === '1-2x/week') {
+    } else if (drink === 'Former') {
+      out.push(insight({
+        id: 'alcohol', domain: 'lifestyle', tone: 'watch', priority: 40,
+        title: 'Past alcohol use is noted',
+        detail: 'You reported being a former drinker. Current intake is not adding load; history can still inform liver and sleep conversations.',
+        next: 'Keep it off the table if that is working; mention past use if liver tests or sleep are on the agenda.',
+        sources: ['alcohol']
+      }));
+    } else if (drink === 'Occasional' || drink === '1-2x/week') {
       out.push(insight({
         id: 'alcohol', domain: 'lifestyle', tone: 'good', priority: 60,
         title: 'Alcohol intake looks limited',
-        detail: `Reported pattern: ${profile.alcohol === 'Occasional' ? 'Occasional / social' : profile.alcohol}. Lower frequency is easier on sleep and recovery.`,
+        detail: `Reported pattern: ${lifestyleLabel('alcohol', drink)}. Lower frequency is easier on sleep and recovery.`,
         next: 'Keep it occasional; avoid drinking close to bedtime if sleep is a goal.',
         sources: ['alcohol']
       }));
-    } else if (profile.alcohol === '3-5x/week' || profile.alcohol === 'Daily') {
+    } else if (isHeavyAlcohol(drink)) {
       out.push(insight({
         id: 'alcohol', domain: 'lifestyle', tone: 'watch', priority: 22,
         title: 'Alcohol frequency may be working against recovery',
-        detail: `Reported pattern: ${profile.alcohol}. More frequent intake can blunt sleep quality, raise blood pressure, and add hidden calories.`,
+        detail: `Reported pattern: ${lifestyleLabel('alcohol', drink)}. More frequent intake can blunt sleep quality, raise blood pressure, and add hidden calories.`,
         next: 'Try alcohol-free weeknights first; note energy and sleep after two weeks.',
         sources: ['alcohol']
       }));
@@ -625,13 +627,30 @@ const KYH_BRAND_BLURB =
         }));
       }
 
+      const weeklyExtras = hasActivities
+        ? (routine.activities || []).filter(sa => sa.freq && sa.freq !== 'daily')
+        : [];
+      const weeklyNames = weeklyExtras.map(sa => {
+        const defs = (typeof window !== 'undefined' && window.ACTIVITIES) || [];
+        const def = defs.find(a => a.id === sa.id);
+        return def ? def.name : sa.id;
+      });
+
       const move = act.exercise + act.yoga;
-      if (move < 0.3) {
+      if (move < 0.3 && !weeklyExtras.length) {
         out.push(insight({
           id: 'exercise-gap', domain: 'routine', tone: 'watch', priority: 19,
           title: 'Little structured movement logged',
-          detail: `Exercise + yoga ≈ ${move.toFixed(1)}h in your daily activities.`,
+          detail: `Exercise + yoga ≈ ${move.toFixed(1)}h in your daily activities, and no weekly extras noted.`,
           next: 'Start with two short sessions you can repeat weekly; use your personalised movement list.',
+          sources: ['routine.activities']
+        }));
+      } else if (weeklyExtras.length && move < 0.3) {
+        out.push(insight({
+          id: 'exercise-weekly', domain: 'routine', tone: 'good', priority: 46,
+          title: 'Structured movement is on your weekly list',
+          detail: `Noted: ${weeklyNames.join(', ')}. These are not folded into daily calorie burn; they still count as practice you already have.`,
+          next: 'Keep those sessions consistent; add a little daily walking on non-training days.',
           sources: ['routine.activities']
         }));
       } else {

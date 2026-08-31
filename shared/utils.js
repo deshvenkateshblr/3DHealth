@@ -223,6 +223,48 @@ function whtrTag(r) {
   return ['High risk', 'var(--rose)'];
 }
 
+/* Shared smoking & alcohol values (profile.html stores these exact strings).
+   Older sessions may still have "Former smoker" or "Occasionally". */
+const LIFESTYLE_VALUES = ['Never', 'Former', 'Occasional', '1-2x/week', '3-5x/week', 'Daily'];
+
+function normalizeLifestyle(value) {
+  if (value == null || value === '') return '';
+  const s = String(value).trim().toLowerCase()
+    .replace(/[–—]/g, '-')
+    .replace(/\s+/g, ' ');
+  if (s === 'never') return 'Never';
+  if (s.startsWith('former')) return 'Former';
+  if (s.startsWith('occasional')) return 'Occasional';
+  if (s.includes('1-2')) return '1-2x/week';
+  if (s.includes('3-5')) return '3-5x/week';
+  if (s === 'daily') return 'Daily';
+  return String(value).trim();
+}
+
+function lifestyleLabel(kind, value) {
+  const n = normalizeLifestyle(value);
+  if (n === 'Former') return kind === 'smoking' ? 'Former smoker' : 'Former drinker';
+  if (n === 'Occasional') return 'Occasional / social';
+  if (n === '1-2x/week') return '1–2x / week';
+  if (n === '3-5x/week') return '3–5x / week';
+  return n || '';
+}
+
+function isCurrentUse(value) {
+  const n = normalizeLifestyle(value);
+  return n === 'Occasional' || n === '1-2x/week' || n === '3-5x/week' || n === 'Daily';
+}
+
+function isHeavyAlcohol(value) {
+  const n = normalizeLifestyle(value);
+  return n === '3-5x/week' || n === 'Daily';
+}
+
+function isSmokingRisk(value) {
+  const n = normalizeLifestyle(value);
+  return n === 'Former' || isCurrentUse(n);
+}
+
 // shared/utils.js — replace / extend activeCategories
 function deriveRiskCategories(profile) {
   const cats = ['Low Risk'];
@@ -237,8 +279,8 @@ function deriveRiskCategories(profile) {
   const centralObesity = whtr >= 0.5 ||
     (profile.sex === 'Female' ? waistCm > 80 : waistCm > 94);
 
-  const heavyAlcohol = profile.alcohol === '3-5x/week' || profile.alcohol === 'Daily';
-  const smokingRisk  = profile.smoking === 'Daily' || profile.smoking === 'Occasionally';
+  const heavyAlcohol = isHeavyAlcohol(profile.alcohol);
+  const smokingRisk  = isSmokingRisk(profile.smoking);
   const postMenopausal = profile.reproStatus === 'Post-menopausal' ||
                          profile.reproStatus === 'Perimenopausal';
   const pcos = !!profile.pcos;
@@ -369,6 +411,32 @@ function renderHeader(activeStep = 'fine', pageTitle = 'Know Your Health') {
       </div>
     </div>
   `;
+}
+
+/* Compendium of Physical Activities:
+   kcal = MET × 3.5 × kg × min / 200  ≡  MET × kg × hours × 1.05 */
+const MET_KCAL_FACTOR = 1.05;
+
+function activitySessionKcal(met, weightKg, hours, mins) {
+  const durationHours = (Number(hours) || 0) + ((Number(mins) || 0) / 60);
+  return (Number(met) || 0) * (Number(weightKg) || 0) * durationHours * MET_KCAL_FACTOR;
+}
+
+/** Daily TDEE uses the 24-hour ledger only. Weekly extras are not averaged in. */
+function activityDailyKcal(activity, met, weightKg) {
+  if (activity && activity.freq && activity.freq !== 'daily') return 0;
+  return activitySessionKcal(met, weightKg, activity && activity.hours, activity && activity.mins);
+}
+
+function estimateTdeeFromActivities(activities, weightKg, defs) {
+  defs = defs || (typeof window !== 'undefined' && window.ACTIVITIES) || [];
+  let daily = 0;
+  (activities || []).forEach(sa => {
+    const def = defs.find(a => a.id === sa.id);
+    const met = def ? Number(def.met) : 1.5;
+    daily += activityDailyKcal(sa, met, weightKg);
+  });
+  return Math.round(daily);
 }
 
 /** Daily fluid target (litres) from weight; small bump if burn is higher. */
