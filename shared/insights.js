@@ -81,9 +81,10 @@ const KYH_BRAND_BLURB =
     if (!profile || !profile.sex) return out;
 
     if (profile.bmi != null) {
-      const [label] = bmiTag(profile.bmi);
+      const [label] = bmiTag(profile.bmi, profile);
       const bmi = profile.bmi;
-      if (bmi < 18.5) {
+      const kind = bmiClass(bmi, profile);
+      if (kind === 'under') {
         out.push(insight({
           id: 'bmi', domain: 'body', tone: 'act', priority: 20,
           title: 'Body mass is below the usual healthy range',
@@ -91,7 +92,7 @@ const KYH_BRAND_BLURB =
           next: 'Prioritise protein-rich meals and light strength work. If weight loss was unintentional, raise it with a clinician.',
           sources: ['heightCm', 'weightKg', 'bmi']
         }));
-      } else if (bmi < 25) {
+      } else if (kind === 'normal') {
         out.push(insight({
           id: 'bmi', domain: 'body', tone: 'good', priority: 40,
           title: 'Body mass is in a healthy range',
@@ -99,7 +100,7 @@ const KYH_BRAND_BLURB =
           next: 'Maintain with steady protein intake and some resistance work each week.',
           sources: ['heightCm', 'weightKg', 'bmi']
         }));
-      } else if (bmi < 30) {
+      } else if (kind === 'over') {
         out.push(insight({
           id: 'bmi', domain: 'body', tone: 'watch', priority: 25,
           title: 'Body mass is above the healthy range',

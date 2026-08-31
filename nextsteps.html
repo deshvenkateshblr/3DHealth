@@ -93,7 +93,8 @@ function deriveInterestTags(state) {
 
   if (p.reproStatus === 'Perimenopausal' || p.reproStatus === 'Post-menopausal') contextTags.add('Menopause');
   if (p.pcos) contextTags.add('PCOS');
-  if (p.bmi >= 25) contextTags.add('Weight Loss');
+  const kind = bmiClass(p.bmi, p);
+  if (kind === 'over' || kind === 'obese') contextTags.add('Weight Loss');
   if ((p.whtr || 0) >= 0.5) contextTags.add('Belly Fat');
   if (p.famMetabolic) { contextTags.add('Blood Sugar'); contextTags.add('Insulin Resistance'); }
 

@@ -82,7 +82,8 @@ function scoreNutrient(n) {
       ["Magnesium","Vitamin B12","Zinc","Protein"].includes(n.nutrient)) score += 4;
   if (isCurrentUse(profile.smoking) &&
       ["Zinc","Omega-3 (EPA/DHA)"].includes(n.nutrient)) score += 3;
-  if (profile.bmi >= 25 &&
+  const bmiKind = bmiClass(profile.bmi, profile);
+  if ((bmiKind === 'over' || bmiKind === 'obese') &&
       ["Protein","Fibre","Magnesium","Chromium","Omega-3 (EPA/DHA)","Added Sugars / Refined Carbohydrates"].includes(n.nutrient)) score += 6;
 
   return { score, matched };

@@ -210,11 +210,47 @@ function pickBestRow(rows, sex, crit) {
 function computeBMI(weightKg, heightCm) { return weightKg / Math.pow(heightCm / 100, 2); }
 function computeWHtR(waistCm, heightCm) { return waistCm / heightCm; }
 
-function bmiTag(bmi) {
-  if (bmi < 18.5) return ['Underweight', 'var(--amber)'];
-  if (bmi < 25) return ['Normal range', 'var(--teal)'];
-  if (bmi < 30) return ['Overweight', 'var(--amber)'];
-  return ['Obesity range', 'var(--rose)'];
+/** Default on: this app is built for India. Uncheck for generic WHO adult cutoffs. */
+function usesIndiaCutoffs(profile) {
+  if (profile && profile.adjustForIndia === false) return false;
+  return true;
+}
+
+function bodyCutoffs(profile) {
+  if (usesIndiaCutoffs(profile)) {
+    return {
+      bmiOver: 23,
+      bmiObese: 27.5,
+      waistMaleCm: 90,
+      waistFemaleCm: 80
+    };
+  }
+  return {
+    bmiOver: 25,
+    bmiObese: 30,
+    waistMaleCm: 94,
+    waistFemaleCm: 80
+  };
+}
+
+function bmiClass(bmi, profile) {
+  const n = Number(bmi);
+  if (isNaN(n)) return null;
+  const c = bodyCutoffs(profile);
+  if (n < 18.5) return 'under';
+  if (n < c.bmiOver) return 'normal';
+  if (n < c.bmiObese) return 'over';
+  return 'obese';
+}
+
+function bmiTag(bmi, profile) {
+  const kind = bmiClass(bmi, profile);
+  const india = usesIndiaCutoffs(profile);
+  const suffix = india ? ' · India' : '';
+  if (kind === 'under') return ['Underweight' + suffix, 'var(--amber)'];
+  if (kind === 'normal') return ['Normal range' + suffix, 'var(--teal)'];
+  if (kind === 'over') return ['Overweight' + suffix, 'var(--amber)'];
+  return ['Obesity range' + suffix, 'var(--rose)'];
 }
 function whtrTag(r) {
   if (r < 0.4) return ['Low (verify BMI too)', 'var(--amber)'];
@@ -274,10 +310,9 @@ function deriveRiskCategories(profile) {
   const bmi = Number(profile.bmi) || 0;
   const age = Number(profile.age) || 0;
 
-  // Prefer WHtR (height-adjusted) as primary central-obesity signal;
-  // keep absolute waist as secondary for shorter/taller extremes if desired.
+  const c = bodyCutoffs(profile);
   const centralObesity = whtr >= 0.5 ||
-    (profile.sex === 'Female' ? waistCm > 80 : waistCm > 94);
+    (profile.sex === 'Female' ? waistCm > c.waistFemaleCm : waistCm > c.waistMaleCm);
 
   const heavyAlcohol = isHeavyAlcohol(profile.alcohol);
   const smokingRisk  = isSmokingRisk(profile.smoking);
@@ -285,7 +320,7 @@ function deriveRiskCategories(profile) {
                          profile.reproStatus === 'Perimenopausal';
   const pcos = !!profile.pcos;
 
-  const metabolic = bmi >= 25 || centralObesity || !!profile.famMetabolic ||
+  const metabolic = bmi >= c.bmiOver || centralObesity || !!profile.famMetabolic ||
                     heavyAlcohol || pcos;
   const cardio    = age >= 40 || centralObesity || !!profile.famCardio ||
                     smokingRisk || postMenopausal;
@@ -465,14 +500,15 @@ function intakeFactorFromBody(profile) {
   // recommending a calorie cut based on missing data isn't a safe default.
   if (!bmi || isNaN(bmi)) return 1.0;
 
+  const c = bodyCutoffs(profile);
   let factor;
   if (bmi < 18.5) factor = 1.05;
-  else if (bmi < 25) factor = 0.98;
-  else if (bmi < 30) factor = 0.93;
+  else if (bmi < c.bmiOver) factor = 0.98;
+  else if (bmi < c.bmiObese) factor = 0.93;
   else factor = 0.90;
 
   // Central adiposity with "normal" BMI → gentle nudge down
-  if (bmi >= 18.5 && bmi < 25 && !isNaN(whtr) && whtr >= 0.5) {
+  if (bmi >= 18.5 && bmi < c.bmiOver && !isNaN(whtr) && whtr >= 0.5) {
     factor = Math.min(factor, 0.95);
   }
 
@@ -494,8 +530,8 @@ function proteinTargetGrams(profile, estimatedCalories) {
   const bmi = Number(profile && profile.bmi);
   let perKg = 1.2;
   if (!isNaN(bmi)) {
-    if (bmi < 18.5) perKg = 1.5;
-    else if (bmi >= 25) perKg = 1.5;
+    const kind = bmiClass(bmi, profile);
+    if (kind === 'under' || kind === 'over' || kind === 'obese') perKg = 1.5;
   }
   const burn = Number(estimatedCalories) || 0;
   if (burn > 2400) perKg = Math.min(perKg + 0.1, 1.6);

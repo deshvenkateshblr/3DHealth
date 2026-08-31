@@ -88,6 +88,14 @@
       </div>
     </div>
 
+    <div class="check-field" style="margin-bottom:22px;">
+      <input type="checkbox" id="f-adjust-india" checked>
+      <label for="f-adjust-india">Adjust for India</label>
+    </div>
+    <p class="lede" style="font-size:13px; margin-top:-14px; margin-bottom:22px;">
+      Uses BMI 23 / 27.5 and waist 90 cm (men) / 80 cm (women). Uncheck for generic adult cutoffs (BMI 25 / 30, waist 94 cm men).
+    </p>
+
     <div class="cat-title">Lifestyle</div>
     <div class="field-row" style="margin-bottom:22px;">
       <div class="field">
@@ -221,6 +229,8 @@ if (p.waistCm) {
   document.getElementById('f-waist-cm').value = Math.round(p.waistCm * 10) / 10;
   document.getElementById('f-waist-in').value = Math.round(cmToInFlat(p.waistCm) * 10) / 10;
 }
+if (p.adjustForIndia === false) document.getElementById('f-adjust-india').checked = false;
+else document.getElementById('f-adjust-india').checked = true;
 if (p.famMetabolic) document.getElementById('f-fam-metabolic').checked = true;
 if (p.famCardio) document.getElementById('f-fam-cardio').checked = true;
 if (p.smoking) document.getElementById('f-smoking').value = normalizeLifestyle(p.smoking);
@@ -327,10 +337,11 @@ function refreshMetrics() {
   const bmiTagEl = document.getElementById('bmi-tag-text');
   const whtrEl = document.getElementById('whtr-ring');
   const whtrTagEl = document.getElementById('whtr-tag-text');
+  const cutoffProfile = { adjustForIndia: document.getElementById('f-adjust-india').checked };
 
   if (heightCm > 0 && weightKg > 0) {
     const bmi = computeBMI(weightKg, heightCm);
-    const [label] = bmiTag(bmi);
+    const [label] = bmiTag(bmi, cutoffProfile);
     bmiEl.textContent = bmi.toFixed(1);
     bmiTagEl.textContent = label;
   } else {
@@ -349,6 +360,7 @@ function refreshMetrics() {
 ['f-height-cm', 'f-height-ft', 'f-height-in', 'f-weight-kg', 'f-weight-lb', 'f-waist-cm', 'f-waist-in'].forEach(id => {
   document.getElementById(id).addEventListener('input', refreshMetrics);
 });
+document.getElementById('f-adjust-india').addEventListener('change', refreshMetrics);
 refreshMetrics();
 
 
@@ -435,6 +447,7 @@ document.getElementById('profile-form').addEventListener('submit', (e) => {
         famCardio: document.getElementById('f-fam-cardio').checked,
         pcos: sex === 'Female' ? document.getElementById('f-pcos').checked : false,
         dietType, cuisine,
+        adjustForIndia: document.getElementById('f-adjust-india').checked,
         medicalStatus: (state.profile && state.profile.medicalStatus) || 'stable'
       }
     });
@@ -457,6 +470,7 @@ document.getElementById('profile-form').addEventListener('submit', (e) => {
     reproStatus: sex === 'Female' ? reproStatus : null,
     pcos: sex === 'Female' ? document.getElementById('f-pcos').checked : false,
     dietType, cuisine,
+    adjustForIndia: document.getElementById('f-adjust-india').checked,
     medicalStatus: (state.profile && state.profile.medicalStatus) || 'stable',
     symptoms: p.symptoms || []
   };
