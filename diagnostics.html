@@ -87,6 +87,21 @@ function getPriorityRiskTests(profile){
     out.push({test: 'Iron Studies', reason: `${profile.dietType} diet`});
   }
 
+  // Age- and sex-based cancer screening (not metabolic risk).
+  // Pinned so they are not crowded out of the top 10 by generic labs.
+  if (profile.sex === 'Female' && age >= 21) {
+    out.push({test: 'Pap Smear', reason: 'Cervical screening from age 21'});
+  }
+  if (profile.sex === 'Female' && age >= 40) {
+    out.push({test: 'Mammography', reason: 'Breast screening from age 40'});
+  }
+  if (profile.sex === 'Male' && age >= 50) {
+    out.push({test: 'PSA', reason: 'Prostate screening discussion from age 50'});
+  }
+  if (age >= 45) {
+    out.push({test: 'FIT Test', reason: 'Colorectal screening from age 45'});
+  }
+
   return out;
 }
 

@@ -812,7 +812,7 @@ window.DIAG = [
   },
   {
     "test": "PSA",
-    "profile": "Cardiovascular;Mixed",
+    "profile": "Age Specific;Low Risk",
     "gender": "Male",
     "age": ">50",
     "note": "Prostate cancer screening",
@@ -858,9 +858,9 @@ window.DIAG = [
   },
   {
     "test": "Mammography",
-    "profile": "Metabolic;Mixed",
+    "profile": "Female Specific;Age Specific;Low Risk",
     "gender": "Female",
-    "age": ">40",
+    "age": "All",
     "note": "Breast cancer screening",
     "symptoms": [
       "Palpable Lump"
@@ -875,9 +875,9 @@ window.DIAG = [
   },
   {
     "test": "Pap Smear",
-    "profile": "Low Risk;Mixed",
+    "profile": "Female Specific;Low Risk",
     "gender": "Female",
-    "age": ">30",
+    "age": ">21",
     "note": "Cervical cancer screening",
     "symptoms": [
       "Menstrual Pain"
@@ -1012,7 +1012,7 @@ window.DIAG = [
     "test": "Colonoscopy",
     "profile": "Age Specific",
     "gender": "All",
-    "age": ">50",
+    "age": ">45",
     "note": "Colorectal cancer screening",
     "symptoms": [
       "Constipation",
@@ -1034,7 +1034,7 @@ window.DIAG = [
     "test": "FIT Test",
     "profile": "Age Specific",
     "gender": "All",
-    "age": ">50",
+    "age": ">45",
     "note": "Fecal occult blood test",
     "symptoms": [
       "Hemorrhoids",
@@ -1052,7 +1052,7 @@ window.DIAG = [
     "test": "Sigmoidoscopy",
     "profile": "Age Specific",
     "gender": "All",
-    "age": ">50",
+    "age": ">45",
     "note": "Lower colon screening",
     "symptoms": [
       "Constipation",
