@@ -263,6 +263,7 @@ function factorLabel(f) {
   const proteinIdeas = getFoodIdeas("Protein");
   const carbIdeas    = getFoodIdeas("Carbohydrates");
   const fatIdeas     = getFoodIdeas("Fats");
+  const waterGlasses = Math.round((waterL * 1000) / 250); // ~250 mL per glass
   const insightText  = generateClinicalInsight();
   const priorityText = buildPriorityParagraph();
   const meetingNotesHtml = buildMeetingNotes();
@@ -283,11 +284,6 @@ function factorLabel(f) {
         <div class="v">~${Number(estBurn).toLocaleString()}</div>
         <div class="u">kcal / day</div>
       </div>
-      <div class="stat-card">
-        <div class="k">Fluids</div>
-        <div class="v">~${waterL}</div>
-        <div class="u">litres / day</div>
-      </div>
     </div>
 
     <div class="note-block" style="margin-bottom:24px; font-size:13px;">
@@ -300,15 +296,6 @@ function factorLabel(f) {
         <p style="margin:8px 0 0 0; line-height:1.6; font-size:12px; color:var(--ink-soft);">
             <strong>Formula:</strong> ${Number(estBurn).toLocaleString()} × ${factor} ≈ ${targetCal.toLocaleString()} kcal
         </p>
-    </div>
-    
-    <div class="note-block teal" style="margin-bottom:16px; font-size:13px;">
-      <span class="k">Hydration</span>
-      <p style="margin:8px 0 0 0; line-height:1.6;">
-        About <strong>${waterL} L/day</strong> from body weight (~33 mL/kg)${Number(estBurn) > 1800 ? ', with a small increase for higher activity' : ''}.
-        Includes water and other drinks; food adds some moisture too.
-        Drink more in heat or hard training. Guide only — not a medical prescription.
-      </p>
     </div>
 
 
@@ -376,6 +363,19 @@ function factorLabel(f) {
   <div style="margin-top:8px;padding:8px 10px;background:var(--paper);border-radius:4px;font-size:12.5px;">
     <b style="color:var(--teal);">Ideas for you:</b> ${esc(fatIdeas)}
   </div>` : ""}
+</div>
+
+<div class="test-card" style="margin-bottom:10px;">
+  <div class="name">Water</div>
+  <div class="test-desc" style="margin-top:4px;">
+    Target: <b>~${waterL} L/day (~${waterGlasses} glasses)</b>
+  </div>
+  <div style="font-size:13px; color:var(--ink-soft); margin-top:6px;">
+    About ${waterL} L/day from body weight (~33 mL/kg)${Number(estBurn) > 1800 ? ', with a small increase for higher activity' : ''}. Includes water and other drinks; food adds some moisture too.
+  </div>
+  <div style="margin-top:8px;padding:8px 10px;background:var(--paper);border-radius:4px;font-size:12.5px;">
+    <b style="color:var(--teal);">Ideas for you:</b> Spread across the day rather than all at once; add more in heat or after exercise. Water, buttermilk, coconut water, and herbal tea all count. Guide only — not a medical prescription.
+  </div>
 </div>
 
 <div class="page-footer-nav" style="margin-top:48px;">
