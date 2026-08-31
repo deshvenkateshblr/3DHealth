@@ -364,7 +364,7 @@ document.getElementById('profile-form').addEventListener('submit', (e) => {
   const dietType = document.getElementById('f-diet-type').value;
   const cuisine = document.getElementById('f-cuisine-type').value;
   
- medicalStatus = (state.profile && state.profile.medicalStatus) || 'stable';
+  const medicalStatus = (state.profile && state.profile.medicalStatus) || 'stable';
   
   const msg = document.getElementById('validation-msg');
 

@@ -125,6 +125,7 @@ function renderPage() {
 
     <div class="page-footer-nav">
       <a href="routine-plan.html" class="btn secondary">← Back</a>
+      <span class="validation-msg" id="validation-msg" style="margin-right:14px;"></span>
       <button type="button" class="btn" id="continue-btn">Synthesize Diet →</button>
     </div>
   `;
@@ -148,9 +149,12 @@ function renderPage() {
 
   // Continue
   document.getElementById("continue-btn").addEventListener("click", () => {
+    const msg = document.getElementById("validation-msg");
     if (Object.keys(dietState.frequency || {}).length < (window.FOOD_QUALITY || []).length) {
-      return alert("Please answer all Food Quality markers.");
+      msg.textContent = "Please answer all Food Quality markers before continuing.";
+      return;
     }
+    msg.textContent = "";
 
     const estBurn = Number(routine.estimatedCalories) || 2200;
     const { cal: targetCal, factor } = estimateTargetCalories(estBurn, profile);

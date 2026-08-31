@@ -62,62 +62,6 @@ a { color: inherit; }
   display: block;
 }
 
-/* Caption – strong and centered in the available space */
-.brand-caption {
-  font-family: var(--serif);
-  font-size: 28px;
-  font-weight: 400;
-  font-style: italic;
-  color: var(--ink);
-  letter-spacing: 0.04em;
-  text-align: center;
-  line-height: 1.25;
-  justify-self: center;
-}
-
-/* Progress Map – compact and right-aligned */
-.map-route {
-  display: flex;
-  align-items: center;
-  gap: 3px;
-  justify-content: flex-end;
-}
-
-.map-stop {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-  min-width: 42px;
-}
-
-.map-pin {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 1.5px solid var(--ink);
-  background: var(--panel);
-}
-
-.map-stop .label {
-  font-family: var(--mono);
-  font-size: 7.5px;
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
-  color: var(--muted);
-}
-
-.map-line {
-  width: 9px;
-  height: 1.5px;
-  background: var(--line);
-  margin-bottom: 10px;
-  flex-shrink: 0;
-}
-
 /* 2. Caption – larger + more letter spacing */
 .brand-caption {
   font-family: var(--serif);
@@ -1172,11 +1116,6 @@ footer {
 /* ============================================================
    Home / Hero
    ============================================================ */
-.hero-section {
-  padding: 60px clamp(16px, 4vw, 48px) 40px;
-  max-width: 920px;
-  margin: 0 auto;
-}
 .hero-section h1 {
   font-family: var(--serif);
   font-weight: 400;
@@ -1256,68 +1195,6 @@ footer {
   font-size: 16.5px;
   line-height: 1.6;
   color: var(--ink-soft);
-}
-
-/* ===== Outcome Cards – more polished ===== */
-.outcome-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-  margin-bottom: 48px;
-}
-
-.outcome-card {
-  background: var(--panel);
-  border: 1px solid var(--ink);
-  padding: 22px 20px;
-  display: flex;
-  flex-direction: column;
-  transition: border-color 0.2s ease, transform 0.2s ease;
-}
-
-.outcome-card:hover {
-  border-color: var(--teal);
-  transform: translateY(-2px);
-}
-
-.outcome-card .verb {
-  font-family: var(--mono);
-  font-size: 11px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--teal);
-  margin-bottom: 10px;
-  display: flex;
-  align-items: center;
-  gap: 7px;
-}
-
-.outcome-card h3 {
-  font-family: var(--serif);
-  font-weight: 400;
-  font-size: 18px;
-  margin: 0 0 8px;
-  line-height: 1.3;
-}
-
-.outcome-card p {
-  font-size: 13.5px;
-  line-height: 1.55;
-  color: var(--ink-soft);
-  margin: 0;
-  flex-grow: 1;
-}
-
-/* Responsive cards */
-@media (max-width: 900px) {
-  .outcome-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-@media (max-width: 520px) {
-  .outcome-grid {
-    grid-template-columns: 1fr;
-  }
 }
 
 /* ===== Start Button – more premium ===== */

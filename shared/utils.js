@@ -39,7 +39,9 @@ function loadState() {
   const params = new URLSearchParams(location.search);
   if (params.has('d')) {
     try {
-      const json = decodeURIComponent(escape(atob(decodeURIComponent(params.get('d')))));
+      const binary = atob(decodeURIComponent(params.get('d')));
+      const bytes = Uint8Array.from(binary, c => c.charCodeAt(0));
+      const json = new TextDecoder().decode(bytes);
       fromUrl = JSON.parse(json);
     } catch (e) { /* ignore malformed payloads */ }
   }
@@ -77,7 +79,10 @@ function persistState(state) {
 
 function encodeStateParam(state) {
   const json = JSON.stringify(state);
-  return encodeURIComponent(btoa(unescape(encodeURIComponent(json))));
+  const bytes = new TextEncoder().encode(json);
+  let binary = '';
+  bytes.forEach(b => { binary += String.fromCharCode(b); });
+  return encodeURIComponent(btoa(binary));
 }
 
 function goTo(url, state) {
@@ -388,7 +393,9 @@ function intakeFactorFromBody(profile) {
   const bmi = Number(profile && profile.bmi);
   const whtr = Number(profile && profile.whtr);
 
-  if (!bmi || isNaN(bmi)) return 0.95;
+  // Unknown BMI: default to maintenance (1.0) rather than a deficit --
+  // recommending a calorie cut based on missing data isn't a safe default.
+  if (!bmi || isNaN(bmi)) return 1.0;
 
   let factor;
   if (bmi < 18.5) factor = 1.05;

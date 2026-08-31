@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Diagnostics &mdash; Vital Framework</title>
+<title>Diagnostics &mdash; KYH</title>
 <link rel="stylesheet" href="shared/styles.css">
 </head>
 <body>
@@ -16,7 +16,7 @@
 </main>
 
 <footer>
-  <span>Vital Framework &mdash; runs entirely in your browser. No data leaves this page.</span>
+  <span>KYH &mdash; runs entirely in your browser. No data leaves this page.</span>
   <span>Not a substitute for professional medical advice.</span>
 </footer>
 
@@ -50,33 +50,48 @@ DIAG.forEach(d=>{
   });
 });
 
-/* ---- dietary deficiency-risk boost ----
-   Vegan/vegetarian/Jain diets carry well-documented elevated risk of B12,
-   iron, and (to a lesser extent, since it's less diet-driven than sun
-   exposure) vitamin D deficiency. Weight is a gradient, not a flag, so
-   Vegan (no B12 in diet at all) outranks Vegetarian/Jain (dairy still
-   provides some), which outrank Eggetarian/Pescatarian (eggs/fish cover
-   most of the gap). Non-Vegetarian gets no boost. */
-const DIET_DEFICIENCY_RISK = {
-  'Vegan': 3,
-  'Vegetarian': 2,
-  'Jain': 2,
-  'Eggetarian': 1,
-  'Pescatarian': 1,
-  'Non-Vegetarian': 0
-};
-const DIET_LINKED_TESTS = new Set(['Vitamin B12', 'Iron Studies', 'Vitamin D']);
-function dietRiskBoost(testName, dietType){
-  if (!DIET_LINKED_TESTS.has(testName)) return 0;
-  return DIET_DEFICIENCY_RISK[dietType] || 0;
-}
-function dietMatchLabel(dietType){
-  return `${dietType} diet`;
+/* ---- priority risk-group tests ----
+   Some low-risk baseline tests deserve to jump ahead of the generic
+   baseline panel for specific, well-established demographic/lifestyle
+   risk groups -- even before any symptom is reported. Kept as explicit,
+   named rules rather than a scoring formula so it's easy to see exactly
+   which cohort earns which test, and easy to extend later. Order in the
+   returned list is the order they get pinned in. */
+function getPriorityRiskTests(profile){
+  const out = [];
+  const age = profile.age || 0;
+  const menopausal = profile.reproStatus === 'Perimenopausal' || profile.reproStatus === 'Post-menopausal';
+  const highDeficiencyRiskDiet = ['Vegan', 'Vegetarian', 'Jain'].includes(profile.dietType);
+
+  // Bone health: estrogen decline (peri/post-menopausal) or general age 50+
+  // both meaningfully accelerate bone loss -- Vitamin D and Calcium matter
+  // more here than as a generic baseline line item.
+  if (menopausal) {
+    out.push({test: 'Vitamin D', reason: profile.reproStatus});
+    out.push({test: 'Calcium Test', reason: profile.reproStatus});
+  } else if (age >= 50) {
+    out.push({test: 'Vitamin D', reason: 'Age 50+'});
+    out.push({test: 'Calcium Test', reason: 'Age 50+'});
+  }
+
+  // B12: absorption declines with age (reduced stomach acid) independent
+  // of diet, OR low dietary intake on a vegan/vegetarian/Jain diet.
+  if (age >= 60) {
+    out.push({test: 'Vitamin B12', reason: 'Age 60+'});
+  } else if (highDeficiencyRiskDiet) {
+    out.push({test: 'Vitamin B12', reason: `${profile.dietType} diet`});
+  }
+
+  // Iron: primarily a dietary-intake risk group.
+  if (highDeficiencyRiskDiet) {
+    out.push({test: 'Iron Studies', reason: `${profile.dietType} diet`});
+  }
+
+  return out;
 }
 
-/* ---- baseline (category-driven) selection, used to fill any slots symptoms don't cover ---- */
-/* ---- baseline (category-driven) selection, used to fill any slots symptoms don't cover ---- */
-function selectBaseline(matches, cats, limit, exclude, dietType){
+/* ---- baseline (category-driven) selection, used to fill any slots symptoms/priority don't cover ---- */
+function selectBaseline(matches, cats, limit, exclude){
   const groups = {};
   matches.forEach(d=>{
     if(exclude.has(d.test)) return;
@@ -84,17 +99,14 @@ function selectBaseline(matches, cats, limit, exclude, dietType){
     const g = GROUP_ORDER.find(o=>tokens.includes(o) && cats.includes(o)) || 'Low Risk';
     (groups[g]=groups[g]||[]).push(d);
   });
-  
-  // Sort baselines by diet-deficiency-risk boost first (so B12/Iron/D surface
-  // for vegetarian/vegan/Jain profiles), then clinical_tier, then alphabetically
-  Object.keys(groups).forEach(g => 
-    groups[g].sort((a, b) => 
-      dietRiskBoost(b.test, dietType) - dietRiskBoost(a.test, dietType) ||
-      (a.clinical_tier || 3) - (b.clinical_tier || 3) || 
+
+  Object.keys(groups).forEach(g =>
+    groups[g].sort((a, b) =>
+      (a.clinical_tier || 3) - (b.clinical_tier || 3) ||
       a.test.localeCompare(b.test)
     )
   );
-  
+
   const present = GROUP_ORDER.filter(g=>groups[g] && groups[g].length);
   const out = [];
   let idx = 0;
@@ -102,7 +114,7 @@ function selectBaseline(matches, cats, limit, exclude, dietType){
     const g = present[idx % present.length];
     if(groups[g].length){
       const d = groups[g].shift();
-      out.push(Object.assign({group:g, viaSymptoms:[], bySymptom:false, viaDiet: dietRiskBoost(d.test, dietType) > 0}, d));
+      out.push(Object.assign({group:g, viaSymptoms:[], bySymptom:false}, d));
     }
     idx++;
   }
@@ -110,7 +122,7 @@ function selectBaseline(matches, cats, limit, exclude, dietType){
 }
 
 /* ---- symptom-driven selection, ranked highest priority ---- */
-function selectFromSymptoms(matches, cats, selectedSymptomsArr, dietType){
+function selectFromSymptoms(matches, cats, selectedSymptomsArr){
   const byName = {};
   matches.forEach(d=>{ byName[d.test] = d; });
   const out = [];
@@ -127,28 +139,61 @@ function selectFromSymptoms(matches, cats, selectedSymptomsArr, dietType){
       seen.add(testName);
       const tokens = d.profile.split(';').map(s=>s.trim());
       const g = GROUP_ORDER.find(o=>tokens.includes(o) && cats.includes(o)) || tokens[0] || 'Low Risk';
-      out.push(Object.assign({group:g, viaSymptoms:[sym], bySymptom:true, viaDiet: dietRiskBoost(testName, dietType) > 0}, d));
+      out.push(Object.assign({group:g, viaSymptoms:[sym], bySymptom:true}, d));
     });
   });
   return out;
 }
 
-function buildRecommendations(matches, cats, selectedSymptomsArr, dietType){
-  const symptomTests = selectFromSymptoms(matches, cats, selectedSymptomsArr, dietType)
-    // Sort by matched symptoms, then diet-deficiency-risk boost, then clinical_tier, then alphabetically
-    .sort((a, b) => 
-      b.viaSymptoms.length - a.viaSymptoms.length || 
-      dietRiskBoost(b.test, dietType) - dietRiskBoost(a.test, dietType) ||
-      (a.clinical_tier || 3) - (b.clinical_tier || 3) || 
+function buildRecommendations(matches, cats, selectedSymptomsArr, profile){
+  // 1. Symptom-matched tests always take precedence -- this is the real
+  //    "based on what you told us" value, so nothing should crowd it out.
+  const symptomTests = selectFromSymptoms(matches, cats, selectedSymptomsArr)
+    .sort((a, b) =>
+      b.viaSymptoms.length - a.viaSymptoms.length ||
+      (a.clinical_tier || 3) - (b.clinical_tier || 3) ||
       a.test.localeCompare(b.test)
     )
     .slice(0,10);
-    
-  const excluded = new Set(symptomTests.map(t=>t.test));
+
+  const usedNames = new Set(symptomTests.map(t=>t.test));
   const combined = symptomTests.slice();
-  
+
+  // Enrich any symptom-matched test that's ALSO a named risk-group priority
+  // (e.g. Vitamin D matched via a symptom, but the person is also
+  // postmenopausal) so the badge shows the fuller reason without re-ranking.
+  const priorityByTest = {};
+  getPriorityRiskTests(profile).forEach(({test, reason}) => {
+    if (!(test in priorityByTest)) priorityByTest[test] = reason;
+  });
+  combined.forEach(t => {
+    if (priorityByTest[t.test]) {
+      t.viaRiskGroup = true;
+      t.riskGroupReason = priorityByTest[t.test];
+    }
+  });
+
+  // 2. Named risk-group priority tests get pinned next, ahead of the
+  //    generic baseline fill -- only for tests the profile is actually
+  //    eligible for (present in `matches`).
+  if (combined.length < 10) {
+    const byName = {};
+    matches.forEach(d => { byName[d.test] = d; });
+    getPriorityRiskTests(profile).forEach(({test, reason}) => {
+      if (combined.length >= 10) return;
+      if (usedNames.has(test)) return;
+      const d = byName[test];
+      if (!d) return; // not eligible for this profile's age/gender/category
+      usedNames.add(test);
+      const tokens = d.profile.split(';').map(s => s.trim());
+      const g = GROUP_ORDER.find(o => tokens.includes(o) && cats.includes(o)) || 'Low Risk';
+      combined.push(Object.assign({group: g, viaSymptoms: [], bySymptom: false, viaRiskGroup: true, riskGroupReason: reason}, d));
+    });
+  }
+
+  // 3. Baseline fill for whatever's left, unchanged.
   if(combined.length<10){
-    selectBaseline(matches, cats, 10-combined.length, excluded, dietType).forEach(t=>combined.push(t));
+    selectBaseline(matches, cats, 10-combined.length, usedNames).forEach(t=>combined.push(t));
   }
   return combined;
 }
@@ -179,7 +224,7 @@ function renderResultsStage(){
     !isExcluded(d, userExclusionTraits)
   );
 
-  const top10 = buildRecommendations(matches, cats, symptoms, profile.dietType);
+  const top10 = buildRecommendations(matches, cats, symptoms, profile);
   const prevAnswers = (state.diagnostics && state.diagnostics.answers) || {};
 
   let cardsHtml = '';
@@ -192,7 +237,7 @@ function renderResultsStage(){
     const resultOpts = RESULT_OPTIONS.map(r=>`<option value="${r}" ${prev.resultStatus===r?'selected':''}>${r}</option>`).join('');
     const matchReasons = [].concat(
       d.bySymptom ? d.viaSymptoms : [],
-      d.viaDiet ? [dietMatchLabel(profile.dietType)] : []
+      d.viaRiskGroup ? [d.riskGroupReason] : []
     );
     const originTag = matchReasons.length
       ? `<span class="tag ok">Matches: ${esc(matchReasons.join(', '))}</span>`
@@ -203,14 +248,15 @@ function renderResultsStage(){
     const prepChip = d.prep && d.prep !== "None" ? `<span class="tag" style="background:var(--paper);border:none;">Prep: ${esc(d.prep)}</span>` : '';
 
     // ADDED: The Info Tooltip icon and content
+    const tooltipId = `tooltip-content-${i}`;
     const infoIcon = d.extended_info ? `
-      <div class="info-tooltip-wrap" tabindex="0" aria-label="More info about ${esc(d.test)}">
+      <div class="info-tooltip-wrap" tabindex="0" role="tooltip" aria-label="More info about ${esc(d.test)}" aria-describedby="${tooltipId}">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="12" cy="12" r="10"></circle>
           <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
           <line x1="12" y1="17" x2="12.01" y2="17"></line>
         </svg>
-        <div class="info-tooltip-content">${esc(d.extended_info)}</div>
+        <div class="info-tooltip-content" id="${tooltipId}">${esc(d.extended_info)}</div>
       </div>
     ` : '';
 
@@ -322,7 +368,7 @@ function renderResultsStage(){
       }
     });
     const diagnostics = {
-      topTests: top10.map(d=>({test:d.test, group:d.group, bySymptom:d.bySymptom, viaSymptoms:d.viaSymptoms, viaDiet:d.viaDiet||false})),
+      topTests: top10.map(d=>({test:d.test, group:d.group, bySymptom:d.bySymptom, viaSymptoms:d.viaSymptoms, viaRiskGroup:d.viaRiskGroup||false, riskGroupReason:d.riskGroupReason||null})),
       answers
     };
     const next = Object.assign({}, state, {diagnostics});

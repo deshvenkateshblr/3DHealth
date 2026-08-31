@@ -74,6 +74,7 @@
 
 <script src="shared/data.videos.sb.js"></script>
 <script src="shared/data.videos.nbs.js"></script>
+<script src="shared/data.activities.js"></script>
 <script src="shared/utils.js"></script>
 <script src="shared/insights.js"></script>
 <script>
@@ -101,9 +102,26 @@ function deriveInterestTags(state) {
   if (freq.fried_ultraprocessed === 'Daily' || freq.fried_ultraprocessed === '3-5x/Wk') contextTags.add('Ultra-Processed Foods');
   if (freq.leafy_greens === 'Rarely' || freq.fruits === 'Rarely') contextTags.add('Healthy Eating');
 
-  if (state.routine) {
-    if ((state.routine.actual?.sleep || 0) < 6.5) contextTags.add('Sleep');
-    if ((state.routine.actual?.exercise || 0) < 0.5) contextTags.add('Beginner Workout');
+  // Only derive sleep/exercise context tags if the Routine step was
+  // actually completed -- an empty activities array means no data, not
+  // "0 hours of exercise" as a real answer.
+  if (state.routine && Array.isArray(state.routine.activities) && state.routine.activities.length) {
+    const activityById = {};
+    (window.ACTIVITIES || []).forEach(a => { activityById[a.id] = a; });
+    const toHrs = a => (Number(a.hours) || 0) + (Number(a.mins) || 0) / 60;
+
+    const sleepAct = state.routine.activities.find(a => a.id === 'act_011');
+    const sleepHrs = sleepAct ? toHrs(sleepAct) : 0;
+    if (sleepHrs < 6.5) contextTags.add('Sleep');
+
+    // "Exercise" = time logged in intentional-movement categories, not
+    // baseline rest/chores.
+    const EXERCISE_CATEGORIES = new Set(['Sports & Agility', 'Gym & Vigorous', 'Walking & Mobility', 'Mind & Body']);
+    const exerciseHrs = state.routine.activities.reduce((sum, a) => {
+      const def = activityById[a.id];
+      return (def && EXERCISE_CATEGORIES.has(def.category)) ? sum + toHrs(a) : sum;
+    }, 0);
+    if (exerciseHrs < 0.5) contextTags.add('Beginner Workout');
   }
   return { symptomTags, contextTags: [...contextTags] };
 }
@@ -234,7 +252,7 @@ function render() {
       Insight-based prompt (not a raw data dump). Copy into ChatGPT, Claude, or any assistant.
     </p>
     <div class="prompt-box" id="ai-prompt">${esc(promptText)}</div>
-    <button type="button" class="btn secondary" id="copy-prompt-btn" style="margin-bottom:36px;">Copy prompt</button>
+    <button type="button" class="btn secondary" id="copy-prompt-btn" style="margin-bottom:36px;" aria-live="polite">Copy prompt</button>
 
     <div class="cat-title" id="learn">Recommended videos</div>
     <p class="lede" style="font-size:14px; margin-bottom:8px;">

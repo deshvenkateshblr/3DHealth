@@ -359,7 +359,7 @@ window.EXERCISES = [
   {
     "exercise": "Pelvic Tilts",
     "profile": "Core & Pelvic Health",
-    "gender": "Female", // Highly beneficial for women, but safe for all
+    "gender": "All", // Highly beneficial for women, but safe for all
     "age": "All",
     "intensity": "Low",
     "equipment": "Mat",
@@ -435,7 +435,7 @@ window.EXERCISES = [
   {
     "exercise": "Dead Bug",
     "profile": "Core Stability",
-    "gender": "Male",
+    "gender": "All",
     "age": "All",
     "intensity": "Moderate",
     "equipment": "Mat",

@@ -113,54 +113,6 @@ renderHeader('diet', 'KYH-Diet Insights');
 const main = document.getElementById('main-content');
 
 
-function estimateIntake(rhythm) {
-  let intake = 0;
-  const calMap = { 'Light': 300, 'Standard': 600, 'Heavy': 900 };
-  for (const meal in rhythm) {
-    if (rhythm[meal] && rhythm[meal] !== 'Skip') {
-      intake += calMap[rhythm[meal]] || 0;
-    }
-  }
-  return intake;
-}
-
-function generateClinicalInsight() {
-  let insights = [];
-  const freq = diet.frequency || {};
-
-  // Insight 1: Fatigue + Low Greens
-  if ((symptoms.includes('Fatigue') || symptoms.includes('Low Energy')) && (freq.greens === 'Rarely' || freq.greens === '1-2x/Wk')) {
-    let text = `Your fatigue is likely connected to your diet. As someone who rarely eats leafy greens, you are at a higher risk for Iron and Magnesium deficiencies.`;
-    if (diet.type.includes('Vegetarian') || diet.type === 'Vegan') {
-      text += ` Since you eat a plant-based diet, this risk is amplified. Adding a serving of spinach or kale 3x a week is your highest leverage action right now.`;
-    }
-    insights.push(text);
-  }
-
-  // Insight 2: Digestion + Low Fiber
-  if ((symptoms.includes('Constipation') || symptoms.includes('Bloating')) && (freq.fruits === 'Rarely' || freq.legumes === 'Rarely')) {
-    insights.push(`Your digestive symptoms strongly correlate with a lack of soluble fiber. Your frequency grid shows low intake of fruits or legumes. Gradually adding chia seeds or a daily serving of whole fruit will improve gut motility within 72 hours.`);
-  }
-
-  // Insight 3: Sleep + Sugary Drinks
-  if ((symptoms.includes('Insomnia') || symptoms.includes('Restlessness')) && freq.sugary_drinks !== 'Rarely') {
-    insights.push(`Your sleep disruption may be tied to blood sugar volatility. Consuming sugary drinks regularly causes late-day crashes that spike cortisol (the stress hormone), keeping you awake. Swapping one soda for sparkling water is your easiest win.`);
-  }
-
-  // Fallback if no specific symptom matches
-  if (insights.length === 0) {
-    if (freq.processed !== 'Rarely') {
-      insights.push(`Your baseline health is solid, but reducing ultra-processed foods from '${freq.processed}' to 'Rarely' will dramatically lower long-term inflammation markers.`);
-    } else {
-      insights.push(`Your current dietary patterns look well-aligned with a baseline healthy profile. Focus on maintaining consistency and hitting your daily protein targets to support your metabolism.`);
-    }
-  }
-
-  return insights[0]; // Return the highest priority insight
-}
-
-
-
 function init() {
   if (!diet.type) {
     main.innerHTML = `<div class="empty-state">Data missing. <a href="diet.html">Go back →</a></div>`;

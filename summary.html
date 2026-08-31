@@ -308,7 +308,7 @@ function formatAllFindingsText() {
  const p = profile;
  let t = KYH_REPORT_HEADER;
  t += `${p.sex || ''} · age ${p.age || '—'}\n`;
- t += `Generated ${new Date ().toLocaleString()}\n\n`;
+ t += `Generated ${new Date().toLocaleString()}\n\n`;
 
  insightsByStep(cachedInsights).forEach(({ step, items }) => {
  t += `=== ${step.title.toUpperCase()} ===\n`;
