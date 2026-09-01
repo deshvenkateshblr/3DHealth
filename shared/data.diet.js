@@ -95,7 +95,7 @@ window.FOOD_QUALITY_OPTIONS = ["Daily", "3-5x/Wk", "1-2x/Wk", "Rarely"];
 window.NUTRIENTS = [
   {
     nutrient: "Protein",
-    profile: "Low Risk;Metabolic;Mixed",
+    profile: "Low Risk;Metabolic;Cardiometabolic",
     note: "Essential amino acids for muscle repair, enzymes, immune function and satiety",
     symptoms: ["Fatigue", "Low Energy", "Muscle Weakness", "Hair Loss", "Underweight", "Recovery Fatigue", "Immune Weakness"],
     direction: "optimize"
@@ -123,35 +123,35 @@ window.NUTRIENTS = [
   },
   {
     nutrient: "Added Sugars / Refined Carbohydrates",
-    profile: "Metabolic;Mixed",
+    profile: "Metabolic;Cardiometabolic",
     note: "Limit for blood-sugar stability, inflammation control and gut health",
     symptoms: ["Sugar Cravings", "Emotional Eating", "Fatigue", "Bloating", "Brain Fog", "Overweight", "Obesity"],
     direction: "limit"
   },
   {
     nutrient: "Vitamin D",
-    profile: "Low Risk;Metabolic;Mixed",
+    profile: "Low Risk;Metabolic;Cardiometabolic",
     note: "Bone health, immune modulation, mood and muscle function",
     symptoms: ["Fatigue", "Low Energy", "Muscle Weakness", "Depression", "Brain Fog", "Back Pain", "Joint Stiffness"],
     direction: "optimize"
   },
   {
     nutrient: "Magnesium",
-    profile: "Low Risk;Metabolic;Mixed",
+    profile: "Low Risk;Metabolic;Cardiometabolic",
     note: "Sleep, stress response, muscle relaxation and glucose metabolism",
     symptoms: ["Fatigue", "Low Energy", "Insomnia", "Anxiety", "Constipation", "Brain Fog", "Muscle Weakness", "Leg Cramps"],
     direction: "optimize"
   },
   {
     nutrient: "Iron",
-    profile: "Low Risk;Mixed",
+    profile: "Low Risk;Cardiometabolic",
     note: "Oxygen transport and energy production",
     symptoms: ["Fatigue", "Low Energy", "Hair Loss", "Brain Fog", "Cold Intolerance"],
     direction: "optimize"
   },
   {
     nutrient: "Vitamin B12",
-    profile: "Low Risk;Mixed",
+    profile: "Low Risk;Cardiometabolic",
     note: "Nerve health, red blood cell formation and energy metabolism",
     symptoms: ["Fatigue", "Low Energy", "Brain Fog", "Poor Concentration", "Numbness or Tingling", "Memory Loss"],
     direction: "optimize"
@@ -165,7 +165,7 @@ window.NUTRIENTS = [
   },
   {
     nutrient: "Zinc",
-    profile: "Low Risk;Mixed",
+    profile: "Low Risk;Cardiometabolic",
     note: "Immune function, skin, hair and hormone support",
     symptoms: ["Hair Loss", "Immune Weakness", "Frequent Infections", "Skin Acne", "Low Energy"],
     direction: "optimize"

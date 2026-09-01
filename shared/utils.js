@@ -8,6 +8,25 @@ const STATE_KEY = 'chart_state_v1';
 const REMEMBER_KEY = 'kyh_remember_v1';
 const URL_PAYLOAD_MAX = 1800; // stay safely under common proxy limits
 
+/* ---------- Clinical Routing Constants ---------- */
+const GROUP_ORDER = [
+  'Cardiometabolic', 
+  'Cardiovascular', 
+  'Metabolic', 
+  'Female Specific', 
+  'Age Specific', 
+  'Low Risk'
+];
+
+const NO_SYMPTOM_FALLBACK = {
+  'Cardiometabolic': 'no specific symptom — cardiometabolic baseline',
+  'Cardiovascular': 'no specific symptom — cardiovascular baseline',
+  'Metabolic': 'no specific symptom — metabolic baseline',
+  'Female Specific': 'no specific symptom — female biomechanical baseline',
+  'Age Specific': 'no specific symptom — longevity and balance baseline',
+  'Low Risk': 'no specific symptom — general baseline'
+};
+
 /* ---------- Cross-page state ----------
    Default: sessionStorage only (cleared when the tab/window closes).
    Optional: localStorage when the user opts in on Profile
@@ -329,7 +348,7 @@ function deriveRiskCategories(profile) {
   if (cardio)    cats.push('Cardiovascular');
   cats.push('Age Specific');
   if (profile.sex === 'Female') cats.push('Female Specific');
-  if (metabolic && cardio) cats.push('Mixed');
+  if (metabolic && cardio) cats.push('Cardiometabolic');
 
   return { cats, metabolic, cardio, centralObesity, smokingRisk, heavyAlcohol, postMenopausal, pcos };
 }

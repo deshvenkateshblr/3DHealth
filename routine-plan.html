@@ -61,43 +61,6 @@ renderHeader('routine', 'KYH-Exercises');  // sits under the Routine step in the
 const profile = state.profile;
 const main = document.getElementById('main-content');
 
-/* Profile groups used for baseline round-robin fill.
-   Order roughly mirrors common rehab → strength → cardio → rest progression. */
-const GROUP_ORDER = [
-  'Mobility & Rehab',
-  'Postural Rehab',
-  'Core Stability',
-  'Foundational Strength',
-  'Core & Lower Body',
-  'Breathwork & Nervous System',
-  'Restorative Yoga',
-  'Cardio & Metabolic',
-  'Balance & Bone Density',
-  'Pelvic Health',
-  'Joint Care',
-  'Tension Relief',
-  'Deep Rest',
-  'Low-Impact Cardio',
-  'Mental & Physical Baseline'
-];
-
-const NO_SYMPTOM_FALLBACK = {
-  'Mobility & Rehab': 'no specific symptom — general mobility baseline',
-  'Postural Rehab': 'no specific symptom — desk / posture baseline',
-  'Core Stability': 'no specific symptom — core baseline',
-  'Foundational Strength': 'no specific symptom — strength baseline',
-  'Core & Lower Body': 'no specific symptom — lower-body baseline',
-  'Breathwork & Nervous System': 'no specific symptom — nervous-system baseline',
-  'Restorative Yoga': 'no specific symptom — recovery baseline',
-  'Cardio & Metabolic': 'no specific symptom — metabolic baseline',
-  'Balance & Bone Density': 'no specific symptom — balance / bone baseline',
-  'Pelvic Health': 'no specific symptom — pelvic baseline',
-  'Joint Care': 'no specific symptom — joint baseline',
-  'Tension Relief': 'no specific symptom — tension baseline',
-  'Deep Rest': 'no specific symptom — rest baseline',
-  'Low-Impact Cardio': 'no specific symptom — low-impact cardio baseline',
-  'Mental & Physical Baseline': 'no specific symptom — general activity baseline'
-};
 
 const FREQ_OPTIONS = [
   'Daily',

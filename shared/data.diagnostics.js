@@ -33,7 +33,7 @@ window.DIAG = [
   },
   {
     "test": "Lipid Profile",
-    "profile": "Low Risk;Metabolic;Cardiovascular;Mixed",
+    "profile": "Low Risk;Metabolic;Cardiovascular;Cardiometabolic",
     "gender": "All",
     "age": ">30",
     "note": "Checks cholesterol and triglycerides",
@@ -219,7 +219,7 @@ window.DIAG = [
   },
   {
     "test": "Vitamin B12",
-    "profile": "Low Risk;Mixed",
+    "profile": "Low Risk;Cardiometabolic",
     "gender": "All",
     "age": "All",
     "note": "Detects deficiency common in restricted diets",
@@ -345,7 +345,7 @@ window.DIAG = [
   },
   {
     "test": "Liver Function Tests",
-    "profile": "Metabolic;Mixed;Cardiovascular",
+    "profile": "Metabolic;Cardiometabolic;Cardiovascular",
     "gender": "All",
     "age": ">30",
     "note": "Screens for liver health",
@@ -418,7 +418,7 @@ window.DIAG = [
   },
   {
     "test": "HbA1c",
-    "profile": "Metabolic;Mixed",
+    "profile": "Metabolic;Cardiometabolic",
     "gender": "All",
     "age": "30-50;>50",
     "note": "Measures long-term glucose control",
@@ -709,7 +709,7 @@ window.DIAG = [
   },
   {
     "test": "Spirometry",
-    "profile": "Cardiovascular;Mixed",
+    "profile": "Cardiovascular;Cardiometabolic",
     "gender": "All",
     "age": "All",
     "note": "Evaluates lung function",
@@ -827,7 +827,7 @@ window.DIAG = [
   },
   {
     "test": "Testosterone",
-    "profile": "Low Risk;Mixed",
+    "profile": "Low Risk;Cardiometabolic",
     "gender": "Male",
     "age": "All",
     "note": "Checks hormone balance",
@@ -845,7 +845,7 @@ window.DIAG = [
   },
   {
     "test": "Scrotal Ultrasound",
-    "profile": "Mixed",
+    "profile": "Cardiometabolic",
     "gender": "Male",
     "age": ">40",
     "note": "Detects testicular abnormalities",
@@ -1154,7 +1154,7 @@ window.DIAG = [
   },
   {
     "test": "Sleep Study",
-    "profile": "Age Specific;Mixed",
+    "profile": "Age Specific;Cardiometabolic",
     "gender": "All",
     "age": "All",
     "note": "Detects sleep apnea",
@@ -1430,7 +1430,7 @@ window.DIAG = [
   },
   {
     "test": "Cortisol",
-    "profile": "Metabolic;Mixed",
+    "profile": "Metabolic;Cardiometabolic",
     "gender": "All",
     "age": "All",
     "note": "Stress hormone marker",
@@ -1451,7 +1451,7 @@ window.DIAG = [
   },
   {
     "test": "DHEA-S",
-    "profile": "Metabolic;Mixed",
+    "profile": "Metabolic;Cardiometabolic",
     "gender": "All",
     "age": "All",
     "note": "Adrenal function",
@@ -1539,7 +1539,7 @@ window.DIAG = [
   },
   {
     "test": "Pulmonary Function Test",
-    "profile": "Cardiovascular;Mixed",
+    "profile": "Cardiovascular;Cardiometabolic",
     "gender": "All",
     "age": "All",
     "note": "Lung health",
@@ -1588,7 +1588,7 @@ window.DIAG = [
   },
   {
     "test": "Abdominal Ultrasound",
-    "profile": "Metabolic;Mixed",
+    "profile": "Metabolic;Cardiometabolic",
     "gender": "All",
     "age": ">40",
     "note": "Detects fatty liver",
@@ -1611,7 +1611,7 @@ window.DIAG = [
   },
   {
     "test": "CT Scan Abdomen",
-    "profile": "Metabolic;Mixed",
+    "profile": "Metabolic;Cardiometabolic",
     "gender": "All",
     "age": ">50",
     "note": "Advanced liver/kidney imaging",

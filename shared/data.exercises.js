@@ -4,7 +4,8 @@ window.EXERCISES = [
   // --- MUSCULOSKELETAL & POSTURE ---
   {
     "exercise": "Cat-Cow Stretch (Marjaryasana)",
-    "profile": "Mobility & Rehab",
+    "profile": "Low Risk",
+    "movement_type": "Mobility & Rehab",
     "gender": "All",
     "age": "All",
     "intensity": "Low",
@@ -16,7 +17,8 @@ window.EXERCISES = [
   },
   {
     "exercise": "Wall Push-Ups",
-    "profile": "Foundational Strength",
+    "profile": "Metabolic;Age Specific",
+    "movement_type": "Foundational Strength",
     "gender": "All",
     "age": "All", 
     "intensity": "Moderate",
@@ -28,7 +30,8 @@ window.EXERCISES = [
   },
   {
     "exercise": "Glute Bridges",
-    "profile": "Core & Lower Body",
+    "profile": "Low Risk",
+    "movement_type": "Core & Lower Body",
     "gender": "All",
     "age": "All",
     "intensity": "Moderate",
@@ -40,7 +43,8 @@ window.EXERCISES = [
   },
   {
     "exercise": "Towel Scrunches / Calf Stretches",
-    "profile": "Foot & Ankle Rehab",
+    "profile": "Low Risk",
+    "movement_type": "Foot & Ankle Rehab",
     "gender": "All",
     "age": "All",
     "intensity": "Low",
@@ -54,31 +58,34 @@ window.EXERCISES = [
   // --- ENERGY, SLEEP, HEAD & NEUROLOGICAL ---
   {
     "exercise": "Box Breathing (Sama Vritti)",
-    "profile": "Breathwork & Nervous System",
+    "profile": "Cardiometabolic;Cardiovascular;Low Risk",
+    "movement_type": "Breathwork & Nervous System",
     "gender": "All",
     "age": "All",
     "intensity": "Low",
     "equipment": "None",
     "note": "A 4-4-4-4 breathing technique to down-regulate the nervous system and lower cortisol.",
     "symptoms": ["Insomnia", "Stress", "Anxiety", "Brain Fog", "High Blood Pressure", "Heart Palpitations"],
-    "contraindications": ["Shortness of Breath", "Asthma"], // Holding breath can trigger asthma anxiety
+    "contraindications": ["Shortness of Breath", "Asthma"], 
     "videoTag": "box_breathing"
   },
   {
     "exercise": "Legs Up the Wall (Viparita Karani)",
-    "profile": "Restorative Yoga",
+    "profile": "Cardiovascular;Low Risk",
+    "movement_type": "Restorative Yoga",
     "gender": "All",
     "age": "All",
     "intensity": "Low",
     "equipment": "Wall",
     "note": "Improves venous return, calms the nervous system, and relieves swollen ankles.",
     "symptoms": ["Insomnia", "Poor Circulation", "Edema", "Swelling", "Varicose Veins", "Fatigue", "Burnout"],
-    "contraindications": ["Vertigo", "High Blood Pressure", "Glaucoma"], // Inversions are bad for eye/head pressure
+    "contraindications": ["Vertigo", "High Blood Pressure", "Glaucoma"], 
     "videoTag": "legs_up_wall"
   },
   {
     "exercise": "Chin Tucks (Neck Retractions)",
-    "profile": "Postural Rehab",
+    "profile": "Low Risk",
+    "movement_type": "Postural Rehab",
     "gender": "All",
     "age": "All",
     "intensity": "Low",
@@ -92,7 +99,8 @@ window.EXERCISES = [
   // --- DIGESTIVE & CORE ---
   {
     "exercise": "Supine Spinal Twist (Supta Matsyendrasana)",
-    "profile": "Mobility & Gut Health",
+    "profile": "Low Risk",
+    "movement_type": "Mobility & Gut Health",
     "gender": "All",
     "age": "All",
     "intensity": "Low",
@@ -106,7 +114,8 @@ window.EXERCISES = [
   // --- HORMONAL, METABOLIC & REPRODUCTIVE ---
   {
     "exercise": "Transverse Abdominis (TvA) Breathing",
-    "profile": "Core & Pelvic Floor",
+    "profile": "Female Specific;Low Risk",
+    "movement_type": "Core & Pelvic Floor",
     "gender": "All",
     "age": "All",
     "intensity": "Low",
@@ -118,19 +127,21 @@ window.EXERCISES = [
   },
   {
     "exercise": "Child's Pose (Balasana)",
-    "profile": "Restorative Yoga",
+    "profile": "Female Specific;Low Risk",
+    "movement_type": "Restorative Yoga",
     "gender": "All",
     "age": "All",
     "intensity": "Low",
     "equipment": "None",
     "note": "Releases tension in the lower back and pelvic region; excellent for menstrual cramping.",
     "symptoms": ["Menstrual Pain", "PCOS", "Back Pain", "Stress", "Anxiety"],
-    "contraindications": ["Knee Pain", "Arthritis"], // Hard on bad knees
+    "contraindications": ["Knee Pain", "Arthritis"], 
     "videoTag": "childs_pose"
   },
   {
     "exercise": "Low-Intensity Steady State (LISS) Walk",
-    "profile": "Cardio & Metabolic",
+    "profile": "Cardiometabolic;Metabolic",
+    "movement_type": "Cardio & Metabolic",
     "gender": "All",
     "age": "All",
     "intensity": "Moderate",
@@ -144,7 +155,8 @@ window.EXERCISES = [
   // --- RESPIRATORY & AGE-SPECIFIC ---
   {
     "exercise": "Pursed-Lip Breathing",
-    "profile": "Respiratory Health",
+    "profile": "Cardiovascular;Low Risk",
+    "movement_type": "Respiratory Health",
     "gender": "All",
     "age": "All",
     "intensity": "Low",
@@ -156,9 +168,10 @@ window.EXERCISES = [
   },
   {
     "exercise": "Chair Squats (Sit-to-Stand)",
-    "profile": "Foundational Strength",
+    "profile": "Age Specific;Metabolic",
+    "movement_type": "Foundational Strength",
     "gender": "All",
-    "age": "All", // You can use >50 here if you want to restrict it
+    "age": "All", 
     "intensity": "Moderate",
     "equipment": "Chair",
     "note": "Builds leg strength and balance safely using a chair for support.",
@@ -169,7 +182,8 @@ window.EXERCISES = [
   // --- POSTURE & DESK WORKER REHAB ---
   {
     "exercise": "Wall Angels",
-    "profile": "Postural Rehab",
+    "profile": "Low Risk",
+    "movement_type": "Postural Rehab",
     "gender": "All",
     "age": "All",
     "intensity": "Low",
@@ -181,45 +195,49 @@ window.EXERCISES = [
   },
   {
     "exercise": "Doorway Pectoral Stretch",
-    "profile": "Mobility & Posture",
+    "profile": "Low Risk",
+    "movement_type": "Mobility & Posture",
     "gender": "All",
     "age": "All",
     "intensity": "Low",
     "equipment": "Doorway",
     "note": "Releases tight chest muscles that pull the shoulders forward during prolonged sitting.",
     "symptoms": ["Poor Posture", "Slouching", "Neck Pain", "Stress"],
-    "contraindications": ["Frozen Shoulder", "Rotator Cuff Tear"], // Custom note: Map severe shoulder issues here
+    "contraindications": ["Frozen Shoulder", "Rotator Cuff Tear"], 
     "videoTag": "doorway_stretch"
   },
   {
     "exercise": "Wrist Flexor & Extensor Stretches",
-    "profile": "Joint Care",
+    "profile": "Low Risk",
+    "movement_type": "Joint Care",
     "gender": "All",
     "age": "All",
     "intensity": "Low",
     "equipment": "None",
     "note": "Relieves tension in the forearms and wrists from heavy typing and mouse usage.",
     "symptoms": ["Carpal Tunnel", "Joint Stiffness", "Numbness or Tingling"],
-    "contraindications": ["Arthritis", "Sprain"], // Do not stretch during an acute arthritis flare-up
+    "contraindications": ["Arthritis", "Sprain"], 
     "videoTag": "wrist_stretches"
   },
 
   // --- CORE STABILITY & BACK PAIN ---
   {
     "exercise": "Bird-Dog",
-    "profile": "Core Stability",
+    "profile": "Low Risk",
+    "movement_type": "Core Stability",
     "gender": "All",
     "age": "All",
     "intensity": "Moderate",
     "equipment": "Mat",
     "note": "Builds deep core and spinal stability without putting pressure on the lower back.",
     "symptoms": ["Back Pain", "Weak Core", "Balance Issues", "Sciatica"],
-    "contraindications": ["Knee Pain", "Sprain"], // Requires kneeling
+    "contraindications": ["Knee Pain", "Sprain"], 
     "videoTag": "bird_dog"
   },
   {
     "exercise": "Knee-to-Chest Stretch",
-    "profile": "Lower Back Rehab",
+    "profile": "Low Risk",
+    "movement_type": "Lower Back Rehab",
     "gender": "All",
     "age": "All",
     "intensity": "Low",
@@ -230,10 +248,11 @@ window.EXERCISES = [
     "videoTag": "knee_to_chest"
   },
 
-  // --- CIRCULATION & BONE DENSITY (Great for Aging / Metabolic) ---
+  // --- CIRCULATION & BONE DENSITY ---
   {
     "exercise": "Ankle Pumps",
-    "profile": "Circulation",
+    "profile": "Cardiovascular;Age Specific",
+    "movement_type": "Circulation",
     "gender": "All",
     "age": "All",
     "intensity": "Low",
@@ -245,7 +264,8 @@ window.EXERCISES = [
   },
   {
     "exercise": "Single Leg Stand (With Chair Support)",
-    "profile": "Balance & Bone Density",
+    "profile": "Age Specific;Low Risk",
+    "movement_type": "Balance & Bone Density",
     "gender": "All",
     "age": "All",
     "intensity": "Low",
@@ -257,7 +277,8 @@ window.EXERCISES = [
   },
   {
     "exercise": "Wall Sits",
-    "profile": "Isometric Strength",
+    "profile": "Metabolic;Age Specific",
+    "movement_type": "Isometric Strength",
     "gender": "All",
     "age": "All",
     "intensity": "Moderate",
@@ -271,7 +292,8 @@ window.EXERCISES = [
   // --- NERVOUS SYSTEM, HEAD & MENTAL HEALTH ---
   {
     "exercise": "Upper Trapezius Stretch",
-    "profile": "Tension Relief",
+    "profile": "Low Risk",
+    "movement_type": "Tension Relief",
     "gender": "All",
     "age": "All",
     "intensity": "Low",
@@ -283,19 +305,21 @@ window.EXERCISES = [
   },
   {
     "exercise": "Deep Diaphragmatic Breathing",
-    "profile": "Nervous System",
+    "profile": "Cardiometabolic;Cardiovascular;Low Risk",
+    "movement_type": "Nervous System",
     "gender": "All",
     "age": "All",
     "intensity": "Low",
     "equipment": "None",
     "note": "Shifts the body from 'fight or flight' into 'rest and digest' mode by stimulating the vagus nerve.",
     "symptoms": ["Stress", "Anxiety", "Acid Reflux", "High Blood Pressure", "Indigestion", "Heart Palpitations"],
-    "contraindications": [], // Universally safe
+    "contraindications": [], 
     "videoTag": "belly_breathing"
   },
   {
     "exercise": "Yoga Nidra (Body Scan Meditation)",
-    "profile": "Deep Rest",
+    "profile": "Cardiometabolic;Low Risk",
+    "movement_type": "Deep Rest",
     "gender": "All",
     "age": "All",
     "intensity": "Low",
@@ -309,7 +333,8 @@ window.EXERCISES = [
   // --- REPRODUCTIVE & DIGESTIVE ---
   {
     "exercise": "Kegel Exercises (Pelvic Floor)",
-    "profile": "Pelvic Health",
+    "profile": "Female Specific;Low Risk",
+    "movement_type": "Pelvic Health",
     "gender": "All",
     "age": "All", 
     "intensity": "Low",
@@ -321,7 +346,8 @@ window.EXERCISES = [
   },
   {
     "exercise": "Seated Figure-Four Stretch",
-    "profile": "Hip Mobility",
+    "profile": "Low Risk",
+    "movement_type": "Hip Mobility",
     "gender": "All",
     "age": "All",
     "intensity": "Low",
@@ -333,19 +359,21 @@ window.EXERCISES = [
   },
   {
     "exercise": "Knee Hugs to Chest (Apanasana)",
-    "profile": "Gut Health",
+    "profile": "Low Risk",
+    "movement_type": "Gut Health",
     "gender": "All",
     "age": "All",
     "intensity": "Low",
     "equipment": "Mat",
     "note": "Known as the 'wind-relieving pose', this gently massages the ascending and descending colon.",
     "symptoms": ["Bloating", "Constipation", "Irritable Bowel Syndrome", "Gut Health", "Indigestion"],
-    "contraindications": ["Pregnancy Discomfort", "Recent Surgery / Injury"], // Hernia risk
+    "contraindications": ["Pregnancy Discomfort", "Recent Surgery / Injury"], 
     "videoTag": "apanasana"
   },
   {
     "exercise": "Seated Stationary Pedaling",
-    "profile": "Metabolic Cardio",
+    "profile": "Cardiometabolic;Metabolic",
+    "movement_type": "Metabolic Cardio",
     "gender": "All",
     "age": "All",
     "intensity": "Moderate",
@@ -355,11 +383,13 @@ window.EXERCISES = [
     "contraindications": ["Heart Palpitations", "Chest Pain", "Shortness of Breath"],
     "videoTag": "seated_pedaling"
   },
+  
   // --- WOMEN'S HEALTH & PELVIC FLOOR ---
   {
     "exercise": "Pelvic Tilts",
-    "profile": "Core & Pelvic Health",
-    "gender": "All", // Highly beneficial for women, but safe for all
+    "profile": "Female Specific;Low Risk",
+    "movement_type": "Core & Pelvic Health",
+    "gender": "All", 
     "age": "All",
     "intensity": "Low",
     "equipment": "Mat",
@@ -370,8 +400,9 @@ window.EXERCISES = [
   },
   {
     "exercise": "Clamshells",
-    "profile": "Hip & Knee Stability",
-    "gender": "Female",
+    "profile": "Female Specific;Age Specific",
+    "movement_type": "Hip & Knee Stability",
+    "gender": "All",
     "age": "All",
     "intensity": "Low to Moderate",
     "equipment": "Mat",
@@ -384,7 +415,8 @@ window.EXERCISES = [
   // --- SENIOR MOBILITY & BONE HEALTH ---
   {
     "exercise": "Tai Chi / Qigong Weight Shifting",
-    "profile": "Balance & Fall Prevention",
+    "profile": "Age Specific;Cardiovascular",
+    "movement_type": "Balance & Fall Prevention",
     "gender": "All",
     "age": "All",
     "intensity": "Low",
@@ -396,33 +428,36 @@ window.EXERCISES = [
   },
   {
     "exercise": "Water Aerobics / Swimming",
-    "profile": "Low-Impact Cardio",
+    "profile": "Cardiometabolic;Age Specific",
+    "movement_type": "Low-Impact Cardio",
     "gender": "All",
     "age": "All",
     "intensity": "Moderate",
     "equipment": "Pool",
     "note": "Provides excellent cardiovascular and metabolic benefits while entirely offloading the joints.",
     "symptoms": ["Arthritis", "Knee Pain", "Hip Pain", "Obesity", "Overweight", "High Cholesterol", "Joint Stiffness"],
-    "contraindications": ["Skin Rash", "Eczema"], // Chlorine can severely trigger eczema/rashes
+    "contraindications": ["Skin Rash", "Eczema"], 
     "videoTag": "water_aerobics"
   },
   {
     "exercise": "Standing Calf Raises",
-    "profile": "Lower Leg Strength",
+    "profile": "Cardiovascular;Age Specific",
+    "movement_type": "Lower Leg Strength",
     "gender": "All",
     "age": "All",
     "intensity": "Low",
     "equipment": "Chair or Wall",
     "note": "Acts as a 'second heart' to pump blood back up the legs, reducing swelling and strengthening the ankles.",
     "symptoms": ["Poor Circulation", "Edema", "Swelling", "Balance Issues", "Plantar Fasciitis"],
-    "contraindications": ["Leg Cramps", "Sprain", "Strain"], // Avoid during acute cramping
+    "contraindications": ["Leg Cramps", "Sprain", "Strain"], 
     "videoTag": "calf_raises"
   },
 
   // --- CORE STABILITY (Back Pain Prevention) ---
   {
     "exercise": "Modified Plank (Incline or Knees)",
-    "profile": "Foundational Core",
+    "profile": "Metabolic;Low Risk",
+    "movement_type": "Foundational Core",
     "gender": "All",
     "age": "All",
     "intensity": "Moderate",
@@ -434,33 +469,36 @@ window.EXERCISES = [
   },
   {
     "exercise": "Dead Bug",
-    "profile": "Core Stability",
+    "profile": "Low Risk",
+    "movement_type": "Core Stability",
     "gender": "All",
     "age": "All",
     "intensity": "Moderate",
     "equipment": "Mat",
     "note": "Trains the core to remain stable while the limbs move, highly recommended by physical therapists for back pain.",
     "symptoms": ["Weak Core", "Back Pain", "Slouching", "Balance Issues", "Sciatica"],
-    "contraindications": ["Pregnancy Discomfort", "Postpartum Recovery"], // Can cause coning/doming in early postpartum
+    "contraindications": ["Pregnancy Discomfort", "Postpartum Recovery"], 
     "videoTag": "dead_bug"
   },
 
   // --- POSTURE & DESK REHAB (Upper Body) ---
   {
     "exercise": "Thoracic Extension (Over Chair)",
-    "profile": "Spinal Mobility",
+    "profile": "Low Risk",
+    "movement_type": "Spinal Mobility",
     "gender": "All",
     "age": "All",
     "intensity": "Low",
     "equipment": "Chair",
     "note": "Reverses the forward-hunch of desk work by gently mobilizing the mid-back.",
     "symptoms": ["Poor Posture", "Slouching", "Back Pain", "Neck Pain", "Shoulder Pain"],
-    "contraindications": ["Osteoporosis", "Frozen Shoulder"], // Do not force extension on osteoporotic spines
+    "contraindications": ["Osteoporosis", "Frozen Shoulder"], 
     "videoTag": "thoracic_extension"
   },
   {
     "exercise": "Resistance Band Pull-Aparts",
-    "profile": "Postural Strength",
+    "profile": "Low Risk",
+    "movement_type": "Postural Strength",
     "gender": "All",
     "age": "All",
     "intensity": "Moderate",
@@ -472,21 +510,23 @@ window.EXERCISES = [
   },
   {
     "exercise": "Seated Neck Stretches (Upper Traps & Levator Scapulae)",
-    "profile": "Tension Relief",
+    "profile": "Low Risk",
+    "movement_type": "Tension Relief",
     "gender": "All",
     "age": "All",
     "intensity": "Low",
     "equipment": "None",
     "note": "Relieves tension headaches and stiffness caused by staring at screens.",
     "symptoms": ["Neck Pain", "Headache", "Migraine", "Joint Stiffness", "Eye Strain"],
-    "contraindications": ["Vertigo", "Fainting / Passing Out"], // Moving the head can trigger dizzy spells
+    "contraindications": ["Vertigo", "Fainting / Passing Out"], 
     "videoTag": "neck_stretches"
   },
 
   // --- DIGESTIVE & RECOVERY ---
   {
     "exercise": "Seated Spinal Twist (Ardha Matsyendrasana)",
-    "profile": "Mobility & Digestion",
+    "profile": "Low Risk",
+    "movement_type": "Mobility & Digestion",
     "gender": "All",
     "age": "All",
     "intensity": "Low",
@@ -498,33 +538,36 @@ window.EXERCISES = [
   },
   {
     "exercise": "Foam Rolling (Legs & Back)",
-    "profile": "Myofascial Release",
+    "profile": "Low Risk",
+    "movement_type": "Myofascial Release",
     "gender": "All",
     "age": "All",
     "intensity": "Low to Moderate",
     "equipment": "Foam Roller",
     "note": "Self-massage technique that improves tissue elasticity and flushes out metabolic waste post-workout.",
     "symptoms": ["Recovery Fatigue", "Overtraining", "Muscle Weakness", "Leg Pain", "Back Pain"],
-    "contraindications": ["Bruising Easily", "Varicose Veins", "Osteoporosis"], // Rolling over fragile veins/bones is dangerous
+    "contraindications": ["Bruising Easily", "Varicose Veins", "Osteoporosis"], 
     "videoTag": "foam_rolling"
   },
 
   // --- RESPIRATORY & NEUROLOGICAL ---
   {
     "exercise": "Alternate Nostril Breathing (Nadi Shodhana)",
-    "profile": "Breathwork & Nervous System",
+    "profile": "Cardiovascular;Low Risk",
+    "movement_type": "Breathwork & Nervous System",
     "gender": "All",
     "age": "All",
     "intensity": "Low",
     "equipment": "None",
     "note": "Balances the left and right hemispheres of the brain, rapidly lowering heart rate and clearing mental fog.",
     "symptoms": ["Stress", "Anxiety", "Brain Fog", "Poor Concentration", "Headache", "High Blood Pressure", "Heart Palpitations"],
-    "contraindications": ["Sinus Congestion", "Cold"], // Impossible to do if congested
+    "contraindications": ["Sinus Congestion", "Cold"], 
     "videoTag": "alternate_nostril"
   },
   {
     "exercise": "Chair Pose (Utkatasana)",
-    "profile": "Isometric Strength",
+    "profile": "Metabolic;Age Specific",
+    "movement_type": "Isometric Strength",
     "gender": "All",
     "age": "All",
     "intensity": "Moderate",
@@ -536,46 +579,51 @@ window.EXERCISES = [
   },
   {
     "exercise": "Gentle Walking (Nature / Green Space)",
-    "profile": "Mental & Physical Baseline",
+    "profile": "Cardiometabolic;Low Risk",
+    "movement_type": "Mental & Physical Baseline",
     "gender": "All",
     "age": "All",
     "intensity": "Low",
     "equipment": "None",
     "note": "Unstructured outdoor walking without tracking metrics; proven to lower cortisol and improve mood.",
     "symptoms": ["Depression", "Burnout", "Stress", "Anxiety", "Insomnia", "Low Energy", "Emotional Eating"],
-    "contraindications": ["Plantar Fasciitis", "Severe Knee Pain", "Fever"], // Avoid if actively ill or in acute foot pain
+    "contraindications": ["Plantar Fasciitis", "Severe Knee Pain", "Fever"], 
     "videoTag": "nature_walk"
   },
+  
   // --- DESK WORKER: OCULAR & WRIST REHAB ---
   {
     "exercise": "Palming (Eye Yoga)",
-    "profile": "Ocular Relief",
+    "profile": "Low Risk",
+    "movement_type": "Ocular Relief",
     "gender": "All",
     "age": "All",
     "intensity": "Low",
     "equipment": "None",
     "note": "Rests the optic nerve and relieves ciliary muscle tension from prolonged screen time.",
     "symptoms": ["Eye Strain", "Eye Dryness", "Headache", "Migraine", "Blurry Vision", "Brain Fog"],
-    "contraindications": ["Skin Rash", "Skin Acne"], // Avoid touching face if acute skin conditions exist
+    "contraindications": ["Skin Rash", "Skin Acne"], 
     "videoTag": "eye_palming"
   },
   {
     "exercise": "Wrist Rolls & Finger Extensions",
-    "profile": "Joint Care",
+    "profile": "Low Risk",
+    "movement_type": "Joint Care",
     "gender": "All",
     "age": "All",
     "intensity": "Low",
     "equipment": "None",
     "note": "Flushes synovial fluid into the wrist joints and stretches contracted finger tendons.",
     "symptoms": ["Carpal Tunnel", "Joint Stiffness", "Numbness or Tingling", "Sweaty Hands"],
-    "contraindications": ["Arthritis", "Sprain", "Strain"], // Avoid during an acute arthritis flare-up
+    "contraindications": ["Arthritis", "Sprain", "Strain"], 
     "videoTag": "wrist_rolls"
   },
 
   // --- METABOLIC & FOUNDATIONAL STRENGTH ---
   {
     "exercise": "Farmer's Walk (Loaded Carries)",
-    "profile": "Full Body Strength & Core",
+    "profile": "Cardiometabolic;Metabolic",
+    "movement_type": "Full Body Strength & Core",
     "gender": "All",
     "age": "All",
     "intensity": "Moderate to High",
@@ -587,7 +635,8 @@ window.EXERCISES = [
   },
   {
     "exercise": "Incline Push-Ups (Counter or Table)",
-    "profile": "Foundational Strength",
+    "profile": "Metabolic;Age Specific",
+    "movement_type": "Foundational Strength",
     "gender": "All",
     "age": "All",
     "intensity": "Moderate",
@@ -599,21 +648,23 @@ window.EXERCISES = [
   },
   {
     "exercise": "Step-Ups",
-    "profile": "Lower Body Strength",
+    "profile": "Metabolic;Age Specific",
+    "movement_type": "Lower Body Strength",
     "gender": "All",
     "age": "All",
     "intensity": "Moderate",
     "equipment": "Stairs or Low Stool",
     "note": "Builds unilateral leg strength and improves daily functional mobility.",
     "symptoms": ["Muscle Weakness", "Balance Issues", "Poor Circulation", "Diabetes", "Leg Pain"],
-    "contraindications": ["Plantar Fasciitis", "Knee Pain", "Vertigo", "Balance Issues"], // Contraindicated if balance is severely compromised
+    "contraindications": ["Plantar Fasciitis", "Knee Pain", "Vertigo", "Balance Issues"], 
     "videoTag": "step_ups"
   },
 
   // --- PELVIC, LOWER BACK & SPINAL RELIEF ---
   {
     "exercise": "Deep Squat (Malasana / Yogi Squat)",
-    "profile": "Pelvic Health & Mobility",
+    "profile": "Female Specific;Low Risk",
+    "movement_type": "Pelvic Health & Mobility",
     "gender": "All",
     "age": "All",
     "intensity": "Low to Moderate",
@@ -625,19 +676,21 @@ window.EXERCISES = [
   },
   {
     "exercise": "Supine 90/90 Leg Rest",
-    "profile": "Lower Back Relief",
+    "profile": "Low Risk",
+    "movement_type": "Lower Back Relief",
     "gender": "All",
     "age": "All",
     "intensity": "Low",
     "equipment": "Chair or Couch",
     "note": "Lying on the back with calves resting on a chair places the spine in a truly neutral, zero-gravity position.",
     "symptoms": ["Back Pain", "Sciatica", "Leg Pain", "Fatigue", "Recovery Fatigue", "Muscle Weakness"],
-    "contraindications": ["Acid Reflux"], // Lying flat can trigger reflux
+    "contraindications": ["Acid Reflux"], 
     "videoTag": "supine_90_90"
   },
   {
     "exercise": "Supported Downward Dog (Hands on Wall/Chair)",
-    "profile": "Gentle Decompression",
+    "profile": "Low Risk",
+    "movement_type": "Gentle Decompression",
     "gender": "All",
     "age": "All",
     "intensity": "Low",
@@ -649,7 +702,8 @@ window.EXERCISES = [
   },
   {
     "exercise": "Crocodile Breathing (Prone Belly Breathing)",
-    "profile": "Core & Nervous System",
+    "profile": "Low Risk",
+    "movement_type": "Core & Nervous System",
     "gender": "All",
     "age": "All",
     "intensity": "Low",
@@ -663,7 +717,8 @@ window.EXERCISES = [
   // --- DIGESTIVE & VAGAL TONE (Nervous System) ---
   {
     "exercise": "Voo Breathing (Vocal Toning)",
-    "profile": "Vagal Tone Stimulation",
+    "profile": "Cardiovascular;Low Risk",
+    "movement_type": "Vagal Tone Stimulation",
     "gender": "All",
     "age": "All",
     "intensity": "Low",
@@ -675,21 +730,23 @@ window.EXERCISES = [
   },
   {
     "exercise": "Gentle Seated Forward Fold (Paschimottanasana)",
-    "profile": "Nervous System & Hamstrings",
+    "profile": "Cardiovascular;Low Risk",
+    "movement_type": "Nervous System & Hamstrings",
     "gender": "All",
     "age": "All",
     "intensity": "Low",
     "equipment": "Mat",
     "note": "A highly restorative pose that stretches the entire posterior chain and signals the brain to cool down.",
     "symptoms": ["Stress", "Anxiety", "High Blood Pressure", "Back Pain", "Insomnia"],
-    "contraindications": ["Sciatica", "Recent Surgery / Injury"], // Can aggravate sciatica if done improperly
+    "contraindications": ["Sciatica", "Recent Surgery / Injury"], 
     "videoTag": "seated_forward_fold"
   },
 
   // --- CARDIOVASCULAR, COGNITIVE & CIRCADIAN ---
   {
     "exercise": "Morning Sunlight Walk (10-15 mins)",
-    "profile": "Circadian Rhythm",
+    "profile": "Cardiometabolic;Metabolic",
+    "movement_type": "Circadian Rhythm",
     "gender": "All",
     "age": "All",
     "intensity": "Low",
@@ -701,7 +758,8 @@ window.EXERCISES = [
   },
   {
     "exercise": "Shadow Boxing / Light Sparring (Seated or Standing)",
-    "profile": "Cognitive Cardio",
+    "profile": "Cardiometabolic;Metabolic",
+    "movement_type": "Cognitive Cardio",
     "gender": "All",
     "age": "All",
     "intensity": "Moderate to High",
@@ -713,7 +771,8 @@ window.EXERCISES = [
   },
   {
     "exercise": "Standing Side Bends",
-    "profile": "Lateral Mobility",
+    "profile": "Low Risk",
+    "movement_type": "Lateral Mobility",
     "gender": "All",
     "age": "All",
     "intensity": "Low",
@@ -725,7 +784,8 @@ window.EXERCISES = [
   },
   {
     "exercise": "Resistance Band Rows",
-    "profile": "Postural Strength",
+    "profile": "Low Risk",
+    "movement_type": "Postural Strength",
     "gender": "All",
     "age": "All",
     "intensity": "Moderate",
@@ -738,71 +798,77 @@ window.EXERCISES = [
   // --- SHOULDER & CERVICAL REHAB ---
   {
     "exercise": "Pendulum Swings",
-    "profile": "Shoulder Rehab",
+    "profile": "Low Risk",
+    "movement_type": "Shoulder Rehab",
     "gender": "All",
     "age": "All",
     "intensity": "Low",
     "equipment": "Chair or Table (for support)",
     "note": "Uses gravity to gently separate the joint surfaces and relieve pain in a stiff shoulder.",
     "symptoms": ["Frozen Shoulder", "Shoulder Pain", "Joint Stiffness", "Recovery Fatigue"],
-    "contraindications": ["Recent Surgery / Injury"], // Safety override for acute tears
+    "contraindications": ["Recent Surgery / Injury"], 
     "videoTag": "pendulum_swings"
   },
   {
     "exercise": "Scapular Wall Slides",
-    "profile": "Postural Mobility",
+    "profile": "Low Risk",
+    "movement_type": "Postural Mobility",
     "gender": "All",
     "age": "All",
     "intensity": "Low to Moderate",
     "equipment": "Wall",
     "note": "Retrains the shoulder blades to move correctly, reducing neck strain and correcting the 'slouch'.",
     "symptoms": ["Poor Posture", "Slouching", "Shoulder Pain", "Neck Pain", "Muscle Weakness"],
-    "contraindications": ["Frozen Shoulder", "Sprain"], // Too much active range of motion for frozen shoulder
+    "contraindications": ["Frozen Shoulder", "Sprain"], 
     "videoTag": "wall_slides"
   },
   {
     "exercise": "Slow Neck Circles & Isometrics",
-    "profile": "Cervical Mobility",
+    "profile": "Low Risk",
+    "movement_type": "Cervical Mobility",
     "gender": "All",
     "age": "All",
     "intensity": "Low",
     "equipment": "None",
     "note": "Restores range of motion to the cervical spine and relieves tension headaches.",
     "symptoms": ["Neck Pain", "Joint Stiffness", "Poor Posture", "Headache", "Migraine", "Jaw Pain"],
-    "contraindications": ["Vertigo", "Fainting / Passing Out", "Numbness or Tingling"], // Tingling indicates nerve compression, avoid circles
+    "contraindications": ["Vertigo", "Fainting / Passing Out", "Numbness or Tingling"], 
     "videoTag": "neck_isometrics"
   },
 
   // --- LYMPHATIC, IMMUNE & CIRCULATION ---
   {
     "exercise": "Lymphatic Dry Brushing (Limbs toward Heart)",
-    "profile": "Circulation & Immune Support",
+    "profile": "Low Risk",
+    "movement_type": "Circulation & Immune Support",
     "gender": "All",
     "age": "All",
     "intensity": "Low",
     "equipment": "Dry Brush or Towel",
     "note": "A physical therapy technique that stimulates the lymphatic system to clear metabolic waste and reduce fluid retention.",
     "symptoms": ["Edema", "Swelling", "Poor Circulation", "Immune Weakness", "Frequent Infections", "Recovery Fatigue"],
-    "contraindications": ["Eczema", "Psoriasis", "Skin Rash", "Skin Acne", "Bruising Easily"], // Strict skin safety block
+    "contraindications": ["Eczema", "Psoriasis", "Skin Rash", "Skin Acne", "Bruising Easily"], 
     "videoTag": "dry_brushing"
   },
   {
     "exercise": "Ankle Alphabets",
-    "profile": "Lower Leg Rehab",
+    "profile": "Cardiovascular;Age Specific",
+    "movement_type": "Lower Leg Rehab",
     "gender": "All",
     "age": "All",
     "intensity": "Low",
     "equipment": "None",
     "note": "Tracing the alphabet with your big toe flushes swelling out of the foot and strengthens the stabilizing ligaments.",
     "symptoms": ["Poor Circulation", "Swelling", "Edema", "Plantar Fasciitis", "Leg Cramps", "Joint Stiffness", "Foot Pain", "Toe Pain"],
-    "contraindications": ["Sprain", "Strain", "Recent Surgery / Injury"], // Blocked for acute ankle sprains
+    "contraindications": ["Sprain", "Strain", "Recent Surgery / Injury"], 
     "videoTag": "ankle_alphabets"
   },
 
   // --- SLEEP ARCHITECTURE & OROPHARYNGEAL ---
   {
     "exercise": "Myofascial Jaw Release (Masseter Massage)",
-    "profile": "Tension Relief",
+    "profile": "Low Risk",
+    "movement_type": "Tension Relief",
     "gender": "All",
     "age": "All",
     "intensity": "Low",
@@ -814,33 +880,36 @@ window.EXERCISES = [
   },
   {
     "exercise": "Oropharyngeal (Throat & Tongue) Exercises",
-    "profile": "Sleep Apnea & Airway Support",
+    "profile": "Cardiometabolic;Low Risk",
+    "movement_type": "Sleep Apnea & Airway Support",
     "gender": "All",
     "age": "All",
     "intensity": "Low",
     "equipment": "None",
     "note": "Clinically proven to tone the muscles of the airway, significantly reducing snoring and mild sleep apnea.",
     "symptoms": ["Snoring", "Fatigue", "Insomnia", "Low Energy", "Brain Fog", "Overweight"],
-    "contraindications": ["Cold", "Fever", "Bronchitis"], // Uncomfortable to perform when sick
+    "contraindications": ["Cold", "Fever", "Bronchitis"], 
     "videoTag": "throat_exercises"
   },
   {
     "exercise": "Progressive Muscle Relaxation (PMR)",
-    "profile": "Deep Rest",
+    "profile": "Cardiovascular;Low Risk",
+    "movement_type": "Deep Rest",
     "gender": "All",
     "age": "All",
     "intensity": "Low",
     "equipment": "None",
     "note": "A systematic tensing and releasing of muscle groups that overrides the physical symptoms of anxiety.",
     "symptoms": ["Insomnia", "Restlessness", "Stress", "Anxiety", "Muscle Weakness", "Recovery Fatigue", "Heart Palpitations"],
-    "contraindications": ["High Blood Pressure"], // Tensing muscles spikes blood pressure slightly
+    "contraindications": ["High Blood Pressure"], 
     "videoTag": "pmr_relaxation"
   },
 
   // --- METABOLIC CARDIO & JOINT-SAFE STRENGTH ---
   {
     "exercise": "Seated Marching",
-    "profile": "Senior / Accessible Cardio",
+    "profile": "Cardiometabolic;Age Specific",
+    "movement_type": "Senior / Accessible Cardio",
     "gender": "All",
     "age": "All",
     "intensity": "Low to Moderate",
@@ -852,7 +921,8 @@ window.EXERCISES = [
   },
   {
     "exercise": "Low-Impact Step Jacks",
-    "profile": "Metabolic Cardio",
+    "profile": "Cardiometabolic;Metabolic",
+    "movement_type": "Metabolic Cardio",
     "gender": "All",
     "age": "All",
     "intensity": "Moderate",
@@ -864,7 +934,8 @@ window.EXERCISES = [
   },
   {
     "exercise": "Static Lunge (Split Squat Hold)",
-    "profile": "Isometric Leg Strength",
+    "profile": "Metabolic;Age Specific",
+    "movement_type": "Isometric Leg Strength",
     "gender": "All",
     "age": "All",
     "intensity": "Moderate to High",
@@ -878,19 +949,21 @@ window.EXERCISES = [
   // --- PELVIC FLOOR & DIGESTIVE ---
   {
     "exercise": "Happy Baby Pose (Ananda Balasana)",
-    "profile": "Pelvic Floor Relaxation",
+    "profile": "Female Specific;Low Risk",
+    "movement_type": "Pelvic Floor Relaxation",
     "gender": "All",
     "age": "All",
     "intensity": "Low",
     "equipment": "Mat",
     "note": "Stretches the inner groins and actively relaxes a hypertonic (over-tight) pelvic floor and lower back.",
     "symptoms": ["Constipation", "Back Pain", "Irritable Bowel Syndrome", "Sciatica", "Stress", "Pregnancy Discomfort"],
-    "contraindications": ["Recent Surgery / Injury", "Knee Pain"], // Hard to grab feet with bad knees
+    "contraindications": ["Recent Surgery / Injury", "Knee Pain"], 
     "videoTag": "happy_baby"
   },
   {
     "exercise": "Diaphragmatic Belly Massage",
-    "profile": "Gut Health",
+    "profile": "Low Risk",
+    "movement_type": "Gut Health",
     "gender": "All",
     "age": "All",
     "intensity": "Low",
@@ -904,32 +977,35 @@ window.EXERCISES = [
   // --- HORMONAL & NERVOUS SYSTEM ---
   {
     "exercise": "Legs on a Chair (Constructive Rest)",
-    "profile": "Nervous System Reset",
+    "profile": "Cardiometabolic;Female Specific;Low Risk",
+    "movement_type": "Nervous System Reset",
     "gender": "All",
     "age": "All",
     "intensity": "Low",
     "equipment": "Chair",
     "note": "Offloads the psoas muscle entirely, instantly signaling safety to the nervous system to lower cortisol.",
     "symptoms": ["Burnout", "Stress", "Fatigue", "Back Pain", "PCOS", "Menstrual Pain", "Hot Flashes"],
-    "contraindications": ["Acid Reflux"], // Flat positions trigger reflux
+    "contraindications": ["Acid Reflux"], 
     "videoTag": "constructive_rest"
   },
   {
     "exercise": "Lion's Breath (Simhasana)",
-    "profile": "Tension & Emotional Release",
+    "profile": "Low Risk",
+    "movement_type": "Tension & Emotional Release",
     "gender": "All",
     "age": "All",
     "intensity": "Low",
     "equipment": "None",
     "note": "A forceful exhalation that relieves tension in the chest and face while acting as a healthy emotional release valve.",
     "symptoms": ["Stress", "Anxiety", "Irritability", "Mood Swings", "Jaw Pain", "Asthma"],
-    "contraindications": ["Chronic Cough", "Bronchitis", "Cold"], // Will trigger violent coughing fits
+    "contraindications": ["Chronic Cough", "Bronchitis", "Cold"], 
     "videoTag": "lions_breath"
   },
   // --- ENDOCRINE & HORMONAL ---
   {
     "exercise": "Supported Bridge Pose (with Block)",
-    "profile": "Endocrine & Restorative",
+    "profile": "Female Specific;Low Risk",
+    "movement_type": "Endocrine & Restorative",
     "gender": "All",
     "age": "All",
     "intensity": "Low",
@@ -943,19 +1019,21 @@ window.EXERCISES = [
   // --- RESPIRATORY, IMMUNE & ALLERGY ---
   {
     "exercise": "Bhramari Pranayama (Humming Bee Breath)",
-    "profile": "Sinus & Nervous System",
+    "profile": "Cardiovascular;Low Risk",
+    "movement_type": "Sinus & Nervous System",
     "gender": "All",
     "age": "All",
     "intensity": "Low",
     "equipment": "None",
     "note": "The humming vibration acts as a sonic cleanser for the sinuses and instantly soothes the vagus nerve.",
     "symptoms": ["Sinus Congestion", "Allergies", "Stress", "Anxiety", "High Blood Pressure", "Insomnia", "Brain Fog"],
-    "contraindications": ["Ringing in Ears", "Cold"], // Humming can aggravate severe tinnitus or acute ear/cold infections
+    "contraindications": ["Ringing in Ears", "Cold"], 
     "videoTag": "bhramari_breath"
   },
   {
     "exercise": "Gentle Heel Drops",
-    "profile": "Bone Density & Lymphatic Flush",
+    "profile": "Age Specific;Low Risk",
+    "movement_type": "Bone Density & Lymphatic Flush",
     "gender": "All",
     "age": "All",
     "intensity": "Low",
@@ -969,19 +1047,21 @@ window.EXERCISES = [
   // --- METABOLIC & DIGESTIVE ---
   {
     "exercise": "10-Minute Post-Meal Stroll",
-    "profile": "Metabolic & Digestion",
+    "profile": "Cardiometabolic;Metabolic",
+    "movement_type": "Metabolic & Digestion",
     "gender": "All",
     "age": "All",
     "intensity": "Low",
     "equipment": "None",
     "note": "A slow, relaxed walk immediately after eating. Uses glucose in the bloodstream, blunting insulin spikes and aiding digestion.",
     "symptoms": ["Diabetes", "Sugar Cravings", "Indigestion", "Acid Reflux", "Weight Loss", "Obesity"],
-    "contraindications": ["Plantar Fasciitis", "Fatigue"], // Do not walk if suffering acute foot pain
+    "contraindications": ["Plantar Fasciitis", "Fatigue"], 
     "videoTag": "post_meal_stroll"
   },
   {
     "exercise": "Sufi Grinds (Seated Torso Circles)",
-    "profile": "Core & Gut Health",
+    "profile": "Low Risk",
+    "movement_type": "Core & Gut Health",
     "gender": "All",
     "age": "All",
     "intensity": "Low",
@@ -995,33 +1075,36 @@ window.EXERCISES = [
   // --- NEURO-VISUAL & VESTIBULAR ---
   {
     "exercise": "Ocular Tracking & Convergence Drills",
-    "profile": "Neuro-Visual Rehab",
+    "profile": "Low Risk",
+    "movement_type": "Neuro-Visual Rehab",
     "gender": "All",
     "age": "All",
     "intensity": "Low",
     "equipment": "A Pen or Pencil",
     "note": "Trains the eyes to focus near and far, reducing digital eye strain and assisting vestibular (balance) habituation.",
     "symptoms": ["Eye Strain", "Blurry Vision", "Brain Fog", "Vertigo", "Poor Concentration", "Balance Issues"],
-    "contraindications": ["Migraine", "Headache"], // Eye tracking can trigger nausea during an active migraine
+    "contraindications": ["Migraine", "Headache"], 
     "videoTag": "ocular_tracking"
   },
 
   // --- POSTURE & SPINAL MOBILITY ---
   {
     "exercise": "Sphinx Pose (Salamba Bhujangasana)",
-    "profile": "Postural & Respiratory",
+    "profile": "Low Risk",
+    "movement_type": "Postural & Respiratory",
     "gender": "All",
     "age": "All",
     "intensity": "Low",
     "equipment": "Mat",
     "note": "A supported backbend that counteracts the 'desk hunch', opening the chest for deeper lung expansion.",
     "symptoms": ["Slouching", "Poor Posture", "Asthma", "Shortness of Breath", "Low Energy", "Depression"],
-    "contraindications": ["Back Pain", "Pregnancy Discomfort", "Recent Surgery / Injury"], // Avoid if extension hurts the lower back
+    "contraindications": ["Back Pain", "Pregnancy Discomfort", "Recent Surgery / Injury"], 
     "videoTag": "sphinx_pose"
   },
   {
     "exercise": "Standing Qigong Torso Twist",
-    "profile": "Spinal Mobility & Energy",
+    "profile": "Low Risk",
+    "movement_type": "Spinal Mobility & Energy",
     "gender": "All",
     "age": "All",
     "intensity": "Low",
@@ -1035,7 +1118,8 @@ window.EXERCISES = [
   // --- FULL BODY INTEGRATION & WARM-UP ---
   {
     "exercise": "Dynamic Leg Swings (Forward & Lateral)",
-    "profile": "Hip Mobility & Circulation",
+    "profile": "Age Specific;Low Risk",
+    "movement_type": "Hip Mobility & Circulation",
     "gender": "All",
     "age": "All",
     "intensity": "Low to Moderate",
@@ -1047,14 +1131,15 @@ window.EXERCISES = [
   },
   {
     "exercise": "Modified Chair Sun Salutation (Surya Namaskar)",
-    "profile": "Full Body Awakening",
+    "profile": "Cardiometabolic;Age Specific",
+    "movement_type": "Full Body Awakening",
     "gender": "All",
     "age": "All",
     "intensity": "Low",
     "equipment": "Chair",
     "note": "A highly accessible version of the classic yoga flow that links breath with movement to oxygenate the entire body.",
     "symptoms": ["Joint Stiffness", "Depression", "Low Energy", "Overweight", "Poor Circulation", "Muscle Weakness", "Burnout"],
-    "contraindications": ["Fainting / Passing Out", "Vertigo", "High Blood Pressure"], // Avoid rapid up/down head movements
+    "contraindications": ["Fainting / Passing Out", "Vertigo", "High Blood Pressure"], 
     "videoTag": "chair_sun_salutation"
   }
 ];

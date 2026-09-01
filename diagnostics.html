@@ -29,15 +29,7 @@ renderHeader('diagnostics', 'KYH-Diagnostics');
 const profile = state.profile;
 const main = document.getElementById('main-content');
 
-const GROUP_ORDER = ['Cardiovascular','Metabolic','Mixed','Female Specific','Age Specific','Low Risk'];
-const NO_SYMPTOM_FALLBACK = {
-  'Cardiovascular':'no specific symptom \u2014 risk-based screening',
-  'Metabolic':'no specific symptom \u2014 risk-based screening',
-  'Mixed':'no specific symptom \u2014 risk-based screening',
-  'Female Specific':'no specific symptom \u2014 routine screening',
-  'Age Specific':'no specific symptom \u2014 routine age-based screening',
-  'Low Risk':'no specific symptom \u2014 routine baseline screening'
-};
+
 const RECENCY_OPTIONS = ['Within 6 months','6\u201312 months ago','1\u20132 years ago','2+ years ago'];
 const RESULT_OPTIONS = ['Within range','Flagged \u2014 needs attention','Not sure'];
 
