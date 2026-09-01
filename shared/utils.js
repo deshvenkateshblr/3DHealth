@@ -467,6 +467,15 @@ function renderHeader(activeStep = 'fine', pageTitle = 'Know Your Health') {
   `;
 }
 
+function renderFooter() {
+  const target = document.querySelector('footer') || document.getElementById('app-footer');
+  if (!target) return;
+  target.innerHTML = `
+    <span>KYH &mdash; Know Your Health. Own Your Path. Runs entirely in your browser. Nothing is sent to a server.</span>
+    <span>Not a substitute for professional medical advice.</span>
+  `;
+}
+
 /* Compendium of Physical Activities:
    kcal = MET × 3.5 × kg × min / 200  ≡  MET × kg × hours × 1.05 */
 const MET_KCAL_FACTOR = 1.05;

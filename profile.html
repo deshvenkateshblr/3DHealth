@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>About You ù KYH</title>
+<title>About You KYH</title>
 <link rel="stylesheet" href="shared/styles.css">
 </head>
 <body>
@@ -38,45 +38,61 @@
       </div>
     </div>
 
-    <div class="field-row" style="margin-bottom:8px;">
-      <div class="field">
+<div class="field-row" style="margin-bottom:8px;">
+      
+      <!-- HEIGHT GROUP -->
+      <div class="field" role="group" aria-labelledby="label-height">
         <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:6px;">
-          <label class="intake-label" style="margin-bottom:0;">Height</label>
+          <div id="label-height" class="intake-label" style="margin-bottom:0;">Height</div>
           <div class="unit-toggle small" id="height-unit-toggle">
-            <button type="button" data-unit="cm">cm</button>
-            <button type="button" data-unit="ftin" class="active">ft/in</button>
+            <button type="button" data-unit="cm" aria-pressed="false">cm</button>
+            <button type="button" data-unit="ftin" class="active" aria-pressed="true">ft/in</button>
           </div>
         </div>
-        <div id="height-cm-wrap" style="display:none;"><input type="number" id="f-height-cm" min="120" max="230" placeholder="cm" step="any"></div>
+        <div id="height-cm-wrap" style="display:none;">
+          <input type="number" id="f-height-cm" min="120" max="230" placeholder="cm" step="any" aria-label="Height in centimeters">
+        </div>
         <div id="height-ftin-wrap" class="unit-pair">
-          <input type="number" id="f-height-ft" min="3" max="7" placeholder="ft" step="any">
-          <input type="number" id="f-height-in" min="0" max="11.9" step="0.1" placeholder="in">
+          <input type="number" id="f-height-ft" min="3" max="7" placeholder="ft" step="any" aria-label="Feet">
+          <input type="number" id="f-height-in" min="0" max="11.9" step="0.1" placeholder="in" aria-label="Inches">
         </div>
       </div>
-      <div class="field">
-        <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:6px;">
-          <label class="intake-label" style="margin-bottom:0;">Weight</label>
-          <div class="unit-toggle small" id="weight-unit-toggle">
-            <button type="button" data-unit="kg" class="active">kg</button>
-            <button type="button" data-unit="lb">lb</button>
-          </div>
-        </div>
-        <div id="weight-kg-wrap"><input type="number" id="f-weight-kg" min="30" max="250" placeholder="kg" step="any"></div>
-        <div id="weight-lb-wrap" style="display:none;"><input type="number" id="f-weight-lb" min="66" max="550" placeholder="lb" step="any"></div>
-      </div>
-      <div class="field">
-        <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:6px;">
-          <label class="intake-label" style="margin-bottom:0;">Waist</label>
-          <div class="unit-toggle small" id="waist-unit-toggle">
-            <button type="button" data-unit="cm">cm</button>
-            <button type="button" data-unit="in" class="active">in</button>
-          </div>
-        </div>
-        <div id="waist-cm-wrap" style="display:none;"><input type="number" id="f-waist-cm" min="50" max="200" placeholder="cm" step="any"></div>
-        <div id="waist-in-wrap"><input type="number" id="f-waist-in" min="20" max="80" placeholder="in" step="any"></div>
-      </div>
-    </div>
 
+      <!-- WEIGHT GROUP -->
+      <div class="field" role="group" aria-labelledby="label-weight">
+        <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:6px;">
+          <div id="label-weight" class="intake-label" style="margin-bottom:0;">Weight</div>
+          <div class="unit-toggle small" id="weight-unit-toggle">
+            <button type="button" data-unit="kg" class="active" aria-pressed="true">kg</button>
+            <button type="button" data-unit="lb" aria-pressed="false">lb</button>
+          </div>
+        </div>
+        <div id="weight-kg-wrap">
+          <input type="number" id="f-weight-kg" min="30" max="250" placeholder="kg" step="any" aria-label="Weight in kilograms">
+        </div>
+        <div id="weight-lb-wrap" style="display:none;">
+          <input type="number" id="f-weight-lb" min="66" max="550" placeholder="lb" step="any" aria-label="Weight in pounds">
+        </div>
+      </div>
+
+      <!-- WAIST GROUP -->
+      <div class="field" role="group" aria-labelledby="label-waist">
+        <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:6px;">
+          <div id="label-waist" class="intake-label" style="margin-bottom:0;">Waist</div>
+          <div class="unit-toggle small" id="waist-unit-toggle">
+            <button type="button" data-unit="cm" aria-pressed="false">cm</button>
+            <button type="button" data-unit="in" class="active" aria-pressed="true">in</button>
+          </div>
+        </div>
+        <div id="waist-cm-wrap" style="display:none;">
+          <input type="number" id="f-waist-cm" min="50" max="200" placeholder="cm" step="any" aria-label="Waist in centimeters">
+        </div>
+        <div id="waist-in-wrap">
+          <input type="number" id="f-waist-in" min="20" max="80" placeholder="in" step="any" aria-label="Waist in inches">
+        </div>
+      </div>
+
+    </div>
     <div class="badge-row">
       <div class="badge">
         <div class="badge-ring" id="bmi-ring">&mdash;</div>
@@ -185,20 +201,18 @@
     </div>
 
     <div class="page-footer-nav">
-      <span class="validation-msg" id="validation-msg"></span>
+      <span id="validation-msg" class="validation-msg" aria-live="polite"></span>
       <button type="submit" class="btn">Continue to Symptoms &rarr;</button>
     </div>
   </form>
 </main>
 
-<footer>
-  <span>KYH ù Know Your Health. Own Your Path. Runs entirely in your browser. Nothing is sent to a server.</span>
-  <span>Not a substitute for professional medical advice.</span>
-</footer>
+<footer id="app-footer"></footer>
 
 <script src="shared/utils.js"></script>
 <script>
 renderHeader('fine', 'KYH - Profile');
+renderFooter();
 
 const state = loadState();
 const p = state.profile || {};
@@ -261,7 +275,14 @@ function wireUnitToggle(toggleId, onChange) {
   document.getElementById(toggleId).addEventListener('click', (e) => {
     const btn = e.target.closest('button');
     if (!btn) return;
-    document.querySelectorAll(`#${toggleId} button`).forEach(b => b.classList.toggle('active', b === btn));
+    
+    document.querySelectorAll(`#${toggleId} button`).forEach(b => {
+      const isActive = (b === btn);
+      b.classList.toggle('active', isActive);
+      // NEW: Sync the ARIA state with the visual active state
+      b.setAttribute('aria-pressed', isActive ? 'true' : 'false'); 
+    });
+    
     onChange(btn.dataset.unit);
   });
 }

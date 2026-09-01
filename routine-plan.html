@@ -47,16 +47,14 @@
   <div class="empty-state" id="loading-state">Loading your profile&hellip;</div>
 </main>
 
-<footer>
-  <span>KYH &mdash; runs entirely in your browser. No data leaves this page.</span>
-  <span>Not a substitute for professional medical advice.</span>
-</footer>
+<footer id="app-footer"></footer>
 
 <script src="shared/data.exercises.js"></script>
 <script src="shared/utils.js"></script>
 <script>
 const state = loadState();
 renderHeader('routine', 'KYH-Exercises');  // sits under the Routine step in the progress map
+renderFooter()
 
 const profile = state.profile;
 const main = document.getElementById('main-content');
@@ -85,8 +83,7 @@ function isContraindicated(ex, userSymptoms) {
 
 function assignGroup(ex) {
   const p = (ex.profile || '').trim();
-  // Prefer an exact match in GROUP_ORDER; otherwise use the raw profile string
-  return GROUP_ORDER.find(g => p === g || p.includes(g.split(' ')[0])) || p || 'Mental & Physical Baseline';
+  return GROUP_ORDER.find(g => p === g || p.includes(g.split(' ')[0])) || 'Low Risk';
 }
 
 /* ---- baseline (category-driven) selection ---- */

@@ -15,16 +15,14 @@
   <div class="empty-state" id="loading-state">Loading your profile&hellip;</div>
 </main>
 
-<footer>
-  <span>KYH &mdash; runs entirely in your browser. No data leaves this page.</span>
-  <span>Not a substitute for professional medical advice.</span>
-</footer>
+<footer id="app-footer"></footer>
 
 <script src="shared/data.diagnostics.js"></script>
 <script src="shared/utils.js"></script>
 <script>
 const state = loadState();
 renderHeader('diagnostics', 'KYH-Diagnostics');
+renderFooter();
 
 const profile = state.profile;
 const main = document.getElementById('main-content');

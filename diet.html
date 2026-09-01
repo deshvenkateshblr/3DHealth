@@ -14,10 +14,7 @@
   <div class="empty-state">Loading…</div>
 </main>
 
-<footer>
-  <span>KYH — Know Your Health. Own Your Path. Runs entirely in your browser.</span>
-  <span>Not a substitute for professional medical advice.</span>
-</footer>
+<footer id="app-footer"></footer>
 
 <script src="shared/utils.js"></script>
 <script src="shared/data.diet.js"></script>
@@ -28,6 +25,7 @@ const routine = state.routine || {};
 const userSymptoms = profile.symptoms || [];
 
 renderHeader('diet', 'KYH-Diet');
+renderFooter()
 
 // Restore any previous diet answers for this session
 let dietState = Object.assign({

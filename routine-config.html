@@ -25,9 +25,7 @@
   <div class="empty-state">Loading your profile&hellip;</div>
 </main>
 
-<footer>
-  <span>KYH — Know Your Health. Own Your Path. Runs entirely in your browser.</span>
-</footer>
+<footer id="app-footer"></footer>
 
 <script src="shared/data.activities.js"></script>
 <script src="shared/utils.js"></script>
@@ -37,7 +35,8 @@ const profile = state.profile;
 const main = document.getElementById('main-content');
 const weightKg = profile?.weightKg || 70; 
 
-renderHeader('routine', 'KYH-Daily Routine'); 
+renderHeader('routine', 'KYH-Daily Routine');
+renderFooter()
 
 let selectedActivities = state.routine?.activities || [];
 
@@ -83,7 +82,9 @@ function init() {
     </div>
   </div>
   
-  <div class="validation-msg" id="time-msg" style="text-align:right; margin-top:-16px; margin-bottom:12px;"></div>
+  
+  <!-- Add aria-live="polite" -->
+  <div class="validation-msg alert-banner" id="time-msg" aria-live="polite"></div>
 
   <div class="note-block" style="margin-bottom: 24px; font-size: 13.5px;">
     <strong>How is this calculated?</strong> We use the <em>Metabolic Equivalent of Task (MET)</em> formula: 

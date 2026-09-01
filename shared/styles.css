@@ -1,4 +1,26 @@
-﻿:root {
+﻿/* --- High-Visibility Alert Banner --- */
+.alert-banner:not(:empty) {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #fef2f2; /* Soft red background */
+  color: #991b1b;            /* High-contrast dark red text */
+  border: 1px solid #fca5a5; /* Distinct red border */
+  padding: 12px 16px;
+  border-radius: 6px;
+  margin-top: 12px;
+  margin-bottom: 24px;
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+
+/* Optional: Adds a warning icon using pure CSS */
+.alert-banner:not(:empty)::before {
+  content: "⚠️"; 
+  font-size: 1.1rem;
+}
+
+:root {
   --ink: #182620;
   --ink-soft: #3d4a44;
   --paper: #eef1ea;
