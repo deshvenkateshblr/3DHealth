@@ -205,7 +205,7 @@ function renderResultsStage() {
       ? `<div class="contra">Avoid if you have: ${esc(ex.contraindications.join(', '))}</div>`
       : '';
 
-    const intensityChip = `<span class="meta-chip">${esc(ex.intensity || '—')} intensity</span>`;
+const intensityChip = `<span class="meta-chip">${esc(ex.intensity || '—')} intensity</span>`;
     const equip = (ex.equipment || '').trim();
     const equipmentChip = (equip && equip.toLowerCase() !== 'none')
       ? `<span class="meta-chip">${esc(equip)}</span>`
@@ -213,8 +213,11 @@ function renderResultsStage() {
     const profileChip = ex.profile
       ? `<span class="meta-chip">${esc(ex.profile)}</span>`
       : '';
-
-
+    
+    // NEW: Create the movement type chip with a teal highlight
+    const moveChip = ex.movement_type 
+      ? `<span class="meta-chip" style="color: var(--teal); border-color: var(--teal); font-weight: 600;">${esc(ex.movement_type)}</span>` 
+      : '';
 
     cardsHtml += `
     <div class="test-card" data-exercise="${esc(ex.exercise)}">
@@ -223,6 +226,7 @@ function renderResultsStage() {
           <div class="name">${i + 1}. ${esc(ex.exercise)}</div>
           <div class="test-desc">${esc(ex.note)}</div>
           <div class="meta-row">
+              ${moveChip}
               ${intensityChip}
               ${equipmentChip}
               ${profileChip}

@@ -973,6 +973,171 @@ const KYH_BRAND_BLURB =
     };
   }
 
+  /* ============================================================
+     Human-facing prose summaries (Executive Summary + per-section)
+     Same tagged/prioritised insight data as above, composed into
+     plain, descriptive sentences -- "review this", not "do this".
+     The full Act/Watch/Sustain detail stays intact underneath (in the
+     collapsible section cards, and in the AI prompt / doctor brief) --
+     this is a softer, human-facing lens on the same data, never a
+     second source of truth.
+     ============================================================ */
+
+  const SHORT_LABEL = {
+    bmi: 'BMI', whtr: 'waist-to-height ratio', smoking: 'smoking status',
+    alcohol: 'alcohol habits', 'fam-metabolic': 'family history', 'fam-cardio': 'family history',
+    pcos: 'PCOS status', repro: 'reproductive status', 'age-40': 'age-related screening',
+    'sugar-high': 'fasting sugar', 'sugar-mid': 'fasting sugar', 'sugar-ok': 'fasting sugar', 'sugar-unknown': 'fasting sugar',
+    'hr-high': 'resting heart rate', 'hr-low': 'resting heart rate', 'hr-ok': 'resting heart rate', 'hr-unknown': 'resting heart rate',
+    sleep: 'sleep', 'sleep-long': 'sleep', sitting: 'sitting time', 'sitting-ok': 'sitting time',
+    'exercise-gap': 'exercise', 'exercise-weekly': 'exercise', 'exercise-ok': 'exercise',
+    'steps-low': 'daily steps', 'steps-mid': 'daily steps', 'steps-ok': 'daily steps',
+    sun: 'daylight exposure', 'sun-ok': 'daylight exposure',
+    'dinner-gap': 'meal timing', 'dinner-ok': 'meal timing',
+    'post-meal-walk': 'post-meal walks', 'post-meal-walk-no': 'post-meal walks',
+    'calorie-burn': 'calorie burn', 'move-plan': 'movement plan', 'move-partial': 'movement plan', 'move-all': 'movement plan',
+    'cal-target': 'calorie target', 'nutrient-top': 'nutrient priorities',
+    'fq-sugary': 'added sugar intake', 'fq-upf': 'processed food intake',
+    'fq-low-fruits': 'fruit intake', 'fq-low-leafy_greens': 'leafy greens intake',
+    'fq-low-legumes': 'legume intake', 'fq-low-nuts_seeds': 'nuts & seeds intake',
+    'fq-protect': 'protective foods', 'fq-protective-ok': 'protective foods', 'diet-pref': 'dietary preference'
+  };
+
+  function shortLabel(i) {
+    return SHORT_LABEL[i.id] || (i.title || '').toLowerCase();
+  }
+
+  function joinNatural(items) {
+    const list = [...new Set(items)].filter(Boolean);
+    if (!list.length) return '';
+    if (list.length === 1) return list[0];
+    if (list.length === 2) return list.join(' and ');
+    return list.slice(0, -1).join(', ') + ', and ' + list[list.length - 1];
+  }
+
+  /** One prose sentence describing a domain's tone mix -- status, not instruction. */
+  function domainStatusSentence(items, opener, allGoodPhrase, mixedPhrase, max) {
+    if (!items || !items.length) return '';
+    const good = items.filter(i => i.tone === 'good');
+    const notGood = items.filter(i => i.tone !== 'good');
+    if (!notGood.length) {
+      const names = joinNatural(good.slice(0, max || 3).map(shortLabel));
+      return names ? `${opener} ${allGoodPhrase} ${names}.` : '';
+    }
+    const names = joinNatural(notGood.slice(0, max || 3).map(shortLabel));
+    return names ? `${opener} ${mixedPhrase} ${names}.` : '';
+  }
+
+  /**
+   * Plain-language digest for the top of Summary. Descriptive, not
+   * imperative -- states what's true and lets the person decide what to
+   * do with it. Expands exactly one test (the system's own top-ranked
+   * pick, using the same ranking already shown in Diagnostics) so the
+   * app is narrating a judgment the person can already see, not making
+   * a second, hidden one just for this paragraph.
+   */
+  function buildExecutiveSummary(state, insights) {
+    state = state || {};
+    const profile = state.profile || {};
+    const byDomain = d => insights.filter(i => i.domain === d);
+    const body = byDomain('body').concat(byDomain('lifestyle'));
+    const routine = byDomain('routine').concat(byDomain('movement'));
+    const diet = byDomain('diet');
+
+    const parts = [];
+
+    // 1. Basics
+    const basics = domainStatusSentence(
+      body, 'Your basics look', 'solid —', 'mostly steady, with a few things worth a look:'
+    );
+    if (basics) parts.push(basics);
+
+    // 2. Worth reviewing -- symptoms + one expanded test (the system's own top pick)
+    const symptoms = profile.symptoms || [];
+    const topTests = (state.diagnostics && state.diagnostics.topTests) || [];
+    if (symptoms.length) {
+      const symNames = joinNatural(symptoms.slice(0, 3).map(s => String(s).toLowerCase()));
+      if (topTests.length) {
+        const top = topTests[0];
+        const DIAG = (typeof window !== 'undefined' && window.DIAG) || [];
+        const entry = DIAG.find(d => d.test === top.test);
+        let sentence = `Worth reviewing: ${symNames} connect${symptoms.length === 1 ? 's' : ''} to a few tests that could add useful context — not because anything here is flagged as urgent, just information worth having on hand.`;
+        if (entry && entry.extended_info) {
+          sentence += ` One example: a ${top.test}. ${entry.extended_info}`;
+        }
+        parts.push(sentence);
+      } else {
+        parts.push(`Worth reviewing: ${symNames} ${symptoms.length === 1 ? 'is' : 'are'} logged as context — revisit Diagnostics for a matched test list.`);
+      }
+    } else if (topTests.length) {
+      parts.push('No symptoms logged, so the test list below reflects your risk-profile baseline rather than anything specific.');
+    }
+
+    // 3. Routine + diet status -- reuse the already-written "step not
+    // completed" detail directly rather than templating its title, same
+    // as summarizeSection does, so it doesn't turn into a broken sentence.
+    const routineSentence = (routine.length === 1 && /-none$/.test(routine[0].id))
+      ? routine[0].detail
+      : domainStatusSentence(routine, 'Your routine looks', 'steady across', 'lighter than typical on');
+    const dietSentence = (diet.length === 1 && /-none$/.test(diet[0].id))
+      ? diet[0].detail
+      : domainStatusSentence(diet, 'Your diet looks', 'well-aligned on', 'worth a look on');
+    const combined = [routineSentence, dietSentence].filter(Boolean).join(' ');
+    if (combined) parts.push(combined);
+
+    // 4. Closing
+    parts.push('The full picture — tests, routine, and diet — is below to look through on your own, or bring into a conversation with a doctor or AI.');
+
+    return parts.join(' ');
+  }
+
+  /** Short prose line for a Routine/Diet section header -- status, not a to-do count. */
+  function summarizeSection(items) {
+    if (!items || !items.length) return '';
+    if (items.length === 1 && /-none$/.test(items[0].id)) return items[0].detail;
+    const notGood = items.filter(i => i.tone !== 'good');
+    if (!notGood.length) {
+      return `Looks steady — ${joinNatural(items.slice(0, 3).map(shortLabel))} all check out.`;
+    }
+    return `Worth a look: ${joinNatural(notGood.slice(0, 3).map(shortLabel))}.`;
+  }
+
+  /**
+   * Diagnostics section header line, deliberately NOT tone/count-based --
+   * "how many tests are open" is exactly the framing this whole layer
+   * exists to avoid. Always reads as an invitation to review, regardless
+   * of how many tests are on the list.
+   */
+  function summarizeDiagnosticsSection(items) {
+    if (!items || !items.length) return '';
+    if (items.length === 1 && /-none$/.test(items[0].id)) return items[0].detail;
+    return "Review below for tests that could be useful context, based on what you've told us — nothing here is a must-do list.";
+  }
+
+  /**
+   * "About You" section header line -- combines the merged Profile +
+   * Symptoms card's two domain pairs (body/lifestyle, symptoms/vitals)
+   * into one short preview line, same status-sentence pattern as the
+   * Executive Summary uses, plus the symptom pattern reused verbatim
+   * from its own already-well-toned detail text.
+   */
+  function summarizeAboutYou(items) {
+    if (!items || !items.length) return '';
+    const body = items.filter(i => i.domain === 'body' || i.domain === 'lifestyle');
+    const symptomsVitals = items.filter(i => i.domain === 'symptoms' || i.domain === 'vitals');
+
+    const parts = [];
+    const basics = domainStatusSentence(
+      body, 'Your basics look', 'solid —', 'mostly steady, with a few things worth a look:'
+    );
+    if (basics) parts.push(basics);
+
+    const symptomInsight = symptomsVitals.find(i => i.id === 'symptoms-pattern' || i.id === 'symptoms-none');
+    if (symptomInsight) parts.push(symptomInsight.detail);
+
+    return parts.join(' ');
+  }
+
   /** Insight-first AI prompt (not a raw field dump). */
   function buildInsightAIPrompt(state, insights) {
     insights = insights || buildInsights(state);
@@ -1032,6 +1197,10 @@ const KYH_BRAND_BLURB =
     groupInsights,
     buildInsightAIPrompt,
     buildInsightDoctorPrep,
+    buildExecutiveSummary,
+    summarizeSection,
+    summarizeDiagnosticsSection,
+    summarizeAboutYou,
     estimateDailyBurn,
     activityBandFromBurn,
     MET
@@ -1042,5 +1211,9 @@ const KYH_BRAND_BLURB =
   global.groupInsights = groupInsights;
   global.buildInsightAIPrompt = buildInsightAIPrompt;
   global.buildInsightDoctorPrep = buildInsightDoctorPrep;
+  global.buildExecutiveSummary = buildExecutiveSummary;
+  global.summarizeSection = summarizeSection;
+  global.summarizeDiagnosticsSection = summarizeDiagnosticsSection;
+  global.summarizeAboutYou = summarizeAboutYou;
 
 })(typeof window !== 'undefined' ? window : globalThis);

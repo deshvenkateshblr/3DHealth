@@ -156,6 +156,38 @@
  margin: 0 0 8px;
  }
 
+ .step-summary {
+ font-size: 13.5px;
+ line-height: 1.55;
+ color: var(--ink-soft);
+ margin: 0 0 2px;
+ }
+
+ .step-toggle {
+ background: none;
+ border: none;
+ padding: 0;
+ font-family: var(--mono);
+ font-size: 11px;
+ letter-spacing: .05em;
+ text-transform: uppercase;
+ color: var(--teal);
+ cursor: pointer;
+ margin-top: 8px;
+ display: inline-block;
+ }
+ .step-toggle:hover { text-decoration: underline; }
+ .step-details[hidden] { display: none; }
+ .step-details { margin-top: 14px; }
+
+ .exec-summary {
+ font-size: 15px;
+ line-height: 1.7;
+ max-width: 640px;
+ margin: 0 auto;
+ text-align: left;
+ }
+
  @media print {
  body > * { display: revert !important; }
  .print-only { display: block !important; }
@@ -169,6 +201,8 @@
  display: none !important;
  }
  #insights { display: block !important; }
+ .step-details { display: block !important; }
+ .step-toggle { display: none !important; }
  .step-card, .insight-card { break-inside: avoid; background: #fff; }
  body { background: #fff; }
  }
@@ -186,6 +220,7 @@
 
 <footer id="app-footer"></footer>
 
+<script src="shared/data.diagnostics.js"></script>
 <script src="shared/utils.js"></script>
 <script src="shared/insights.js"></script>
 <script>
@@ -202,34 +237,28 @@ let cachedInsights = [];
 /** Map insight.domain → journey step (matches Fine → Great flow) */
 const STEP_DEFS = [
  {
- id: 'profile',
- title: 'Profile & lifestyle',
- domains: ['body', 'lifestyle'],
- icon: `<svg aria-hidden="true"  viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c1.5-3.5 4-5 7-5s5.5 1.5 7 5"/></svg>`
- },
- {
- id: 'symptoms',
- title: 'Symptoms & vitals',
- domains: ['symptoms', 'vitals'],
- icon: `<svg aria-hidden="true"  viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s-6-5.4-6-10a6 6 0 1 1 12 0c0 4.6-6 10-6 10z"/></svg>`
+ id: 'about-you',
+ title: 'About you',
+ domains: ['body', 'lifestyle', 'symptoms', 'vitals'],
+ icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c1.5-3.5 4-5 7-5s5.5 1.5 7 5"/></svg>`
  },
  {
  id: 'diagnostics',
  title: 'Diagnostics',
  domains: ['diagnostics'],
- icon: `<svg aria-hidden="true"  viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/></svg>`
+ icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/></svg>`
  },
  {
  id: 'routine',
  title: 'Daily routine & movement',
  domains: ['routine', 'movement'],
- icon: `<svg aria-hidden="true"  viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>`
+ icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>`
  },
  {
  id: 'diet',
  title: 'Diet & nutrients',
  domains: ['diet'],
- icon: `<svg aria-hidden="true"  viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/></svg>`
+ icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/></svg>`
  }
 ];
 
@@ -268,32 +297,52 @@ function toneGroupHtml(label, cls, items) {
  </div>`;
 }
 
+const PROSE_STEPS = new Set(['about-you', 'diagnostics', 'routine', 'diet']);
+
+function stepSummaryLine(step, items) {
+  if (step.id === 'about-you') return summarizeAboutYou(items);
+  if (step.id === 'diagnostics') return summarizeDiagnosticsSection(items);
+  return summarizeSection(items);
+}
+
 function stepCardHtml(step, items) {
- const b = toneBucket(items);
- const count = items.length;
- const meta = count
- ? `${b.act.length} act · ${b.watch.length} watch · ${b.good.length} sustain`
- : 'No insights from this step yet';
+  const count = items.length;
+  const usePros = PROSE_STEPS.has(step.id);
+  const detailsId = `step-details-${step.id}`;
 
- const body = count
- ? (
- toneGroupHtml('Act', 'act', b.act) +
- toneGroupHtml('Watch', 'watch', b.watch) +
- toneGroupHtml('Sustain', 'good', b.good)
- )
- : `<p class="step-empty">${esc(meta)}</p>`;
+  let headBody;
+  if (!count) {
+    headBody = `<div class="step-meta">No insights from this step yet</div>`;
+  } else if (usePros) {
+    const line = stepSummaryLine(step, items) || `${count} insight${count > 1 ? 's' : ''} from this step.`;
+    headBody = `<div class="step-summary">${esc(line)}</div>`;
+  } else {
+    const b = toneBucket(items);
+    headBody = `<div class="step-meta">${esc(`${b.act.length} act · ${b.watch.length} watch · ${b.good.length} sustain`)}</div>`;
+  }
 
- return `
- <div class="step-card" id="step-${step.id}">
- <div class="step-card-head">
- <div class="step-icon" aria-hidden="true">${step.icon}</div>
- <div>
- <h2 class="step-title">${esc(step.title)}</h2>
- <div class="step-meta">${esc(meta)}</div>
- </div>
- </div>
- ${body}
- </div>`;
+  const detailBody = count
+    ? (
+      toneGroupHtml('Act', 'act', toneBucket(items).act) +
+      toneGroupHtml('Watch', 'watch', toneBucket(items).watch) +
+      toneGroupHtml('Sustain', 'good', toneBucket(items).good)
+    )
+    : `<p class="step-empty">No insights from this step yet</p>`;
+
+  return `
+    <div class="step-card" id="step-${step.id}">
+      <div class="step-card-head">
+        <div class="step-icon" aria-hidden="true">${step.icon}</div>
+        <div style="flex:1;">
+          <h2 class="step-title">${esc(step.title)}</h2>
+          ${headBody}
+        </div>
+      </div>
+      <button type="button" class="step-toggle no-print" data-target="${detailsId}" aria-expanded="false">Show details &darr;</button>
+      <div class="step-details" id="${detailsId}" hidden>
+        ${detailBody}
+      </div>
+    </div>`;
 }
 
 function insightsByStep(insights) {
@@ -373,6 +422,25 @@ function downloadText(filename, text) {
  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
+function wireStepToggles() {
+  document.querySelectorAll('.step-toggle').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const target = document.getElementById(btn.dataset.target);
+      if (!target) return;
+      const isHidden = target.hasAttribute('hidden');
+      if (isHidden) {
+        target.removeAttribute('hidden');
+        btn.textContent = 'Hide details ↑';
+        btn.setAttribute('aria-expanded', 'true');
+      } else {
+        target.setAttribute('hidden', '');
+        btn.textContent = 'Show details ↓';
+        btn.setAttribute('aria-expanded', 'false');
+      }
+    });
+  });
+}
+
 function wireExportActions() {
  const saveBtn = document.getElementById('btn-save-findings');
  const printBtn = document.getElementById('btn-print-findings');
@@ -408,21 +476,22 @@ function render() {
  const byStep = insightsByStep(cachedInsights);
  const total = cachedInsights.length;
 
- const iconDoctor = `<svg aria-hidden="true"  width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 14h6M12 11v6"/></svg>`;
- const iconAI = `<svg aria-hidden="true"  width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2l2.4 7.4H22l-6 4.6 2.3 7.4L12 17.3 5.7 21.4 8 14 2 9.4h7.6z"/></svg>`;
- const iconLearn = `<svg aria-hidden="true"  width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>`;
- const iconSnap = `<svg aria-hidden="true"  width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/></svg>`;
+ const iconDoctor = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 14h6M12 11v6"/></svg>`;
+ const iconAI = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2l2.4 7.4H22l-6 4.6 2.3 7.4L12 17.3 5.7 21.4 8 14 2 9.4h7.6z"/></svg>`;
+ const iconLearn = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>`;
+ const iconSnap = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/></svg>`;
+
+ const execSummary = total ? buildExecutiveSummary(state, cachedInsights) : '';
 
  main.innerHTML = `
  <div class="summary-hero no-print">
  <h1>You took the first step toward <em>great</em>.</h1>
  <p class="sub">Your private health picture is ready. Nothing left this browser.</p>
- <p class="lede">
- ${total
- ? `${total} insights organised by the steps you completed — act, watch, or sustain within each.`
- : 'Choose how you want to use what you built.'}
- </p>
  </div>
+
+ ${execSummary
+ ? `<div class="note-block teal exec-summary no-print" style="margin-bottom:28px;">${esc(execSummary)}</div>`
+ : `<p class="lede no-print" style="margin-bottom:28px;">Choose how you want to use what you built.</p>`}
 
  <div class="outcome-grid action-grid no-print" style="margin-bottom:28px;">
  <a class="outcome-card" href="nextsteps.html#doctor">
@@ -472,6 +541,7 @@ function render() {
  `;
 
  wireExportActions();
+ wireStepToggles();
 }
 
 render();
