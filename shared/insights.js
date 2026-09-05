@@ -424,37 +424,43 @@ const KYH_BRAND_BLURB =
     }
 
     const bySym = top.filter(t => t.bySymptom).length;
-    const onTrack = [];
-    const belowTarget = [];
+    const onTrackInRange = [];
+    const onTrackFlagged = [];
+    const onTrackUnsure = [];
+    const notLogged = [];
 
     top.forEach(t => {
       const name = t.test || t.name;
       const a = answers[name];
-      if (a && a.done === true) onTrack.push(name);
-      else belowTarget.push(name); // not done, unanswered, or explicit "no"
+      if (a && a.done === true) {
+        if (a.resultStatus === 'Within range') onTrackInRange.push(name);
+        else if (a.resultStatus === 'Flagged \u2014 needs attention') onTrackFlagged.push(name);
+        else onTrackUnsure.push(name); // done, but "Not sure" or unspecified
+      } else {
+        notLogged.push(name); // not done, unanswered, or explicit "no"
+      }
     });
+    const belowTarget = notLogged; // kept for the existing `next` phrasing below
+
+    const doneParts = [];
+    if (onTrackInRange.length) doneParts.push(`within range: ${onTrackInRange.join(', ')}`);
+    if (onTrackFlagged.length) doneParts.push(`flagged for follow-up: ${onTrackFlagged.join(', ')}`);
+    if (onTrackUnsure.length) doneParts.push(`done, result unclear: ${onTrackUnsure.join(', ')}`);
+    const doneSummary = doneParts.length ? doneParts.join('; ') : 'none';
 
     out.push(insight({
-      id: 'diag-coverage', domain: 'diagnostics', tone: belowTarget.length ? 'watch' : 'good', priority: 14,
+      id: 'diag-coverage', domain: 'diagnostics', tone: onTrackFlagged.length ? 'watch' : (notLogged.length ? 'watch' : 'good'), priority: 14,
       title: 'Screening coverage from your prioritised list',
       detail: `${top.length} tests matched your profile${bySym ? ` (${bySym} symptom-linked)` : ''}. ` +
-        `On track (self-reported done): ${onTrack.length ? onTrack.join(', ') : 'none'}. ` +
-        `Still below target: ${belowTarget.length ? belowTarget.slice(0, 6).join(', ') + (belowTarget.length > 6 ? '…' : '') : 'none'}.`,
-      next: belowTarget.length
-        ? `Highest-value open items to discuss: ${belowTarget.slice(0, 5).join(', ')}.`
-        : 'Keep results filed and recheck on the interval your clinician suggests.',
+        `Marked already done — ${doneSummary}. ` +
+        `Not yet logged: ${notLogged.length ? notLogged.slice(0, 6).join(', ') + (notLogged.length > 6 ? '…' : '') : 'none'}.`,
+      next: onTrackFlagged.length
+        ? `Flagged results worth discussing first: ${onTrackFlagged.join(', ')}.`
+        : (belowTarget.length
+          ? `Worth reviewing at your next visit, if useful: ${belowTarget.slice(0, 5).join(', ')}.`
+          : 'Keep results filed and recheck on the interval your clinician suggests.'),
       sources: ['diagnostics.topTests', 'diagnostics.answers']
     }));
-
-    if (belowTarget.length >= 4) {
-      out.push(insight({
-        id: 'diag-open', domain: 'diagnostics', tone: 'act', priority: 12,
-        title: 'Several priority tests are still open',
-        detail: `${belowTarget.length} of ${top.length} prioritised tests are not marked done yet.`,
-        next: 'Take this shortlist to your next visit rather than ordering ad-hoc panels.',
-        sources: ['diagnostics.answers']
-      }));
-    }
 
     return out;
   }
@@ -538,7 +544,7 @@ const KYH_BRAND_BLURB =
         id: 'routine-none', domain: 'routine', tone: 'watch', priority: 42,
         title: 'Daily routine not logged',
         detail: 'Without logged activities or daily signals, burn and movement insights stay approximate.',
-        next: 'Complete the Routine step to unlock sleep, sitting, burn, and habit insights.',
+        next: 'Visit Routine for sleep, sitting, burn, and habit insights.',
         sources: ['routine']
       }));
       return out;
@@ -765,6 +771,9 @@ const KYH_BRAND_BLURB =
       ex.isPracticing === true ||
       (exercises && exercises.answers && exercises.answers[ex.exercise || ex]?.practicing)
     );
+    const names = list.map(ex => ex.exercise || ex);
+    const practicingNames = practicing.map(ex => ex.exercise || ex);
+    const notPracticingNames = names.filter(n => !practicingNames.includes(n));
     const n = list.length;
     const k = practicing.length;
 
@@ -772,7 +781,7 @@ const KYH_BRAND_BLURB =
       out.push(insight({
         id: 'move-plan', domain: 'movement', tone: 'watch', priority: 29,
         title: 'You have a personalised movement list — not started yet',
-        detail: `${n} recommended exercise${n > 1 ? 's' : ''} matched to symptoms and routine; none marked as practicing.`,
+        detail: `${n} recommended exercise${n > 1 ? 's' : ''} matched to symptoms and routine, none marked as practicing: ${names.slice(0, 6).join(', ')}${names.length > 6 ? '…' : ''}.`,
         next: 'Pick one or two low-equipment moves and schedule them on fixed days.',
         sources: ['routine.recommendedExercises', 'exercises']
       }));
@@ -780,7 +789,7 @@ const KYH_BRAND_BLURB =
       out.push(insight({
         id: 'move-partial', domain: 'movement', tone: 'good', priority: 41,
         title: `You are already practicing ${k} of ${n} recommended moves`,
-        detail: 'Building on movements you tolerate is better than overhauling everything.',
+        detail: `Currently practicing: ${practicingNames.join(', ')}. Not yet started: ${notPracticingNames.slice(0, 6).join(', ')}${notPracticingNames.length > 6 ? '…' : ''}.`,
         next: 'Add one more from the list once the current ones feel automatic.',
         sources: ['routine.recommendedExercises', 'exercises.answers']
       }));
@@ -788,7 +797,7 @@ const KYH_BRAND_BLURB =
       out.push(insight({
         id: 'move-all', domain: 'movement', tone: 'good', priority: 36,
         title: 'You are practicing your full recommended set',
-        detail: `All ${n} listed movements marked as in use.`,
+        detail: `All ${n} listed movements marked as in use: ${names.slice(0, 6).join(', ')}${names.length > 6 ? '…' : ''}.`,
         next: 'Stay consistent; progress range or control before adding intensity.',
         sources: ['routine.recommendedExercises']
       }));
@@ -817,9 +826,9 @@ const KYH_BRAND_BLURB =
         id: 'diet-none', domain: 'diet', tone: 'watch', priority: 43,
         title: 'Diet preferences not completed',
         detail: diet.type
-          ? `Preference on file: ${diet.type}${diet.cuisine ? ' · ' + diet.cuisine : ''}. Calorie target, macros, and nutrient priorities still need the Diet step.`
-          : 'Calorie target, macros, and nutrient priorities need the Diet step.',
-        next: 'Complete Diet to unlock energy and nutrient insights.',
+          ? `Preference on file: ${diet.type}${diet.cuisine ? ' · ' + diet.cuisine : ''}. Calorie target, macros, and nutrient priorities become available once the Diet step is completed.`
+          : 'Calorie target, macros, and nutrient priorities become available once the Diet step is completed.',
+        next: 'Visit Diet for energy and nutrient insights.',
         sources: ['diet', 'profile.dietType', 'profile.cuisine']
       }));
       return out;
@@ -1138,25 +1147,23 @@ const KYH_BRAND_BLURB =
     return parts.join(' ');
   }
 
-  /** Insight-first AI prompt (not a raw field dump). */
-  function buildInsightAIPrompt(state, insights) {
-    insights = insights || buildInsights(state);
-    const g = groupInsights(insights);
-    const p = (state && state.profile) || {};
-    const diet = Object.assign({}, state && state.diet, {
-      type: (state && state.diet && state.diet.type) || p.dietType || null,
-      cuisine: (state && state.diet && state.diet.cuisine) || p.cuisine || null
-    });
+  /**
+   * Role-scoped section of the AI prompt. Shared context (age, sex, diet
+   * preference, symptoms) lives once at the top of the full prompt, not
+   * repeated per role -- each section here carries only its own findings.
+   */
+  function buildRoleSection(role, insights) {
+    const items = insights.filter(i => role.domains.includes(i.domain));
+    if (!items.length) return null;
+
+    const b = groupInsights(items);
     const lines = [];
-
-    lines.push(KYH_BRAND_BLURB);
-    lines.push('');
-    lines.push('Please prioritise a practical 30-day plan and what to discuss with a clinician.');
-    lines.push('');
-    lines.push(`Context: ${p.sex || '—'}, age ${p.age || '—'}. Diet preference: ${diet.type || '—'}${diet.cuisine ? ' (' + diet.cuisine + ')' : ''}.`);
+    lines.push('────────────────────────────────────');
+    lines.push(role.label.toUpperCase());
+    lines.push(role.preamble);
     lines.push('');
 
-    function section(title, arr) {
+    function bucket(title, arr) {
       if (!arr.length) return;
       lines.push(title);
       arr.forEach(i => {
@@ -1165,17 +1172,93 @@ const KYH_BRAND_BLURB =
       });
       lines.push('');
     }
-
-    section('ACT ON NEXT', g.act);
-    section('WATCH', g.watch);
-    section('STRENGTHS TO PROTECT', g.good.slice(0, 8));
+    bucket('ACT ON NEXT', b.act);
+    bucket('WATCH', b.watch);
+    bucket('STRENGTHS TO PROTECT', b.good.slice(0, 6));
 
     lines.push('Please help me with:');
-    lines.push('1. The 3–5 highest-leverage changes for the next 30 days');
-    lines.push('2. How to prepare for a conversation with my doctor');
-    lines.push('3. What not to over-optimise yet');
-    lines.push('4. Any red flags I should not ignore');
-    return lines.join('\n');
+    role.asks.forEach((a, idx) => lines.push(`${idx + 1}. ${a}`));
+
+    return { key: role.key, label: role.label, text: lines.join('\n') };
+  }
+
+  const AI_PROMPT_ROLES = [
+    {
+      key: 'lab',
+      label: 'For a lab / diagnostics review',
+      domains: ['diagnostics', 'vitals', 'body', 'lifestyle'],
+      preamble: 'Acting as a knowledgeable lab-results reviewer — not a replacement for my doctor — help me understand the following, using my risk profile as context:',
+      asks: [
+        'Which of these matter most to bring up at my next visit',
+        'What each flagged test or marker might indicate, in plain language',
+        "What's likely fine to leave for routine screening"
+      ]
+    },
+    {
+      key: 'physio',
+      label: 'For a movement / physio review',
+      domains: ['routine', 'movement'],
+      preamble: 'Acting as a knowledgeable exercise and movement coach — not a replacement for my doctor or a physiotherapist — help me understand the following:',
+      asks: [
+        'The 1–2 highest-leverage changes to make first',
+        'Whether anything here suggests I should ease in carefully',
+        "What's already working and worth protecting"
+      ]
+    },
+    {
+      key: 'diet',
+      label: 'For a dietician review',
+      domains: ['diet'],
+      preamble: 'Acting as a knowledgeable nutrition reviewer — not a replacement for a registered dietitian — help me understand the following:',
+      asks: [
+        'Practical swaps that fit how I already eat',
+        'Whether my calorie and macro targets make sense',
+        'Any nutrient gaps worth prioritising first'
+      ]
+    }
+  ];
+
+  /**
+   * Insight-first AI prompt, split into three role-scoped sections (lab,
+   * physio, dietician) sharing one context header instead of repeating
+   * it three times. Returns { full, sections } -- callers that want the
+   * whole thing use `.full`; callers that want a single role's text (a
+   * "copy just this section" affordance) use `.sections[i].text`.
+   */
+  function buildInsightAIPrompt(state, insights) {
+    insights = insights || buildInsights(state);
+    const p = (state && state.profile) || {};
+    const diet = Object.assign({}, state && state.diet, {
+      type: (state && state.diet && state.diet.type) || p.dietType || null,
+      cuisine: (state && state.diet && state.diet.cuisine) || p.cuisine || null
+    });
+    const symptoms = p.symptoms || [];
+
+    const header = [];
+    header.push(KYH_BRAND_BLURB);
+    header.push('');
+    header.push('Please prioritise a practical 30-day plan and what to discuss with a clinician.');
+    header.push('');
+    header.push(`Context: ${p.sex || '—'}, age ${p.age || '—'}. Diet preference: ${diet.type || '—'}${diet.cuisine ? ' (' + diet.cuisine + ')' : ''}.`);
+    header.push(symptoms.length ? `Symptoms logged: ${symptoms.join(', ')}.` : 'No symptoms logged.');
+
+    const sections = AI_PROMPT_ROLES
+      .map(role => buildRoleSection(role, insights))
+      .filter(Boolean);
+
+    const headerText = header.join('\n');
+    const sectionsWithContext = sections.map(s => ({
+      key: s.key,
+      label: s.label,
+      text: s.text,
+      // Standalone, copy-ready prompt for just this one role -- still
+      // carries the shared context, so it's useful on its own.
+      withContext: [headerText, '', s.text].join('\n')
+    }));
+
+    const full = [headerText, '', sections.map(s => s.text).join('\n\n')].join('\n');
+
+    return { full, header: headerText, sections: sectionsWithContext };
   }
 
   /** Doctor brief bullets from act + watch only. */

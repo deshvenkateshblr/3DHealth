@@ -18,6 +18,27 @@
       overflow-y: auto;
       margin-bottom: 12px;
     }
+    .section-subnav {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      background: var(--paper);
+      border-bottom: 1px solid var(--line);
+      padding: 12px clamp(16px, 4vw, 48px);
+      font-family: var(--mono);
+      font-size: 11.5px;
+      letter-spacing: .05em;
+      text-transform: uppercase;
+    }
+    .subnav-back { color: var(--ink-soft); text-decoration: none; font-weight: 600; }
+    .subnav-back:hover { color: var(--teal); }
+    .subnav-sep { color: var(--line); }
+    .subnav-link { color: var(--ink-soft); text-decoration: none; }
+    .subnav-link:hover { color: var(--teal); }
+    @media print { .section-subnav { display: none !important; } }
     .video-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
@@ -62,6 +83,14 @@
 <body>
 
 <header class="masthead" id="app-header"></header>
+
+<nav class="section-subnav no-print" id="section-subnav">
+  <a href="summary.html" class="subnav-back">&larr; Summary</a>
+  <span class="subnav-sep">&middot;</span>
+  <a href="#doctor" class="subnav-link">Doctor Brief</a>
+  <a href="#ai" class="subnav-link">AI Prompt</a>
+  <a href="#learn" class="subnav-link">Videos</a>
+</nav>
 
 <main id="main-content">
   <div class="empty-state">Loading next steps…</div>
@@ -224,9 +253,9 @@ function render() {
   }
 
   const insights = typeof buildInsights === 'function' ? buildInsights(state) : [];
-  const promptText = typeof buildInsightAIPrompt === 'function'
+  const aiPrompt = typeof buildInsightAIPrompt === 'function'
     ? buildInsightAIPrompt(state, insights)
-    : '';
+    : { full: '', header: '', sections: [] };
   const doctorItems = typeof buildInsightDoctorPrep === 'function'
     ? buildInsightDoctorPrep(insights)
     : [];
@@ -249,11 +278,20 @@ function render() {
     </div>
 
     <div class="cat-title" id="ai">AI action prompt</div>
-    <p class="lede" style="font-size:14px; margin-bottom:12px;">
-      Insight-based prompt (not a raw data dump). Copy into ChatGPT, Claude, or any assistant.
+    <p class="lede" style="font-size:14px; margin-bottom:16px;">
+      Four ready-to-copy prompts, each starting from the same context. Pick the conversation you want to have.
     </p>
-    <div class="prompt-box" id="ai-prompt">${esc(promptText)}</div>
-    <button type="button" class="btn secondary" id="copy-prompt-btn" style="margin-bottom:36px;" aria-live="polite">Copy prompt</button>
+
+    <div class="field" style="max-width:440px; margin-bottom:16px;">
+      <label class="intake-label" for="ai-prompt-select">Choose a prompt</label>
+      <select id="ai-prompt-select">
+        <option value="all">All three, with shared context</option>
+        ${aiPrompt.sections.map(s => `<option value="${esc(s.key)}">${esc(s.label)}</option>`).join('')}
+      </select>
+    </div>
+
+    <div class="prompt-box" id="ai-prompt-display"></div>
+    <button type="button" class="btn" id="copy-prompt-btn" style="margin:12px 0 36px;" aria-live="polite">Copy this prompt</button>
 
     <div class="cat-title" id="learn">Recommended videos</div>
     <p class="lede" style="font-size:14px; margin-bottom:8px;">
@@ -273,12 +311,27 @@ function render() {
 
   wireVideoShowMore();
 
+  const AI_PROMPT_OPTIONS = { all: aiPrompt.full };
+  aiPrompt.sections.forEach(s => { AI_PROMPT_OPTIONS[s.key] = s.withContext; });
+
+  const promptSelect = document.getElementById('ai-prompt-select');
+  const promptDisplay = document.getElementById('ai-prompt-display');
+  function renderSelectedPrompt() {
+    if (!promptSelect || !promptDisplay) return;
+    promptDisplay.textContent = AI_PROMPT_OPTIONS[promptSelect.value] || '';
+  }
+  if (promptSelect) {
+    promptSelect.addEventListener('change', renderSelectedPrompt);
+    renderSelectedPrompt();
+  }
+
   const copyBtn = document.getElementById('copy-prompt-btn');
   if (copyBtn) {
     copyBtn.addEventListener('click', () => {
-      navigator.clipboard.writeText(promptText).then(() => {
+      const text = AI_PROMPT_OPTIONS[promptSelect ? promptSelect.value : 'all'] || '';
+      navigator.clipboard.writeText(text).then(() => {
         copyBtn.textContent = 'Copied ✓';
-        setTimeout(() => { copyBtn.textContent = 'Copy prompt'; }, 2000);
+        setTimeout(() => { copyBtn.textContent = 'Copy this prompt'; }, 2000);
       });
     });
   }

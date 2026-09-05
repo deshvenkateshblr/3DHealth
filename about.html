@@ -25,13 +25,15 @@
     margin: 0;
   }
 
+  /* CHANGED: Grid now uses 3 columns */
   .about-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(3, 1fr);
     gap: 22px;
     margin-bottom: 36px;
   }
-  @media (max-width: 720px) {
+  /* CHANGED: Adjusted breakpoint for 3 columns */
+  @media (max-width: 900px) {
     .about-grid { grid-template-columns: 1fr; }
   }
 
@@ -65,6 +67,11 @@
   .about-box.is-not .caption-bar::before {
     background: var(--amber);
   }
+  /* NEW: Styling for the clinical column */
+  .about-box.is-clinical .caption-bar::before {
+    background: var(--ink-soft);
+  }
+  
   .caption-bar span {
     position: relative;
     z-index: 1;
@@ -81,6 +88,10 @@
   }
   .about-box.is-not .caption-bar span {
     color: var(--amber);
+  }
+  /* NEW: Styling for the clinical column */
+  .about-box.is-clinical .caption-bar span {
+    color: var(--ink-soft);
   }
 
   .about-box-body {
@@ -134,11 +145,11 @@
 
 <header class="masthead" id="app-header"></header>
 
-<main style="max-width:880px;">
+<!-- CHANGED: max-width increased to 1100px for 3 columns -->
+<main style="max-width:1100px;">
   <section style="padding-top:8px;">
 
     <div class="about-intro">
-      <h1>Before you begin</h1>
       <p>
         A quick, honest picture of what KYH does — and what it does not —
         so you can decide if this tool is right for you right now.
@@ -188,15 +199,36 @@
           </p>
           <ul>
             <li>Pregnancy</li>
-            <li>Recent surgery</li>
-            <li>Recent hospitalization</li>
-            <li>Allergies requiring specialized management</li>
+            <li>Recent surgery or hospitalization</li>
+            <li>Food Allergies</li>
             <li>Any other special-care scenario</li>
           </ul>
           <p style="margin-bottom:0; margin-top:12px;">
             If any of these apply, please work with your care team first.
             You can return when your situation is stable.
           </p>
+        </div>
+      </div>
+
+      <!-- Medical Sources -->
+      <div class="about-box is-clinical">
+        <div class="caption-bar"><span>Medical Sources</span></div>
+        <div class="about-box-body">
+          <h2>Peer-reviewed and curated data</h2>
+      <p>
+      To make the logic for diagnostics, diets, and exercises is medically sound,
+      KYH relies on peer-reviewed and globally recognized medical databases.
+      </p>
+      <p>
+      The engine's logic is validated against the <strong>NIH</strong> Office of Dietary Supplements for verified deficiency symptoms,
+      <strong>The Merck Manual</strong> for clinical nutritional signs, the <strong>Linus Pauling Institute</strong>
+      for micronutrient research, <strong>ACSM &amp; APTA</strong> for movement and rehab guidelines, and
+      <strong>Mayo Clinic</strong> for foundational lifestyle protocols.
+     </p>
+      <p style="margin-bottom:0;">
+          This evidence base helps you bring structured, clinically grounded
+          questions to your healthcare provider.
+      </p>
         </div>
       </div>
 
@@ -227,7 +259,7 @@
 <script src="shared/utils.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-  renderHeader('fine', 'About this tool');
+  renderHeader('fine', 'Before you begin-About this tool');
   renderFooter();
 
   const cb = document.getElementById('ack-limitations');
