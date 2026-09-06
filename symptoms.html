@@ -32,13 +32,12 @@ const main = document.getElementById('main-content');
 /* Symptom categories, validated to cover the full vocabulary derived from DIAG with
    no gaps and no duplicates (each test's symptoms[] array is the single source of truth). */
 const CATEGORIES = [
-  {name:'Known Conditions', items:['Diabetes','High Blood Pressure', 'Low Blood Pressure','High Cholesterol','Thyroid Disorder']},
   {name:'Energy, Sleep & Mood', items:['Insomnia','Fatigue','Low Energy','Restlessness','Stress','Anxiety','Depression','Mood Swings','Irritability','Burnout','Snoring']},
   {name:'Musculoskeletal & Joints', items:['Back Pain','Neck Pain','Shoulder Pain','Knee Pain','Hip Pain','Leg Pain','Foot Pain','Toe Pain','Leg Cramps','Sciatica','Arthritis','Osteoporosis','Carpal Tunnel','Frozen Shoulder','Joint Stiffness','Poor Posture','Slouching','Weak Core','Muscle Weakness','Balance Issues','Sports Injury','Sprain','Strain','Recovery Fatigue','Overtraining','Plantar Fasciitis']},
   {name:'Digestive', items:['Indigestion','Acid Reflux','Constipation','Diarrhea','Bloating','Irritable Bowel Syndrome','Gastritis','Ulcer','Nausea','Vomiting','Gut Health','Hemorrhoids','Loss of Appetite','Blood in Stool']},
-  {name:'Heart & Circulation', items:['Heart Palpitations','Chest Pain','Poor Circulation','Varicose Veins','Edema','Swelling','Fainting / Passing Out']},
-  {name:'Weight & Metabolic', items:['Obesity','Overweight','Underweight','Weight Loss','Sugar Cravings','Emotional Eating','Excessive Thirst']},
-  {name:'Hormonal & Reproductive', items:['PCOS','Menstrual Pain','Menopause Symptoms','Hot Flashes','Night Sweats','Infertility','Pregnancy Discomfort','Postpartum Recovery']},
+  {name:'Heart & Circulation', items:['High Blood Pressure','Low Blood Pressure','Heart Palpitations','Chest Pain','Poor Circulation','Varicose Veins','Edema','Swelling','Fainting / Passing Out']},
+  {name:'Weight & Metabolic', items:['Obesity','Overweight','Underweight','Weight Loss','Diabetes','High Cholesterol','Sugar Cravings','Emotional Eating','Excessive Thirst']},
+  {name:'Hormonal & Reproductive', items:['Thyroid Disorder','PCOS','Menstrual Pain','Menopause Symptoms','Hot Flashes','Night Sweats','Infertility','Pregnancy Discomfort','Postpartum Recovery']},
   {name:'Head & Neurological', items:['Migraine','Headache','Vertigo','Memory Loss','Poor Concentration','Brain Fog','Cognitive Decline','Numbness or Tingling']},
   {name:'Respiratory & Allergy', items:['Asthma','Bronchitis','Shortness of Breath','Allergies','Cold','Sinus Congestion','Chronic Cough']},
   {name:'Skin & Hair', items:['Skin Acne','Eczema','Psoriasis','Dry Skin','Hair Loss','Dandruff','Itching','Skin Rash','Bruising Easily','Sweaty Hands']},
@@ -59,8 +58,12 @@ if(isMale){
 
 let selectedSymptoms = new Set((profile && profile.symptoms) || []);
 const vitals = state.vitals || {};
-let activeCat = 'All';
 let searchQuery = '';
+const CATEGORIZED_SET = new Set(CATEGORIES.flatMap(c=>c.items));
+// Anything in SYMPTOM_LIST not covered by a named category above -- a
+// safety net so nothing becomes invisible if the data ever drifts out of
+// sync, without duplicating every symptom into a second copy of itself.
+const UNCATEGORIZED = SYMPTOM_LIST.filter(s=>!CATEGORIZED_SET.has(s));
 
 function init(){
   main.innerHTML = `
@@ -73,18 +76,7 @@ function init(){
     <input type="text" id="symptom-input" class="field" placeholder="Search all symptoms&hellip;" autocomplete="off">
   </div>
 
-  <div class="symptom-split-layout" style="margin-bottom: 36px;">
-    
-    <div class="cat-sidebar" id="cat-sidebar">
-      <button type="button" class="cat-side-btn active" data-cat="All">All Categories</button>
-      ${CATEGORIES.map(c=>`<button type="button" class="cat-side-btn" data-cat="${esc(c.name)}">${esc(c.name)}</button>`).join('')}
-    </div>
-
-    <div id="browse-wrapper">
-      <div class="browse-grid" id="browse-grid"></div>
-    </div>
-
-  </div>
+  <div id="browse-wrapper" style="margin-bottom: 36px;"></div>
 
   <div class="cat-title">Selected</div>
   <div class="chips-row" id="symptom-chips"></div>
@@ -119,24 +111,30 @@ function init(){
   `;
 
   const input = document.getElementById('symptom-input');
-  const catSidebar = document.getElementById('cat-sidebar');
-  const browseGrid = document.getElementById('browse-grid');
+  const browseWrapper = document.getElementById('browse-wrapper');
   const chips = document.getElementById('symptom-chips');
   const hint = document.getElementById('symptom-hint');
 
-  function renderBrowseGrid(){
-    let items;
-    if(searchQuery.trim()){
-      const q = searchQuery.trim().toLowerCase();
-      items = SYMPTOM_LIST.filter(s=>s.toLowerCase().includes(q));
-    } else if(activeCat==='All'){
-      items = SYMPTOM_LIST;
-    } else {
-      items = CATEGORIES.find(c=>c.name===activeCat).items;
-    }
-    browseGrid.innerHTML = items.length ? items.map(s=>
+  function chipsGridHtml(items){
+    const q = searchQuery.trim().toLowerCase();
+    const filtered = q ? items.filter(s=>s.toLowerCase().includes(q)) : items;
+    if (!filtered.length) return '';
+    return `<div class="browse-grid">${filtered.map(s=>
       `<button type="button" class="browse-chip${selectedSymptoms.has(s)?' selected':''}" data-s="${esc(s)}">${esc(s)}</button>`
-    ).join('') : `<span class="symptom-empty-hint">No matches found.</span>`;
+    ).join('')}</div>`;
+  }
+
+  function renderBrowseSections(){
+    let html = '';
+    CATEGORIES.forEach(c=>{
+      const grid = chipsGridHtml(c.items);
+      if (grid) html += `<div class="cat-section" style="margin-bottom:28px;"><div class="cat-title">${esc(c.name)}</div>${grid}</div>`;
+    });
+    if (UNCATEGORIZED.length) {
+      const grid = chipsGridHtml(UNCATEGORIZED);
+      if (grid) html += `<div class="cat-section" style="margin-bottom:28px;"><div class="cat-title">All Categories</div>${grid}</div>`;
+    }
+    browseWrapper.innerHTML = html || `<p class="symptom-empty-hint">No matches found.</p>`;
   }
 
   function renderChips(){
@@ -144,36 +142,14 @@ function init(){
     hint.textContent = selectedSymptoms.size ? `${selectedSymptoms.size} symptom${selectedSymptoms.size>1?'s':''} selected.` : 'No symptoms selected yet \u2014 that\u2019s fine, we\u2019ll use your risk profile instead.';
   }
 
-  // Handle Sidebar Category Clicks
-  catSidebar.addEventListener('click', (e)=>{
-    const btn = e.target.closest('.cat-side-btn');
-    if(!btn) return;
-    
-    activeCat = btn.dataset.cat;
-    
-    // Clear search box when clicking a category
-    input.value = '';
-    searchQuery = '';
-    
-    catSidebar.querySelectorAll('.cat-side-btn').forEach(b=>b.classList.toggle('active', b===btn));
-    renderBrowseGrid();
-  });
-
   // Handle Search Input
   input.addEventListener('input', ()=>{
     searchQuery = input.value;
-    
-    // If user starts typing, automatically switch back to "All" visually
-    if (searchQuery.trim().length > 0 && activeCat !== 'All') {
-      activeCat = 'All';
-      catSidebar.querySelectorAll('.cat-side-btn').forEach(b=>b.classList.toggle('active', b.dataset.cat === 'All'));
-    }
-    
-    renderBrowseGrid();
+    renderBrowseSections();
   });
 
-  // Handle Selecting a Symptom
-  browseGrid.addEventListener('click', (e)=>{
+  // Handle Selecting a Symptom (delegated across all category sections)
+  browseWrapper.addEventListener('click', (e)=>{
     const btn = e.target.closest('.browse-chip');
     if(!btn) return;
     const s = btn.dataset.s;
@@ -188,10 +164,10 @@ function init(){
     if(!btn) return;
     selectedSymptoms.delete(btn.dataset.s);
     renderChips();
-    renderBrowseGrid();
+    renderBrowseSections();
   });
 
-  renderBrowseGrid();
+  renderBrowseSections();
   renderChips();
 
   const sugarInput = document.getElementById('f-fasting-sugar');
