@@ -1,0 +1,288 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>KYH Teaser – Refined</title>
+        <style>
+          * {
+          margin: 0;
+          padding: 0;
+          box-sizing: border-box;
+          }
+
+          body {
+          height: 100vh;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: linear-gradient(135deg, #0c1222 0%, #1a2332 50%, #0c1222 100%);
+          font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+          color: #f1f5f9;
+          overflow: hidden;
+          position: relative;
+          }
+
+          .particle {
+          position: absolute;
+          width: 3px;
+          height: 3px;
+          background: rgba(45, 212, 191, 0.22);
+          border-radius: 50%;
+          animation: float 22s infinite linear;
+          }
+
+          @keyframes float {
+          0% { transform: translateY(100vh) scale(0); opacity: 0; }
+          20% { opacity: 0.3; }
+          80% { opacity: 0.3; }
+          100% { transform: translateY(-60vh) scale(1.5); opacity: 0; }
+          }
+
+          .container {
+          width: 100%;
+          max-width: 900px;
+          padding: 20px 30px;
+          text-align: center;
+          position: relative;
+          z-index: 10;
+          height: 100%;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          }
+
+          .stage {
+          position: absolute;
+          width: 100%;
+          max-width: 820px;
+          opacity: 0;
+          transform: translateY(20px);
+          transition: all 1.5s cubic-bezier(0.22, 1, 0.36, 1);
+          pointer-events: none;
+          }
+
+          .stage.active {
+          opacity: 1;
+          transform: translateY(0);
+          }
+
+          .stage.fade-out {
+          opacity: 0;
+          transform: translateY(-20px);
+          }
+
+          .statement {
+          font-size: 1.5rem;
+          color: #94a3b8;
+          max-width: 680px;
+          margin: 0 auto 28px;
+          line-height: 1.65;
+          opacity: 0;
+          transform: translateY(12px);
+          transition: all 1.2s ease;
+          }
+
+          .statement.show {
+          opacity: 1;
+          transform: translateY(0);
+          }
+
+          .big-question {
+          font-size: clamp(1.7rem, 4.1vw, 2.55rem);
+          font-weight: 400;
+          line-height: 1.45;
+          opacity: 0;
+          transform: translateY(18px);
+          transition: all 1.3s ease;
+          }
+
+          .big-question.show {
+          opacity: 1;
+          transform: translateY(0);
+          }
+
+          .big-question strong {
+          color: #2dd4bf;
+          font-weight: 600;
+          }
+
+          .final {
+          opacity: 0;
+          transform: translateY(30px);
+          transition: all 1.6s ease;
+          }
+
+          .final.show {
+          opacity: 1;
+          transform: translateY(0);
+          }
+
+          .final h1 {
+          font-size: clamp(2.4rem, 5.4vw, 3.5rem);
+          font-weight: 500;
+          margin-bottom: 14px;
+          letter-spacing: -0.8px;
+          }
+
+          .final h1 span {
+          color: #2dd4bf;
+          }
+
+          .final .tagline {
+          font-size: 1.3rem;
+          color: #94a3b8;
+          margin-bottom: 40px;
+          font-weight: 400;
+          letter-spacing: 0.3px;
+          }
+
+          .cta {
+          display: inline-block;
+          padding: 16px 44px;
+          background: linear-gradient(135deg, #0d9488, #14b8a6);
+          color: white;
+          font-size: 1.15rem;
+          font-weight: 600;
+          text-decoration: none;
+          border-radius: 50px;
+          box-shadow: 0 12px 35px rgba(13, 148, 136, 0.4);
+          transition: all 0.3s ease;
+          }
+
+          .cta:hover {
+          transform: translateY(-3px);
+          box-shadow: 0 18px 45px rgba(13, 148, 136, 0.55);
+          }
+
+          .glow {
+          position: absolute;
+          width: 560px;
+          height: 560px;
+          background: radial-gradient(circle, rgba(45, 212, 191, 0.1) 0%, transparent 70%);
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          z-index: 1;
+          pointer-events: none;
+          opacity: 0;
+          transition: opacity 1.6s ease;
+          }
+
+          .glow.show {
+          opacity: 1;
+          }
+        </style>
+      </head>
+  <body>
+
+    <div class="particle" style="left: 10%; animation-delay: 0s;"></div>
+    <div class="particle" style="left: 30%; animation-delay: 5s;"></div>
+    <div class="particle" style="left: 50%; animation-delay: 2.5s;"></div>
+    <div class="particle" style="left: 70%; animation-delay: 7s;"></div>
+    <div class="particle" style="left: 88%; animation-delay: 3.5s;"></div>
+
+    <div class="glow" id="glow"></div>
+
+    <div class="container">
+
+      <!-- Stage 1 -->
+      <div class="stage" id="stage1">
+        <div class="statement" id="stmt1">
+          Health advice is everywhere… yet almost none of it was written for your body, your symptoms, or your life.
+        </div>
+        <div class="big-question" id="q1">
+          How do you <strong>Know</strong> what is actually good<br>
+            in <em>your</em> context?
+          </div>
+      </div>
+
+      <!-- Stage 2 -->
+      <div class="stage" id="stage2">
+        <div class="statement" id="stmt2">
+          Generic lists and one-size-fits-all plans leave you guessing what truly belongs to you.
+        </div>
+        <div class="big-question" id="q2">
+          How do you know which is truly <strong>Your</strong> path?
+        </div>
+      </div>
+
+      <!-- Stage 3 -->
+      <div class="stage" id="stage3">
+        <div class="statement" id="stmt3">
+          Health is wealth — built from the lab tests you need, the movement you do, and the diet you follow.
+        </div>
+        <div class="big-question" id="q3">
+          It is imperative that you know your <strong>Health</strong><br>more intimately than casually.
+      
+        </div>
+      </div>
+
+      <!-- Final -->
+      <div class="final" id="final">
+        <h1>
+          Know <span>Your</span> Health
+        </h1>
+        <div class="tagline">Personalized path to your wellness</div>
+        <a href="https://vividnova.com/3DHealth/" class="cta" target="_blank">
+          Begin with KYH →
+        </a>
+      </div>
+
+    </div>
+
+    <script>
+      // Very slow, comfortable reading pace
+
+      // ===== STAGE 1 =====
+      setTimeout(() => {
+      document.getElementById('stage1').classList.add('active');
+      document.getElementById('stmt1').classList.add('show');
+      }, 800);
+
+      setTimeout(() => {
+      document.getElementById('q1').classList.add('show');
+      }, 3200);
+
+      // ===== STAGE 2 =====
+      setTimeout(() => {
+      document.getElementById('stage1').classList.add('fade-out');
+      }, 9500);
+
+      setTimeout(() => {
+      document.getElementById('stage2').classList.add('active');
+      document.getElementById('stmt2').classList.add('show');
+      }, 11000);
+
+      setTimeout(() => {
+      document.getElementById('q2').classList.add('show');
+      }, 13500);
+
+      // ===== STAGE 3 =====
+      setTimeout(() => {
+      document.getElementById('stage2').classList.add('fade-out');
+      }, 19500);
+
+      setTimeout(() => {
+      document.getElementById('stage3').classList.add('active');
+      document.getElementById('stmt3').classList.add('show');
+      }, 21000);
+
+      setTimeout(() => {
+      document.getElementById('q3').classList.add('show');
+      }, 23800);
+
+      // ===== FINAL =====
+      setTimeout(() => {
+      document.getElementById('stage3').classList.add('fade-out');
+      }, 30500);
+
+      setTimeout(() => {
+      document.getElementById('final').classList.add('show');
+      document.getElementById('glow').classList.add('show');
+      }, 32200);
+    </script>
+
+  </body>
+</html>
