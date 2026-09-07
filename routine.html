@@ -1,152 +1,138 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="Select and track your typical daily and weekly activities to calculate true energy expenditure and build a personalized routine in KYH.">
-<title>Routine Selection &mdash; KYH</title>
-<link rel="stylesheet" href="shared/styles.css">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="description" content="Select and track your typical daily and weekly activities to calculate true energy expenditure and build a personalized routine in KYH.">
+      <title>Routine Selection &mdash; KYH</title>
+     <link rel="stylesheet" href="shared/styles.css">
 </head>
-<body>
+  <body>
 
-<header class="masthead" id="app-header"></header>
+    <header class="masthead" id="app-header"></header>
 
-<main id="main-content">
-  <div class="empty-state">Loading your profile&hellip;</div>
-</main>
+    <main id="main-content">
+      <div class="empty-state">Loading your profile&hellip;</div>
+    </main>
 
-<footer id="app-footer"></footer>
+    <footer id="app-footer"></footer>
 
-<script src="shared/data.activities.js"></script>
-<script src="shared/utils.js"></script>
-<script>
-const state = loadState();
-const profile = state.profile;
-const main = document.getElementById('main-content');
+    <script src="shared/data.activities.js"></script>
+    <script src="shared/utils.js"></script>
+    <script>
+      const state = loadState();
+      const profile = state.profile;
+      const main = document.getElementById('main-content');
 
-renderHeader('routine', 'KYH-Daily Routine'); 
-renderFooter()
+      renderHeader('routine', 'KYH-Daily Routine');
+      renderFooter()
 
-const categories = [...new Set(window.ACTIVITIES.map(a => a.category))];
-let activeCat = 'All';
-let searchQuery = '';
-let selectedActivities = []; 
+      const categories = [...new Set(window.ACTIVITIES.map(a => a.category))];
+      let searchQuery = '';
+      let selectedActivities = [];
 
-function init() {
-  // Pre-populate if empty
-  if (state.routine && state.routine.activities) {
-    selectedActivities = [...state.routine.activities];
-  } else {
-    selectedActivities = [
-      { id: "act_011", freq: "daily", hours: 8, mins: 0 }, 
-      { id: "act_015", freq: "daily", hours: 8, mins: 0 }, 
-      { id: "act_017", freq: "daily", hours: 2, mins: 0 }, 
-      { id: "act_016", freq: "daily", hours: 1, mins: 0 }, 
-      { id: "act_002", freq: "daily", hours: 2, mins: 0 }, 
-      { id: "act_012", freq: "daily", hours: 2, mins: 0 }, 
-      { id: "act_102", freq: "daily", hours: 1, mins: 0 }  
-    ];
-  }
+      function init() {
+      // Pre-populate if empty
+      if (state.routine && state.routine.activities) {
+      selectedActivities = [...state.routine.activities];
+      } else {
+      selectedActivities = [
+      { id: "act_011", freq: "daily", hours: 8, mins: 0 },
+      { id: "act_015", freq: "daily", hours: 8, mins: 0 },
+      { id: "act_017", freq: "daily", hours: 2, mins: 0 },
+      { id: "act_016", freq: "daily", hours: 1, mins: 0 },
+      { id: "act_002", freq: "daily", hours: 2, mins: 0 },
+      { id: "act_012", freq: "daily", hours: 2, mins: 0 },
+      { id: "act_102", freq: "daily", hours: 1, mins: 0 }
+      ];
+      }
 
-  main.innerHTML = `
-  <div class="section-head">
-    <h2>1. Select Your Activities</h2>
-  </div>
-  <p class="lede">Search and tap all the activities you do in a typical week. We've pre-filled a standard baseline to get you started.</p>
+      main.innerHTML = `
+      <div class="section-head">
+        <h2>1. Select Your Activities</h2>
+      </div>
+      <p class="lede">Search and tap all the activities you do in a typical week. We've pre-filled a standard baseline to get you started.</p>
 
-  <div class="symptom-search-full" style="position:sticky; top:0; background:var(--paper); padding:16px 0; z-index:10; border-bottom:1px solid var(--line);">
-    <input type="text" id="act-input" class="field" placeholder="Search activities, sports, chores&hellip;" autocomplete="off">
-  </div>
-
-  <div class="symptom-split-layout" style="margin-bottom: 36px;">
-    <div class="cat-sidebar" id="cat-sidebar">
-      <button type="button" class="cat-side-btn active" data-cat="All">All Categories</button>
-      ${categories.map(c => `<button type="button" class="cat-side-btn" data-cat="${esc(c)}">${esc(c)}</button>`).join('')}
-    </div>
-    <div id="browse-wrapper">
-      <div class="browse-grid" id="browse-grid"></div>
-    </div>
+      <div class="symptom-search-full" style="position:sticky; top:0; background:var(--paper); padding:16px 0; z-index:10; border-bottom:1px solid var(--line);">
+        <input type="text" id="act-input" class="field" placeholder="Search activities, sports, chores&hellip;" autocomplete="off">
   </div>
 
-  <div class="page-footer-nav">
-    <a href="#" id="back-btn" class="btn secondary">&larr; Back</a>
-    <button type="button" class="btn" id="continue-btn">Configure Schedule &rarr;</button>
-  </div>
-  `;
+      <div id="browse-wrapper" style="margin-bottom: 36px;"></div>
 
-  const input = document.getElementById('act-input');
-  const catSidebar = document.getElementById('cat-sidebar');
-  const browseGrid = document.getElementById('browse-grid');
-  
-  document.getElementById('back-btn').addEventListener('click', (e) => {
-    e.preventDefault();
-    goTo('diagnostics.html', state); 
-  });
+      <div class="page-footer-nav">
+        <a href="#" id="back-btn" class="btn secondary">&larr; Back</a>
+        <button type="button" class="btn" id="continue-btn">Configure Schedule &rarr;</button>
+      </div>
+      `;
 
-  document.getElementById('continue-btn').addEventListener('click', () => {
-    const routineState = Object.assign({}, state.routine || {}, { activities: selectedActivities });
-    const next = Object.assign({}, state, { routine: routineState });
-    goTo('routine-config.html', next); // Move to step 2!
-  });
+      const input = document.getElementById('act-input');
+      const browseWrapper = document.getElementById('browse-wrapper');
 
-  function renderBrowseGrid() {
-    let items = window.ACTIVITIES;
-    if (searchQuery.trim()) {
+      document.getElementById('back-btn').addEventListener('click', (e) => {
+      e.preventDefault();
+      goTo('diagnostics.html', state);
+      });
+
+      document.getElementById('continue-btn').addEventListener('click', () => {
+      const routineState = Object.assign({}, state.routine || {}, { activities: selectedActivities });
+      const next = Object.assign({}, state, { routine: routineState });
+      goTo('routine-config.html', next); // Move to step 2!
+      });
+
+      function chipsGridHtml(items) {
       const q = searchQuery.trim().toLowerCase();
-      items = items.filter(a => a.name.toLowerCase().includes(q) || a.category.toLowerCase().includes(q));
-    } else if (activeCat !== 'All') {
-      items = items.filter(a => a.category === activeCat);
-    }
-    
-    const selectedIds = new Set(selectedActivities.map(a => a.id));
+      const filtered = q ? items.filter(a => a.name.toLowerCase().includes(q) || a.category.toLowerCase().includes(q)) : items;
+      if (!filtered.length) return '';
+      const selectedIds = new Set(selectedActivities.map(a => a.id));
+      return `<div class="browse-grid">
+        ${filtered.map(a =>
+        `<button type="button" class="browse-chip ${selectedIds.has(a.id) ? 'selected' : ''}" data-id="${a.id}">${esc(a.name)}</button>`
+        ).join('')}
+      </div>`;
+      }
 
-    browseGrid.innerHTML = items.length ? items.map(a =>
-      `<button type="button" class="browse-chip ${selectedIds.has(a.id) ? 'selected' : ''}" data-id="${a.id}">${esc(a.name)}</button>`
-    ).join('') : `<span class="symptom-empty-hint">No matches found.</span>`;
-  }
+      function renderBrowseSections() {
+      let html = '';
+      categories.forEach(c => {
+      const items = window.ACTIVITIES.filter(a => a.category === c);
+      const grid = chipsGridHtml(items);
+      if (grid) html += `<div class="cat-section" style="margin-bottom:28px;">
+        <div class="cat-title">${esc(c)}</div>${grid}
+      </div>`;
+      });
+      browseWrapper.innerHTML = html || `<p class="symptom-empty-hint">No matches found.</p>`;
+      }
 
-  catSidebar.addEventListener('click', (e) => {
-    const btn = e.target.closest('.cat-side-btn');
-    if(!btn) return;
-    activeCat = btn.dataset.cat;
-    input.value = '';
-    searchQuery = '';
-    catSidebar.querySelectorAll('.cat-side-btn').forEach(b => b.classList.toggle('active', b === btn));
-    renderBrowseGrid();
-  });
+      input.addEventListener('input', () => {
+      searchQuery = input.value;
+      renderBrowseSections();
+      });
 
-  input.addEventListener('input', () => {
-    searchQuery = input.value;
-    if (searchQuery.trim().length > 0 && activeCat !== 'All') {
-      activeCat = 'All';
-      catSidebar.querySelectorAll('.cat-side-btn').forEach(b => b.classList.toggle('active', b.dataset.cat === 'All'));
-    }
-    renderBrowseGrid();
-  });
+      browseWrapper.addEventListener('click', (e) => {
+      const btn = e.target.closest('.browse-chip');
+      if(!btn) return;
+      const id = btn.dataset.id;
+      const existingIdx = selectedActivities.findIndex(a => a.id === id);
 
-  browseGrid.addEventListener('click', (e) => {
-    const btn = e.target.closest('.browse-chip');
-    if(!btn) return;
-    const id = btn.dataset.id;
-    const existingIdx = selectedActivities.findIndex(a => a.id === id);
-    
-    if (existingIdx >= 0) {
+      if (existingIdx >= 0) {
       selectedActivities.splice(existingIdx, 1);
-    } else {
+      } else {
       // Default to "daily" and 1 hour, as requested
-      selectedActivities.push({ id, freq: 'daily', hours: 1, mins: 0 }); 
-    }
-    renderBrowseGrid();
-  });
+      selectedActivities.push({ id, freq: 'daily', hours: 1, mins: 0 });
+      }
+      renderBrowseSections();
+      });
 
-  renderBrowseGrid();
-}
+      renderBrowseSections();
+      }
 
-if(!profile){
-  main.innerHTML = `<div class="empty-state">We need your profile first. <a href="profile.html">Go back to start &rarr;</a></div>`;
-} else {
-  init();
-}
-</script>
-</body>
+      if(!profile){
+      main.innerHTML = `<div class="empty-state">
+        We need your profile first. <a href="profile.html">Go back to start &rarr;</a>
+      </div>`;
+      } else {
+      init();
+      }
+    </script>
+  </body>
 </html>
