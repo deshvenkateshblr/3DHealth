@@ -124,13 +124,25 @@
   .about-ack {
     background: var(--panel);
     border: 1px solid var(--line);
-    padding: 18px 20px;
-    margin-bottom: 28px;
+    padding: 10px 18px;
+    margin-bottom: 22px;
+  }
+  .about-ack .check-field {
+    display: flex;
+    align-items: center;
+    gap: 10px;
   }
   .about-ack .check-field label {
-    font-size: 14.5px;
+    font-size: 13.5px;
     color: var(--ink);
-    line-height: 1.45;
+    line-height: 1.3;
+  }
+  .about-ack .validation-msg:empty {
+    display: none;
+  }
+  .about-ack .validation-msg {
+    margin: 6px 0 0 26px;
+    font-size: 12.5px;
   }
 
   .about-actions {
@@ -139,6 +151,18 @@
     align-items: center;
     gap: 12px;
     flex-wrap: wrap;
+  }
+  .inline-more-link {
+    color: var(--teal);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    cursor: pointer;
+    font-size: 14px;
+    margin-left: 4px;
+    white-space: nowrap;
+  }
+  .inline-more-link:hover {
+    color: var(--ink);
   }
 </style>
 </head>
@@ -149,13 +173,6 @@
 <!-- CHANGED: max-width increased to 1100px for 3 columns -->
 <main style="max-width:1100px;">
   <section style="padding-top:8px;">
-
-    <div class="about-intro">
-      <p>
-        A quick, honest picture of what KYH does — and what it does not —
-        so you can decide if this tool is right for you right now.
-      </p>
-    </div>
 
     <div class="about-grid">
 
@@ -171,16 +188,13 @@
           </p>
           <p>
             It organizes your details in a clear, insightful way so you can
-            take more informed decisions — always in partnership with a
+            take more informed decisions in partnership with a
             qualified healthcare professional.
           </p>
-          <p>
+          <p style="margin-bottom:0;">
             You can expand your learning with AI prompts and curated videos
             from popular, reputed sources.
-          </p>
-          <p style="margin-bottom:0;">
-            Everything stays private: <strong>no data leaves your browser</strong>,
-            and we store nothing about you on any server.
+            <span id="more-is" style="display:none;"> Everything stays private: <strong>no data leaves your browser</strong>, and we store nothing about you on any server. </span><a href="#" id="more-is-link" class="inline-more-link" role="button" aria-expanded="false" aria-controls="more-is">more&hellip;</a>
           </p>
         </div>
       </div>
@@ -196,17 +210,10 @@
             without explicit consultation with a healthcare professional.
           </p>
           <p style="margin-bottom:8px;">
-            It is <strong>not</strong> intended for special cases, including:
+            It is <strong>not</strong> intended for special cases, including Pregnancy, Recent surgery or hospitalization, Food Allergies or ny other special-care scenarios
           </p>
-          <ul>
-            <li>Pregnancy</li>
-            <li>Recent surgery or hospitalization</li>
-            <li>Food Allergies</li>
-            <li>Any other special-care scenario</li>
-          </ul>
-          <p style="margin-bottom:0; margin-top:12px;">
-            If any of these apply, please work with your care team first.
-            You can return when your situation is stable.
+          <p style="margin-bottom:0; margin-top:10px;">
+            <span id="more-isnot" style="display:none;">If any of these apply, please work with your care team first. You can return when your situation is stable. </span><a href="#" id="more-isnot-link" class="inline-more-link" role="button" aria-expanded="false" aria-controls="more-isnot" style="margin-left:0;">more&hellip;</a>
           </p>
         </div>
       </div>
@@ -216,20 +223,17 @@
         <div class="caption-bar"><span>Medical Sources</span></div>
         <div class="about-box-body">
           <h2>Peer-reviewed and curated data</h2>
-      <p>
-      To make the logic for diagnostics, diets, and exercises is medically sound,
-      KYH relies on peer-reviewed and globally recognized medical databases.
-      </p>
-      <p>
-      The engine's logic is validated against the <strong>NIH</strong> Office of Dietary Supplements for verified deficiency symptoms,
-      <strong>The Merck Manual</strong> for clinical nutritional signs, the <strong>Linus Pauling Institute</strong>
-      for micronutrient research, <strong>ACSM &amp; APTA</strong> for movement and rehab guidelines, and
-      <strong>Mayo Clinic</strong> for foundational lifestyle protocols.
-     </p>
-      <p style="margin-bottom:0;">
-          This evidence base helps you bring structured, clinically grounded
-          questions to your healthcare provider.
-      </p>
+          <p>
+            To ensure the logic is medically sound,
+            KYH relies on peer-reviewed and globally recognized medical databases.
+          </p>
+          <p style="margin-bottom:0;">
+            The engine's logic is validated against the <strong>NIH</strong> Office of Dietary Supplements for verified deficiency symptoms,
+            <strong>The Merck Manual</strong> and <strong>Linus Pauling Institute</strong>
+            for nutritional research, <strong>ACSM &amp; APTA</strong> for movement guidelines, and
+            <strong>Mayo Clinic</strong> for foundational lifestyle protocols.
+            <span id="more-clinical" style="display:none;"> This evidence base helps you bring structured, clinically grounded questions to your healthcare provider. </span><a href="#" id="more-clinical-link" class="inline-more-link" role="button" aria-expanded="false" aria-controls="more-clinical">more&hellip;</a>
+          </p>
         </div>
       </div>
 
@@ -238,13 +242,9 @@
     <div class="about-ack">
       <div class="check-field">
         <input type="checkbox" id="ack-limitations">
-        <label for="ack-limitations">
-          I understand the limitations of this tool. I am not in a special-care
-          situation listed above, and I will treat all output as exploratory —
-          not medical advice.
-        </label>
+        <label for="ack-limitations">I am not in a special-care situation listed above, and I will treat all output as exploratory &mdash; not medical advice.</label>
       </div>
-      <p id="ack-error" class="validation-msg" style="margin:10px 0 0;" aria-live="polite"></p>
+      <p id="ack-error" class="validation-msg" aria-live="polite"></p>
     </div>
 
     <div class="about-actions">
@@ -262,6 +262,29 @@
 document.addEventListener('DOMContentLoaded', () => {
   renderHeader('fine', 'Before you begin-About this tool');
   renderFooter();
+
+  function setupInlineMore(linkId, contentId) {
+    const link = document.getElementById(linkId);
+    const content = document.getElementById(contentId);
+    if (!link || !content) return;
+    link.addEventListener('click', (e) => {
+      e.preventDefault();
+      const isExpanded = link.getAttribute('aria-expanded') === 'true';
+      if (isExpanded) {
+        content.style.display = 'none';
+        link.setAttribute('aria-expanded', 'false');
+        link.innerHTML = 'more&hellip;';
+      } else {
+        content.style.display = 'inline';
+        link.setAttribute('aria-expanded', 'true');
+        link.textContent = 'less';
+      }
+    });
+  }
+
+  setupInlineMore('more-is-link', 'more-is');
+  setupInlineMore('more-isnot-link', 'more-isnot');
+  setupInlineMore('more-clinical-link', 'more-clinical');
 
   const cb = document.getElementById('ack-limitations');
   const btn = document.getElementById('btn-continue');
