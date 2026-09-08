@@ -1,149 +1,149 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Prepare for your doctor's visit with a clinical summary, explore curated educational videos, and generate custom AI prompts tailored to your health.">
-  <title>Next Steps &mdash; KYH</title>
-  <link rel="stylesheet" href="shared/styles.css">
-  <style>
-    .prompt-box {
-      background: var(--panel);
-      border: 1px solid var(--line);
-      padding: 16px 18px;
-      font-family: var(--mono);
-      font-size: 12.5px;
-      line-height: 1.55;
-      white-space: pre-wrap;
-      max-height: 320px;
-      overflow-y: auto;
-      margin-bottom: 12px;
-    }
-    .section-subnav {
-      position: sticky;
-      top: 0;
-      z-index: 20;
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      background: var(--paper);
-      border-bottom: 1px solid var(--line);
-      padding: 12px clamp(16px, 4vw, 48px);
-      font-family: var(--mono);
-      font-size: 11.5px;
-      letter-spacing: .05em;
-      text-transform: uppercase;
-    }
-    .subnav-back { color: var(--ink-soft); text-decoration: none; font-weight: 600; }
-    .subnav-back:hover { color: var(--teal); }
-    .subnav-sep { color: var(--line); }
-    .subnav-link { color: var(--ink-soft); text-decoration: none; }
-    .subnav-link:hover { color: var(--teal); }
-    @media print { .section-subnav { display: none !important; } }
-    .video-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-      gap: 14px;
-      margin-bottom: 16px;
-    }
-    .video-card {
-      display: block;
-      text-decoration: none;
-      color: inherit;
-      border: 1px solid var(--line);
-      background: var(--panel);
-      transition: border-color .15s;
-    }
-    .video-card:hover { border-color: var(--teal); }
-    .video-thumb-wrap {
-      position: relative;
-      aspect-ratio: 16/9;
-      background: var(--line);
-      overflow: hidden;
-    }
-    .video-thumb-wrap img {
-      width: 100%; height: 100%; object-fit: cover; display: block;
-    }
-    .video-duration {
-      position: absolute; bottom: 6px; right: 6px;
-      background: rgba(0,0,0,.75); color: #fff;
-      font-family: var(--mono); font-size: 10px; padding: 2px 5px;
-    }
-    .video-title {
-      font-size: 13px; font-weight: 600; padding: 10px 12px 4px;
-      line-height: 1.35;
-    }
-    .video-tags { padding: 0 12px 12px; display: flex; flex-wrap: wrap; gap: 4px; }
-    .video-source-title {
-      font-family: var(--mono); font-size: 11px; letter-spacing: .08em;
-      text-transform: uppercase; color: var(--muted); margin: 20px 0 10px;
-    }
-    #doctor, #ai, #learn { scroll-margin-top: 20px; }
-  </style>
-</head>
-<body>
+  <head>
+    <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="description" content="Prepare for your doctor's visit with a clinical summary, explore curated educational videos, and generate custom AI prompts tailored to your health.">
+          <title>Next Steps &mdash; KYH</title>
+          <link rel="stylesheet" href="shared/styles.css">
+            <style>
+              .prompt-box {
+              background: var(--panel);
+              border: 1px solid var(--line);
+              padding: 16px 18px;
+              font-family: var(--mono);
+              font-size: 12.5px;
+              line-height: 1.55;
+              white-space: pre-wrap;
+              max-height: 320px;
+              overflow-y: auto;
+              margin-bottom: 12px;
+              }
+              .section-subnav {
+              position: sticky;
+              top: 0;
+              z-index: 20;
+              display: flex;
+              align-items: center;
+              gap: 16px;
+              background: var(--paper);
+              border-bottom: 1px solid var(--line);
+              padding: 12px clamp(16px, 4vw, 48px);
+              font-family: var(--mono);
+              font-size: 11.5px;
+              letter-spacing: .05em;
+              text-transform: uppercase;
+              }
+              .subnav-back { color: var(--ink-soft); text-decoration: none; font-weight: 600; }
+              .subnav-back:hover { color: var(--teal); }
+              .subnav-sep { color: var(--line); }
+              .subnav-link { color: var(--ink-soft); text-decoration: none; }
+              .subnav-link:hover { color: var(--teal); }
+              @media print { .section-subnav { display: none !important; } }
+              .video-grid {
+              display: grid;
+              grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+              gap: 14px;
+              margin-bottom: 16px;
+              }
+              .video-card {
+              display: block;
+              text-decoration: none;
+              color: inherit;
+              border: 1px solid var(--line);
+              background: var(--panel);
+              transition: border-color .15s;
+              }
+              .video-card:hover { border-color: var(--teal); }
+              .video-thumb-wrap {
+              position: relative;
+              aspect-ratio: 16/9;
+              background: var(--line);
+              overflow: hidden;
+              }
+              .video-thumb-wrap img {
+              width: 100%; height: 100%; object-fit: cover; display: block;
+              }
+              .video-duration {
+              position: absolute; bottom: 6px; right: 6px;
+              background: rgba(0,0,0,.75); color: #fff;
+              font-family: var(--mono); font-size: 10px; padding: 2px 5px;
+              }
+              .video-title {
+              font-size: 13px; font-weight: 600; padding: 10px 12px 4px;
+              line-height: 1.35;
+              }
+              .video-tags { padding: 0 12px 12px; display: flex; flex-wrap: wrap; gap: 4px; }
+              .video-source-title {
+              font-family: var(--mono); font-size: 11px; letter-spacing: .08em;
+              text-transform: uppercase; color: var(--muted); margin: 20px 0 10px;
+              }
+              #doctor, #ai, #learn { scroll-margin-top: 20px; }
+            </style>
+          </head>
+  <body>
 
-<header class="masthead" id="app-header"></header>
+    <header class="masthead" id="app-header"></header>
 
-<nav class="section-subnav no-print" id="section-subnav">
-  <a href="summary.html" class="subnav-back">&larr; Summary</a>
-  <span class="subnav-sep">&middot;</span>
-  <a href="#doctor" class="subnav-link">Doctor Brief</a>
-  <a href="#ai" class="subnav-link">AI Prompt</a>
-  <a href="#learn" class="subnav-link">Videos</a>
-</nav>
+    <nav class="section-subnav no-print" id="section-subnav">
+      <a href="summary.html" class="subnav-back">&larr; Summary</a>
+      <span class="subnav-sep">&middot;</span>
+      <a href="#doctor" class="subnav-link">Doctor Brief</a>
+      <a href="#ai" class="subnav-link">AI Prompt</a>
+      <a href="#learn" class="subnav-link">Videos</a>
+    </nav>
 
-<main id="main-content">
-  <div class="empty-state">Loading next steps…</div>
-</main>
+    <main id="main-content">
+      <div class="empty-state">Loading next steps…</div>
+    </main>
 
-<footer>
-  <span>KYH — Know Your Health. Own Your Path. Runs entirely in your browser.</span>
-  <span>Not a substitute for professional medical advice.</span>
-</footer>
+    <footer>
+      <span>KYH — Know Your Health. Own Your Path. Runs entirely in your browser.</span>
+      <span>Not a substitute for professional medical advice.</span>
+    </footer>
 
-<script src="shared/data.videos.sb.js"></script>
-<script src="shared/data.videos.nbs.js"></script>
-<script src="shared/data.activities.js"></script>
-<script src="shared/utils.js"></script>
-<script src="shared/insights.js"></script>
-<script>
-const state = loadState() || {};
-const profile = state.profile || {};
-const symptoms = profile.symptoms || [];
+    <script src="shared/data.videos.sb.js"></script>
+    <script src="shared/data.videos.nbs.js"></script>
+    <script src="shared/data.activities.js"></script>
+    <script src="shared/utils.js"></script>
+    <script src="shared/insights.js"></script>
+    <script>
+      const state = loadState() || {};
+      const profile = state.profile || {};
+      const symptoms = profile.symptoms || [];
 
-renderHeader('great', 'KYH — Next Steps');
-const main = document.getElementById('main-content');
+      renderHeader('great', 'KYH — Next Steps');
+      const main = document.getElementById('main-content');
 
-/* ---------- Video matching ---------- */
-function deriveInterestTags(state) {
-  const p = state.profile || {};
-  const symptomTags = [...(p.symptoms || [])];
-  const contextTags = new Set();
+      /* ---------- Video matching ---------- */
+      function deriveInterestTags(state) {
+      const p = state.profile || {};
+      const symptomTags = [...(p.symptoms || [])];
+      const contextTags = new Set();
 
-  if (p.reproStatus === 'Perimenopausal' || p.reproStatus === 'Post-menopausal') contextTags.add('Menopause');
-  if (p.pcos) contextTags.add('PCOS');
-  const kind = bmiClass(p.bmi, p);
-  if (kind === 'over' || kind === 'obese') contextTags.add('Weight Loss');
-  if ((p.whtr || 0) >= 0.5) contextTags.add('Belly Fat');
-  if (p.famMetabolic) { contextTags.add('Blood Sugar'); contextTags.add('Insulin Resistance'); }
+      if (p.reproStatus === 'Perimenopausal' || p.reproStatus === 'Post-menopausal') contextTags.add('Menopause');
+      if (p.pcos) contextTags.add('PCOS');
+      const kind = bmiClass(p.bmi, p);
+      if (kind === 'over' || kind === 'obese') contextTags.add('Weight Loss');
+      if ((p.whtr || 0) >= 0.5) contextTags.add('Belly Fat');
+      if (p.famMetabolic) { contextTags.add('Blood Sugar'); contextTags.add('Insulin Resistance'); }
 
-  const freq = (state.diet && state.diet.frequency) || {};
-  if (freq.sugary_drinks === 'Daily' || freq.sugary_drinks === '3-5x/Wk') contextTags.add('Sugar');
-  if (freq.fried_ultraprocessed === 'Daily' || freq.fried_ultraprocessed === '3-5x/Wk') contextTags.add('Ultra-Processed Foods');
-  if (freq.leafy_greens === 'Rarely' || freq.fruits === 'Rarely') contextTags.add('Healthy Eating');
+      const freq = (state.diet && state.diet.frequency) || {};
+      if (freq.sugary_drinks === 'Daily' || freq.sugary_drinks === '3-5x/Wk') contextTags.add('Sugar');
+      if (freq.fried_ultraprocessed === 'Daily' || freq.fried_ultraprocessed === '3-5x/Wk') contextTags.add('Ultra-Processed Foods');
+      if (freq.leafy_greens === 'Rarely' || freq.fruits === 'Rarely') contextTags.add('Healthy Eating');
 
-  // Only derive sleep/exercise context tags if the Routine step was
-  // actually completed -- an empty activities array means no data, not
-  // "0 hours of exercise" as a real answer.
-  if (state.routine && Array.isArray(state.routine.activities) && state.routine.activities.length) {
-    const activityById = {};
-    (window.ACTIVITIES || []).forEach(a => { activityById[a.id] = a; });
-    const toHrs = a => (Number(a.hours) || 0) + (Number(a.mins) || 0) / 60;
+      // Only derive sleep/exercise context tags if the Routine step was
+      // actually completed -- an empty activities array means no data, not
+      // "0 hours of exercise" as a real answer.
+      if (state.routine && Array.isArray(state.routine.activities) && state.routine.activities.length) {
+      const activityById = {};
+      (window.ACTIVITIES || []).forEach(a => { activityById[a.id] = a; });
+      const toHrs = a => (Number(a.hours) || 0) + (Number(a.mins) || 0) / 60;
 
-    const sleepAct = state.routine.activities.find(a => a.id === 'act_011');
-    const sleepHrs = sleepAct ? toHrs(sleepAct) : 0;
-    if (sleepHrs < 6.5) contextTags.add('Sleep');
+      const sleepAct = state.routine.activities.find(a => a.id === 'act_011');
+      const sleepHrs = sleepAct ? toHrs(sleepAct) : 0;
+      if (sleepHrs < 6.5) contextTags.add('Sleep');
 
     // "Exercise" = time logged in intentional-movement categories, not
     // baseline rest/chores.
@@ -151,8 +151,8 @@ function deriveInterestTags(state) {
     const exerciseHrs = state.routine.activities.reduce((sum, a) => {
       const def = activityById[a.id];
       return (def && EXERCISE_CATEGORIES.has(def.category)) ? sum + toHrs(a) : sum;
-    }, 0);
-    if (exerciseHrs < 0.5) contextTags.add('Beginner Workout');
+      }, 0);
+      if (exerciseHrs < 0.5) contextTags.add('Beginner Workout');
   }
   return { symptomTags, contextTags: [...contextTags] };
 }
@@ -194,34 +194,34 @@ function pickTopVideos(list, symptomTags, contextTags, n) {
 
 function fmtDuration(sec) {
   if (!sec && sec !== 0) return '';
-  const m = Math.floor(sec / 60), s = String(sec % 60).padStart(2, '0');
-  return `${m}:${s}`;
-}
+      const m = Math.floor(sec / 60), s = String(sec % 60).padStart(2, '0');
+      return `${m}:${s}`;
+      }
 
-function videoCardHtml(v) {
-  const tagsHtml = (v._matched && v._matched.length)
-    ? v._matched.slice(0, 3).map(t => `<span class="tag ok">${esc(t)}</span>`).join('')
-    : `<span class="tag">Popular</span>`;
-  return `
-    <a class="video-card" href="${esc(v.url)}" target="_blank" rel="noopener">
-      <div class="video-thumb-wrap">
-        <img src="${esc(v.thumbnail)}" alt="" loading="lazy"
-             onerror="this.style.display='none'">
-        <span class="video-duration">${fmtDuration(v.duration)}</span>
-      </div>
-      <div class="video-title">${esc(v.title)}</div>
-      <div class="video-tags">${tagsHtml}</div>
-    </a>`;
-}
+      function videoCardHtml(v) {
+      const tagsHtml = (v._matched && v._matched.length)
+      ? v._matched.slice(0, 3).map(t => `<span class="tag ok">${esc(t)}</span>`).join('')
+      : `<span class="tag">Popular</span>`;
+      return `
+      <a class="video-card" href="${esc(v.url)}" target="_blank" rel="noopener">
+        <div class="video-thumb-wrap">
+          <img src="${esc(v.thumbnail)}" alt="${esc(v.title)}" loading="lazy"
+               onerror="this.onerror=null; this.src='https://i.ytimg.com/vi/${esc(v.id)}/hqdefault.jpg';">
+            <span class="video-duration">${fmtDuration(v.duration)}</span>
+          </div>
+        <div class="video-title">${esc(v.title)}</div>
+        <div class="video-tags">${tagsHtml}</div>
+      </a>`;
+      }
 
-function videoSourceBlockHtml(title, videos, idPrefix) {
-  if (!videos.length) return '';
-  const top  = videos.slice(0, 3);
-  const rest = videos.slice(3, 12);
-  return `
-    <div class="video-source-title">${title}</div>
-    <div class="video-grid">${top.map(videoCardHtml).join('')}</div>
-    ${rest.length ? `
+      function videoSourceBlockHtml(title, videos, idPrefix) {
+      if (!videos.length) return '';
+      const top  = videos.slice(0, 3);
+      const rest = videos.slice(3, 12);
+      return `
+      <div class="video-source-title">${title}</div>
+      <div class="video-grid">${top.map(videoCardHtml).join('')}</div>
+      ${rest.length ? `
       <div class="video-grid" id="${idPrefix}-extra" style="display:none; margin-top:12px;">
         ${rest.map(videoCardHtml).join('')}
       </div>
@@ -229,122 +229,124 @@ function videoSourceBlockHtml(title, videos, idPrefix) {
               data-count="${rest.length}" style="margin-bottom:20px;">
         Show ${rest.length} more, sorted by relevance ↓
       </button>
-    ` : ''}`;
-}
+      ` : ''}`;
+      }
 
-function wireVideoShowMore() {
-  ['sb', 'nbs'].forEach(idPrefix => {
-    const btn = document.getElementById(idPrefix + '-more-btn');
-    if (!btn) return;
-    btn.addEventListener('click', () => {
+      function wireVideoShowMore() {
+      ['sb', 'nbs'].forEach(idPrefix => {
+      const btn = document.getElementById(idPrefix + '-more-btn');
+      if (!btn) return;
+      btn.addEventListener('click', () => {
       const extra = document.getElementById(idPrefix + '-extra');
       const showing = extra.style.display !== 'none';
       extra.style.display = showing ? 'none' : 'grid';
       btn.textContent = showing
-        ? `Show ${btn.dataset.count} more, sorted by relevance ↓`
-        : 'Show fewer ↑';
-    });
-  });
-}
+      ? `Show ${btn.dataset.count} more, sorted by relevance ↓`
+      : 'Show fewer ↑';
+      });
+      });
+      }
 
-function render() {
-  if (!profile.sex) {
-    main.innerHTML = `<div class="empty-state">No profile found. <a href="profile.html">Start here →</a></div>`;
-    return;
-  }
+      function render() {
+      if (!profile.sex) {
+      main.innerHTML = `<div class="empty-state">
+        No profile found. <a href="profile.html">Start here →</a>
+      </div>`;
+      return;
+      }
 
-  const insights = typeof buildInsights === 'function' ? buildInsights(state) : [];
-  const aiPrompt = typeof buildInsightAIPrompt === 'function'
-    ? buildInsightAIPrompt(state, insights)
-    : { full: '', header: '', sections: [] };
-  const doctorItems = typeof buildInsightDoctorPrep === 'function'
-    ? buildInsightDoctorPrep(insights)
-    : [];
+      const insights = typeof buildInsights === 'function' ? buildInsights(state) : [];
+      const aiPrompt = typeof buildInsightAIPrompt === 'function'
+      ? buildInsightAIPrompt(state, insights)
+      : { full: '', header: '', sections: [] };
+      const doctorItems = typeof buildInsightDoctorPrep === 'function'
+      ? buildInsightDoctorPrep(insights)
+      : [];
 
-  const { symptomTags, contextTags } = deriveInterestTags(state);
-  const sbAll  = pickTopVideos(window.SB_VIDEOS,  symptomTags, contextTags, 12);
-  const nbsAll = pickTopVideos(window.NBS_VIDEOS, symptomTags, contextTags, 12);
+      const { symptomTags, contextTags } = deriveInterestTags(state);
+      const sbAll  = pickTopVideos(window.SB_VIDEOS,  symptomTags, contextTags, 12);
+      const nbsAll = pickTopVideos(window.NBS_VIDEOS, symptomTags, contextTags, 12);
 
-  main.innerHTML = `
-    <p class="lede" style="margin-bottom:28px;">
-      Actions built from your insights — doctor prep, an AI prompt, and learning matched to your context.
-    </p>
+      main.innerHTML = `
+      <p class="lede" style="margin-bottom:28px;">
+        Actions built from your insights — doctor prep, an AI prompt, and learning matched to your context.
+      </p>
 
-    <div class="cat-title" id="doctor">Prepare for your doctor consultation</div>
-    <div class="note-block teal" style="margin-bottom:32px;">
-      <span class="k">Bring this to your next visit</span>
-      <ul style="margin:8px 0 0 18px; padding:0; line-height:1.65;">
-        ${doctorItems.map(i => `<li>${esc(i)}</li>`).join('')}
-      </ul>
-    </div>
+      <div class="cat-title" id="doctor">Prepare for your doctor consultation</div>
+      <div class="note-block teal" style="margin-bottom:32px;">
+        <span class="k">Bring this to your next visit</span>
+        <ul style="margin:8px 0 0 18px; padding:0; line-height:1.65;">
+          ${doctorItems.map(i => `<li>${esc(i)}</li>`).join('')}
+        </ul>
+      </div>
 
-    <div class="cat-title" id="ai">AI action prompt</div>
-    <p class="lede" style="font-size:14px; margin-bottom:16px;">
-      Four ready-to-copy prompts, each starting from the same context. Pick the conversation you want to have.
-    </p>
+      <div class="cat-title" id="ai">AI action prompt</div>
+      <p class="lede" style="font-size:14px; margin-bottom:16px;">
+        Four ready-to-copy prompts, each starting from the same context. Pick the conversation you want to have.
+      </p>
 
-    <div class="field" style="max-width:440px; margin-bottom:16px;">
-      <label class="intake-label" for="ai-prompt-select">Choose a prompt</label>
-      <select id="ai-prompt-select">
-        <option value="all">All three, with shared context</option>
-        ${aiPrompt.sections.map(s => `<option value="${esc(s.key)}">${esc(s.label)}</option>`).join('')}
-      </select>
-    </div>
+      <div class="field" style="max-width:440px; margin-bottom:16px;">
+        <label class="intake-label" for="ai-prompt-select">Choose a prompt</label>
+        <select id="ai-prompt-select">
+          <option value="all">All three, with shared context</option>
+          ${aiPrompt.sections.map(s => `<option value="${esc(s.key)}">${esc(s.label)}</option>`).join('')}
+        </select>
+      </div>
 
-    <div class="prompt-box" id="ai-prompt-display"></div>
-    <button type="button" class="btn" id="copy-prompt-btn" style="margin:12px 0 36px;" aria-live="polite">Copy this prompt</button>
+      <div class="prompt-box" id="ai-prompt-display"></div>
+      <button type="button" class="btn" id="copy-prompt-btn" style="margin:12px 0 36px;" aria-live="polite">Copy this prompt</button>
 
-    <div class="cat-title" id="learn">Recommended videos</div>
-    <p class="lede" style="font-size:14px; margin-bottom:8px;">
-      Ranked by relevance to your symptoms and risk profile.
-    </p>
-    ${videoSourceBlockHtml('Saurabh Bothra · Habuild Yoga', sbAll, 'sb')}
-    ${videoSourceBlockHtml('Nourished by Science · Mario Kratz, PhD', nbsAll, 'nbs')}
-    ${!sbAll.length && !nbsAll.length ? `
+      <div class="cat-title" id="learn">Recommended videos</div>
+      <p class="lede" style="font-size:14px; margin-bottom:8px;">
+        Ranked by relevance to your symptoms and risk profile.
+      </p>
+      ${videoSourceBlockHtml('Saurabh Bothra · Habuild Yoga', sbAll, 'sb')}
+      ${videoSourceBlockHtml('Nourished by Science · Mario Kratz, PhD', nbsAll, 'nbs')}
+      ${!sbAll.length && !nbsAll.length ? `
       <p class="lede" style="color:var(--muted);">Video library not loaded.</p>
-    ` : ''}
+      ` : ''}
 
-    <div class="page-footer-nav" style="margin-top:48px;">
-      <a href="summary.html" class="btn secondary">← Back to Summary</a>
-      <a href="index.html" class="btn">Done</a>
-    </div>
-  `;
+      <div class="page-footer-nav" style="margin-top:48px;">
+        <a href="summary.html" class="btn secondary">← Back to Summary</a>
+        <a href="index.html" class="btn">Done</a>
+      </div>
+      `;
 
-  wireVideoShowMore();
+      wireVideoShowMore();
 
-  const AI_PROMPT_OPTIONS = { all: aiPrompt.full };
-  aiPrompt.sections.forEach(s => { AI_PROMPT_OPTIONS[s.key] = s.withContext; });
+      const AI_PROMPT_OPTIONS = { all: aiPrompt.full };
+      aiPrompt.sections.forEach(s => { AI_PROMPT_OPTIONS[s.key] = s.withContext; });
 
-  const promptSelect = document.getElementById('ai-prompt-select');
-  const promptDisplay = document.getElementById('ai-prompt-display');
-  function renderSelectedPrompt() {
-    if (!promptSelect || !promptDisplay) return;
-    promptDisplay.textContent = AI_PROMPT_OPTIONS[promptSelect.value] || '';
-  }
-  if (promptSelect) {
-    promptSelect.addEventListener('change', renderSelectedPrompt);
-    renderSelectedPrompt();
-  }
+      const promptSelect = document.getElementById('ai-prompt-select');
+      const promptDisplay = document.getElementById('ai-prompt-display');
+      function renderSelectedPrompt() {
+      if (!promptSelect || !promptDisplay) return;
+      promptDisplay.textContent = AI_PROMPT_OPTIONS[promptSelect.value] || '';
+      }
+      if (promptSelect) {
+      promptSelect.addEventListener('change', renderSelectedPrompt);
+      renderSelectedPrompt();
+      }
 
-  const copyBtn = document.getElementById('copy-prompt-btn');
-  if (copyBtn) {
-    copyBtn.addEventListener('click', () => {
+      const copyBtn = document.getElementById('copy-prompt-btn');
+      if (copyBtn) {
+      copyBtn.addEventListener('click', () => {
       const text = AI_PROMPT_OPTIONS[promptSelect ? promptSelect.value : 'all'] || '';
       navigator.clipboard.writeText(text).then(() => {
-        copyBtn.textContent = 'Copied ✓';
-        setTimeout(() => { copyBtn.textContent = 'Copy this prompt'; }, 2000);
+      copyBtn.textContent = 'Copied ✓';
+      setTimeout(() => { copyBtn.textContent = 'Copy this prompt'; }, 2000);
       });
-    });
-  }
+      });
+      }
 
-  // Honour deep links from summary cards
-  if (location.hash) {
-    const el = document.querySelector(location.hash);
-    if (el) setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
-  }
-}
+      // Honour deep links from summary cards
+      if (location.hash) {
+      const el = document.querySelector(location.hash);
+      if (el) setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+      }
+      }
 
-render();
-</script>
-</body>
+      render();
+    </script>
+  </body>
 </html>
