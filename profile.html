@@ -143,9 +143,10 @@
 
     <div class="cat-title" id="repro-title" style="display:none;">Reproductive health</div>
     <div class="field-row" id="repro-field-row" style="display:none; margin-bottom:22px;">
-      <div class="field" style="max-width:280px;">
-        <label class="intake-label" for="f-repro-status">Menstrual &amp; menopause status</label>
-        <select id="f-repro-status">
+      <div class="field" style="max-width:360px; flex-direction:column; align-items:flex-start; gap:10px;">
+        <div>
+          <label class="intake-label" for="f-repro-status">Menstrual &amp; menopause status</label>
+          <select id="f-repro-status" style="min-width:240px;">
           <option value="" selected disabled>&mdash; Select &mdash;</option>
           <option value="Regular cycle">Regular cycle</option>
           <option value="Irregular cycle">Irregular cycle</option>
@@ -156,10 +157,11 @@
           <option value="Not applicable">Not applicable</option>
           <option value="Not sure">Not sure</option>
         </select>
-      </div>
-      <div class="check-field" style="align-self:end; padding-bottom:9px;">
-        <input type="checkbox" id="f-pcos">
-        <label for="f-pcos">Diagnosed with PCOS</label>
+        </div>
+        <div class="check-field">
+          <input type="checkbox" id="f-pcos">
+          <label for="f-pcos" style="white-space:nowrap;">Diagnosed with PCOS</label>
+        </div>
       </div>
     </div>
 

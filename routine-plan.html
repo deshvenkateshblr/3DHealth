@@ -84,7 +84,10 @@ function isContraindicated(ex, userSymptoms) {
 
 function assignGroup(ex) {
   const p = (ex.profile || '').trim();
-  return GROUP_ORDER.find(g => p === g || p.includes(g.split(' ')[0])) || 'Low Risk';
+  const order = profile.sex !== 'Female'
+    ? GROUP_ORDER.filter(g => g !== 'Female Specific')
+    : GROUP_ORDER;
+  return order.find(g => p === g || p.includes(g.split(' ')[0])) || 'Low Risk';
 }
 
 /* ---- baseline (category-driven) selection ---- */
@@ -199,8 +202,8 @@ function renderResultsStage() {
     ).join('');
 
     const originTag = ex.bySymptom
-      ? `<span class="tag ok">Matches: ${esc(ex.viaSymptoms.join(', '))}</span>`
-      : `<span class="tag">${esc(ex.group)}</span>`;
+      ? `<span class="tag ok" style="flex-shrink:0; align-self:flex-start;">Matches: ${esc(ex.viaSymptoms.join(', '))}</span>`
+      : `<span class="tag" style="flex-shrink:0; align-self:flex-start;">${esc(ex.group)}</span>`;
 
     const contraNote = (ex.contraindications && ex.contraindications.length)
       ? `<div class="contra">Avoid if you have: ${esc(ex.contraindications.join(', '))}</div>`
@@ -211,8 +214,11 @@ const intensityChip = `<span class="meta-chip">${esc(ex.intensity || '—')} int
     const equipmentChip = (equip && equip.toLowerCase() !== 'none')
       ? `<span class="meta-chip">${esc(equip)}</span>`
       : '';   // hide when None
-    const profileChip = ex.profile
-      ? `<span class="meta-chip">${esc(ex.profile)}</span>`
+    const profileLabel = profile.sex !== 'Female'
+      ? (ex.profile || '').split(';').map(s => s.trim()).filter(s => s !== 'Female Specific').join('; ')
+      : (ex.profile || '');
+    const profileChip = profileLabel
+      ? `<span class="meta-chip">${esc(profileLabel)}</span>`
       : '';
     
     // NEW: Create the movement type chip with a teal highlight
@@ -223,7 +229,7 @@ const intensityChip = `<span class="meta-chip">${esc(ex.intensity || '—')} int
     cardsHtml += `
     <div class="test-card" data-exercise="${esc(ex.exercise)}">
       <div class="head">
-        <div>
+        <div style="flex:1; min-width:0;">
           <div class="name">${i + 1}. ${esc(ex.exercise)}</div>
           <div class="test-desc">${esc(ex.note)}</div>
           <div class="meta-row">

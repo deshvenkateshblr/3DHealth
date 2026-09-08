@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
  <meta charset="UTF-8">
@@ -7,542 +7,433 @@
  <title>Summary &mdash; KYH</title>
  <link rel="stylesheet" href="shared/styles.css">
  <style>
- .summary-hero {
- text-align: center;
- margin-bottom: 32px;
- padding-top: 8px;
- }
- .summary-hero h1 {
- font-family: var(--serif);
- font-weight: 400;
- font-size: clamp(28px, 5vw, 40px);
- line-height: 1.15;
- margin: 0 0 10px;
- letter-spacing: -0.02em;
- }
+ .summary-hero { text-align: center; margin-bottom: 32px; padding-top: 8px; }
+ .summary-hero h1 { font-family: var(--serif); font-weight: 400; font-size: clamp(28px, 5vw, 40px); line-height: 1.15; margin: 0 0 10px; letter-spacing: -0.02em; }
  .summary-hero h1 em { font-style: italic; color: var(--teal); }
- .summary-hero .sub {
- font-family: var(--serif);
- font-style: italic;
- font-size: clamp(16px, 2.4vw, 19px);
- color: var(--ink-soft);
- margin: 0 0 12px;
- }
- .summary-hero .lede {
- margin: 0 auto;
- max-width: 540px;
- text-align: center;
- }
+ .summary-hero .sub { font-family: var(--serif); font-style: italic; font-size: clamp(16px, 2.4vw, 19px); color: var(--ink-soft); margin: 0 0 12px; }
+ .summary-hero .lede { margin: 0 auto; max-width: 540px; text-align: center; }
 
+ /* Outcome card — button reset + active */
  .action-grid .outcome-card {
- cursor: pointer;
- text-decoration: none;
- color: inherit;
- min-height: 168px;
+   cursor: pointer; color: inherit; min-height: 160px;
+   position: relative; padding-bottom: 36px;
+   text-align: left; font-family: inherit;
+   -webkit-appearance: none; appearance: none;
  }
+ .action-grid .outcome-card.is-active { border-color: var(--teal); background: var(--teal-soft); transform: none; }
  .action-grid .outcome-card .icon-lg {
- width: 44px; height: 44px; border-radius: 50%;
- border: 1.5px solid var(--teal);
- background: var(--teal-soft); color: var(--teal);
- display: flex; align-items: center; justify-content: center;
- margin-bottom: 12px;
+   width: 44px; height: 44px; border-radius: 50%;
+   border: 1.5px solid var(--teal); background: var(--teal-soft); color: var(--teal);
+   display: flex; align-items: center; justify-content: center; margin-bottom: 12px;
  }
+ .action-grid .outcome-card.is-active .icon-lg { background: var(--paper); }
  .action-grid .outcome-card .verb { margin-bottom: 6px; }
  .action-grid .outcome-card h3 { font-size: 17px; }
+ .card-chevron {
+   position: absolute; bottom: 12px; right: 14px;
+   font-family: var(--mono); font-size: 10px; letter-spacing: .06em;
+   text-transform: uppercase; color: var(--muted);
+   display: inline-block; transition: transform 0.22s ease, color 0.2s;
+ }
+ .outcome-card.is-active .card-chevron { transform: rotate(180deg); color: var(--teal); }
 
+ /* Accordion panels */
+ .outcome-panels { margin-top: -12px; margin-bottom: 28px; }
+ .outcome-panel {
+   display: grid; grid-template-rows: 0fr;
+   transition: grid-template-rows 0.28s ease;
+   overflow: hidden;
+   background: var(--panel);
+   border: 1px solid transparent;
+   border-top: 2px solid transparent;
+ }
+ .outcome-panel.is-open { grid-template-rows: 1fr; border-color: var(--line); border-top-color: var(--teal); }
+ .outcome-panel > .panel-inner { overflow: hidden; min-height: 0; padding: 0 24px; transition: padding 0.28s ease; }
+ .outcome-panel.is-open > .panel-inner { padding: 24px 24px 20px; }
+
+ /* Step cards */
  #insights { scroll-margin-top: 24px; }
-
- /* One card per journey step */
- .step-card {
- border: 1px solid var(--line);
- border-left: 3px solid var(--teal);
- background: var(--panel);
- padding: 18px 18px 12px;
- margin-bottom: 18px;
- }
- .step-card-head {
- display: flex;
- align-items: center;
- gap: 12px;
- margin-bottom: 14px;
- padding-bottom: 12px;
- border-bottom: 1px solid var(--line);
- }
- .step-card-head .step-icon {
- width: 40px; height: 40px; border-radius: 50%;
- background: var(--teal-soft); color: var(--teal);
- border: 1px solid color-mix(in srgb, var(--teal) 35%, transparent);
- display: flex; align-items: center; justify-content: center;
- flex-shrink: 0;
- }
+ .step-card { border: 1px solid var(--line); border-left: 3px solid var(--teal); background: var(--panel); padding: 18px 18px 12px; margin-bottom: 18px; }
+ .step-card-head { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--line); }
+ .step-card-head .step-icon { width: 40px; height: 40px; border-radius: 50%; background: var(--teal-soft); color: var(--teal); border: 1px solid color-mix(in srgb, var(--teal) 35%, transparent); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
  .step-card-head .step-icon svg { width: 20px; height: 20px; }
- .step-card-head .step-title {
- font-family: var(--serif);
- font-size: 20px;
- font-weight: 400;
- line-height: 1.2;
- margin: 0;
- }
- .step-card-head .step-meta {
- font-family: var(--mono);
- font-size: 11px;
- color: var(--muted);
- letter-spacing: .04em;
- margin-top: 2px;
- }
-
+ .step-card-head .step-title { font-family: var(--serif); font-size: 20px; font-weight: 400; line-height: 1.2; margin: 0; }
+ .step-card-head .step-meta { font-family: var(--mono); font-size: 11px; color: var(--muted); letter-spacing: .04em; margin-top: 2px; }
  .tone-group { margin-bottom: 12px; }
  .tone-group:last-child { margin-bottom: 4px; }
- .tone-label {
- font-family: var(--mono);
- font-size: 10px;
- letter-spacing: .12em;
- text-transform: uppercase;
- margin: 0 0 8px;
- display: flex;
- align-items: center;
- gap: 8px;
- }
+ .tone-label { font-family: var(--mono); font-size: 10px; letter-spacing: .12em; text-transform: uppercase; margin: 0 0 8px; display: flex; align-items: center; gap: 8px; }
  .tone-label.act { color: var(--rose); }
  .tone-label.watch { color: var(--amber); }
  .tone-label.good { color: var(--teal); }
- .tone-label::after {
- content: "";
- flex: 1;
- height: 1px;
- background: var(--line);
- }
-
- .insight-card {
- border: 1px solid var(--line);
- border-left: 3px solid var(--line);
- background: var(--paper);
- padding: 12px 14px;
- margin-bottom: 8px;
- }
+ .tone-label::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+ .insight-card { border: 1px solid var(--line); border-left: 3px solid var(--line); background: var(--paper); padding: 12px 14px; margin-bottom: 8px; }
  .insight-card.tone-good { border-left-color: var(--teal); }
  .insight-card.tone-watch { border-left-color: var(--amber); }
  .insight-card.tone-act { border-left-color: var(--rose); }
- .insight-card .insight-title {
- font-weight: 600;
- font-size: 14px;
- line-height: 1.35;
- margin-bottom: 4px;
- }
- .insight-card .insight-detail {
- font-size: 13px;
- color: var(--ink-soft);
- line-height: 1.5;
- }
- .insight-card .insight-next {
- margin-top: 6px;
- font-size: 12.5px;
- color: var(--ink);
- line-height: 1.45;
- }
- .insight-card .insight-next b {
- font-family: var(--mono);
- font-size: 9.5px;
- letter-spacing: .08em;
- text-transform: uppercase;
- color: var(--muted);
- font-weight: 400;
- display: block;
- margin-bottom: 2px;
- }
-
- .step-empty {
- font-size: 13.5px;
- color: var(--muted);
- margin: 0 0 8px;
- }
-
- .step-summary {
- font-size: 13.5px;
- line-height: 1.55;
- color: var(--ink-soft);
- margin: 0 0 2px;
- }
-
- .step-toggle {
- background: none;
- border: none;
- padding: 0;
- font-family: var(--mono);
- font-size: 11px;
- letter-spacing: .05em;
- text-transform: uppercase;
- color: var(--teal);
- cursor: pointer;
- margin-top: 8px;
- display: inline-block;
- }
+ .insight-card .insight-title { font-weight: 600; font-size: 14px; line-height: 1.35; margin-bottom: 4px; }
+ .insight-card .insight-detail { font-size: 13px; color: var(--ink-soft); line-height: 1.5; }
+ .insight-card .insight-next { margin-top: 6px; font-size: 12.5px; color: var(--ink); line-height: 1.45; }
+ .insight-card .insight-next b { font-family: var(--mono); font-size: 9.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 400; display: block; margin-bottom: 2px; }
+ .step-empty { font-size: 13.5px; color: var(--muted); margin: 0 0 8px; }
+ .step-summary { font-size: 13.5px; line-height: 1.55; color: var(--ink-soft); margin: 0 0 2px; }
+ .step-toggle { background: none; border: none; padding: 0; font-family: var(--mono); font-size: 11px; letter-spacing: .05em; text-transform: uppercase; color: var(--teal); cursor: pointer; margin-top: 8px; display: inline-block; }
  .step-toggle:hover { text-decoration: underline; }
  .step-details[hidden] { display: none; }
  .step-details { margin-top: 14px; }
+ .exec-summary { font-size: 15px; line-height: 1.7; max-width: 640px; margin: 0 auto; text-align: left; }
 
- .exec-summary {
- font-size: 15px;
- line-height: 1.7;
- max-width: 640px;
- margin: 0 auto;
- text-align: left;
- }
+ /* AI prompt box */
+ .prompt-box { background: var(--paper); border: 1px solid var(--line); padding: 16px 18px; font-family: var(--mono); font-size: 12.5px; line-height: 1.55; white-space: pre-wrap; max-height: 280px; overflow-y: auto; margin-bottom: 12px; }
 
+ /* Video grid */
+ .video-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 14px; margin-bottom: 16px; }
+ .video-card { display: block; text-decoration: none; color: inherit; border: 1px solid var(--line); background: var(--panel); transition: border-color .15s; }
+ .video-card:hover { border-color: var(--teal); }
+ .video-thumb-wrap { position: relative; aspect-ratio: 16/9; background: var(--line); overflow: hidden; }
+ .video-thumb-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; }
+ .video-duration { position: absolute; bottom: 6px; right: 6px; background: rgba(0,0,0,.75); color: #fff; font-family: var(--mono); font-size: 10px; padding: 2px 5px; }
+ .video-title { font-size: 13px; font-weight: 600; padding: 10px 12px 4px; line-height: 1.35; }
+ .video-tags { padding: 0 12px 12px; display: flex; flex-wrap: wrap; gap: 4px; }
+ .video-source-title { font-family: var(--mono); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 16px 0 10px; }
+
+ /* Print */
  @media print {
- body > * { display: revert !important; }
- .print-only { display: block !important; }
- .no-print,
- .masthead,
- footer,
- .page-footer-nav,
- .action-grid,
- .summary-hero,
- .note-block {
- display: none !important;
- }
- #insights { display: block !important; }
- .step-details { display: block !important; }
- .step-toggle { display: none !important; }
- .step-card, .insight-card { break-inside: avoid; background: #fff; }
- body { background: #fff; }
+   body > * { display: revert !important; }
+   .print-only { display: block !important; }
+   .no-print, .masthead, footer, .page-footer-nav, .action-grid, .outcome-panels, .summary-hero, .note-block { display: none !important; }
+   #insights { display: block !important; }
+   .step-details { display: block !important; }
+   .step-toggle { display: none !important; }
+   .step-card, .insight-card { break-inside: avoid; background: #fff; }
+   body { background: #fff; }
  }
  </style>
 </head>
 <body>
 
 <header class="masthead no-print" id="app-header"></header>
-
-<main id="main-content">
- <div class="empty-state">Loading your summary…</div>
-</main>
-
+<main id="main-content"><div class="empty-state">Loading your summary&#8230;</div></main>
 <div class="print-only" id="print-document" aria-hidden="true"></div>
-
+<div id="insights" style="display:none;" aria-hidden="true"></div>
 <footer id="app-footer"></footer>
 
 <script src="shared/data.diagnostics.js"></script>
+<script src="shared/data.videos.sb.js"></script>
+<script src="shared/data.videos.nbs.js"></script>
+<script src="shared/data.activities.js"></script>
 <script src="shared/utils.js"></script>
 <script src="shared/insights.js"></script>
 <script>
 const state = loadState() || {};
 const profile = state.profile || {};
-
-renderHeader('great', "KYH — You're ready");
-renderFooter()
-
+renderHeader('great', "KYH \u2014 You're ready");
+renderFooter();
 const main = document.getElementById('main-content');
-
 let cachedInsights = [];
 
-/** Map insight.domain → journey step (matches Fine → Great flow) */
 const STEP_DEFS = [
- {
- id: 'about-you',
- title: 'About you',
- domains: ['body', 'lifestyle', 'symptoms', 'vitals'],
- icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c1.5-3.5 4-5 7-5s5.5 1.5 7 5"/></svg>`
- },
- {
- id: 'diagnostics',
- title: 'Diagnostics',
- domains: ['diagnostics'],
- icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/></svg>`
- },
- {
- id: 'routine',
- title: 'Daily routine & movement',
- domains: ['routine', 'movement'],
- icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>`
- },
- {
- id: 'diet',
- title: 'Diet & nutrients',
- domains: ['diet'],
- icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/></svg>`
- }
+  { id: 'about-you', title: 'About you', domains: ['body','lifestyle','symptoms','vitals'],
+    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c1.5-3.5 4-5 7-5s5.5 1.5 7 5"/></svg>' },
+  { id: 'diagnostics', title: 'Diagnostics', domains: ['diagnostics'],
+    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/></svg>' },
+  { id: 'routine', title: 'Daily routine & movement', domains: ['routine','movement'],
+    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>' },
+  { id: 'diet', title: 'Diet & nutrients', domains: ['diet'],
+    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/></svg>' }
 ];
 
-const KYH_REPORT_HEADER =
- 'KYH — Know Your Health\n' +
- 'Self-assessment findings (browser-only; not a medical diagnosis)\n' +
- 'KYH surfaces diagnostic tests, daily routine adjustments, and diet guidance from profile, symptoms, and other inputs.\n\n';
+const KYH_REPORT_HEADER = 'KYH \u2014 Know Your Health\nSelf-assessment findings (browser-only; not a medical diagnosis)\nKYH surfaces diagnostic tests, daily routine adjustments, and diet guidance from profile, symptoms, and other inputs.\n\n';
 
 function insightCardHtml(i) {
- return `
- <div class="insight-card tone-${esc(i.tone)}">
- <div class="insight-title">${esc(i.title)}</div>
- <div class="insight-detail">${esc(i.detail)}</div>
- ${i.next ? `
- <div class="insight-next">
- <b>What next</b>
- ${esc(i.next)}
- </div>` : ''}
- </div>`;
+  return '<div class="insight-card tone-' + esc(i.tone) + '">'
+    + '<div class="insight-title">' + esc(i.title) + '</div>'
+    + '<div class="insight-detail">' + esc(i.detail) + '</div>'
+    + (i.next ? '<div class="insight-next"><b>What next</b>' + esc(i.next) + '</div>' : '')
+    + '</div>';
 }
-
 function toneBucket(items) {
- return {
- act: items.filter(i => i.tone === 'act'),
- watch: items.filter(i => i.tone === 'watch'),
- good: items.filter(i => i.tone === 'good')
- };
+  return { act: items.filter(i => i.tone==='act'), watch: items.filter(i => i.tone==='watch'), good: items.filter(i => i.tone==='good') };
 }
-
 function toneGroupHtml(label, cls, items) {
- if (!items.length) return '';
- return `
- <div class="tone-group">
- <div class="tone-label ${cls}">${label}</div>
- ${items.map(insightCardHtml).join('')}
- </div>`;
+  if (!items.length) return '';
+  return '<div class="tone-group"><div class="tone-label ' + cls + '">' + label + '</div>' + items.map(insightCardHtml).join('') + '</div>';
 }
-
-const PROSE_STEPS = new Set(['about-you', 'diagnostics', 'routine', 'diet']);
-
+const PROSE_STEPS = new Set(['about-you','diagnostics','routine','diet']);
 function stepSummaryLine(step, items) {
-  if (step.id === 'about-you') return summarizeAboutYou(items);
-  if (step.id === 'diagnostics') return summarizeDiagnosticsSection(items);
+  if (step.id==='about-you') return summarizeAboutYou(items);
+  if (step.id==='diagnostics') return summarizeDiagnosticsSection(items);
   return summarizeSection(items);
 }
-
-function stepCardHtml(step, items) {
+function stepCardHtml(step, items, pfx) {
   const count = items.length;
-  const usePros = PROSE_STEPS.has(step.id);
-  const detailsId = `step-details-${step.id}`;
-
+  const detailsId = pfx + 'step-details-' + step.id;
   let headBody;
   if (!count) {
-    headBody = `<div class="step-meta">No insights from this step yet</div>`;
-  } else if (usePros) {
-    const line = stepSummaryLine(step, items) || `${count} insight${count > 1 ? 's' : ''} from this step.`;
-    headBody = `<div class="step-summary">${esc(line)}</div>`;
+    headBody = '<div class="step-meta">No insights from this step yet</div>';
+  } else if (PROSE_STEPS.has(step.id)) {
+    const line = stepSummaryLine(step, items) || (count + ' insight' + (count>1?'s':'') + ' from this step.');
+    headBody = '<div class="step-summary">' + esc(line) + '</div>';
   } else {
     const b = toneBucket(items);
-    headBody = `<div class="step-meta">${esc(`${b.act.length} act · ${b.watch.length} watch · ${b.good.length} sustain`)}</div>`;
+    headBody = '<div class="step-meta">' + esc(b.act.length+' act \u00b7 '+b.watch.length+' watch \u00b7 '+b.good.length+' sustain') + '</div>';
   }
-
   const detailBody = count
-    ? (
-      toneGroupHtml('Act', 'act', toneBucket(items).act) +
-      toneGroupHtml('Watch', 'watch', toneBucket(items).watch) +
-      toneGroupHtml('Sustain', 'good', toneBucket(items).good)
-    )
-    : `<p class="step-empty">No insights from this step yet</p>`;
-
-  return `
-    <div class="step-card" id="step-${step.id}">
-      <div class="step-card-head">
-        <div class="step-icon" aria-hidden="true">${step.icon}</div>
-        <div style="flex:1;">
-          <h2 class="step-title">${esc(step.title)}</h2>
-          ${headBody}
-        </div>
-      </div>
-      <button type="button" class="step-toggle no-print" data-target="${detailsId}" aria-expanded="false">Show details &darr;</button>
-      <div class="step-details" id="${detailsId}" hidden>
-        ${detailBody}
-      </div>
-    </div>`;
+    ? toneGroupHtml('Act','act',toneBucket(items).act) + toneGroupHtml('Watch','watch',toneBucket(items).watch) + toneGroupHtml('Sustain','good',toneBucket(items).good)
+    : '<p class="step-empty">No insights from this step yet</p>';
+  return '<div class="step-card" id="' + pfx + 'step-' + step.id + '">'
+    + '<div class="step-card-head"><div class="step-icon" aria-hidden="true">' + step.icon + '</div>'
+    + '<div style="flex:1;"><h2 class="step-title">' + esc(step.title) + '</h2>' + headBody + '</div></div>'
+    + '<button type="button" class="step-toggle no-print" data-target="' + detailsId + '" aria-expanded="false">Show details &#8595;</button>'
+    + '<div class="step-details" id="' + detailsId + '" hidden>' + detailBody + '</div></div>';
 }
-
 function insightsByStep(insights) {
- return STEP_DEFS.map(step => {
- const items = insights.filter(i => step.domains.includes(i.domain));
- return { step, items };
- });
+  return STEP_DEFS.map(step => ({ step, items: insights.filter(i => step.domains.includes(i.domain)) }));
 }
 
 function formatAllFindingsText() {
- const p = profile;
- let t = KYH_REPORT_HEADER;
- t += `${p.sex || ''} · age ${p.age || '—'}\n`;
- t += `Generated ${new Date().toLocaleString()}\n\n`;
-
- insightsByStep(cachedInsights).forEach(({ step, items }) => {
- t += `=== ${step.title.toUpperCase()} ===\n`;
- if (!items.length) {
- t += '(No insights)\n\n';
- return;
- }
- const b = toneBucket(items);
- [['ACT', b.act], ['WATCH', b.watch], ['SUSTAIN', b.good]].forEach(([label, list]) => {
- if (!list.length) return;
- t += `\n${label}\n`;
- list.forEach((i, n) => {
- t += `${n + 1}. ${i.title}\n ${i.detail}\n`;
- if (i.next) t += ` → ${i.next}\n`;
- });
- });
- t += '\n';
- });
- return t;
+  const p = profile;
+  let t = KYH_REPORT_HEADER + (p.sex||'') + ' \u00b7 age ' + (p.age||'\u2014') + '\nGenerated ' + new Date().toLocaleString() + '\n\n';
+  insightsByStep(cachedInsights).forEach(({step,items}) => {
+    t += '=== ' + step.title.toUpperCase() + ' ===\n';
+    if (!items.length) { t += '(No insights)\n\n'; return; }
+    const b = toneBucket(items);
+    [['ACT',b.act],['WATCH',b.watch],['SUSTAIN',b.good]].forEach(([label,list]) => {
+      if (!list.length) return;
+      t += '\n' + label + '\n';
+      list.forEach((i,n) => { t += (n+1)+'. '+i.title+'\n '+i.detail+'\n'; if(i.next) t+=' \u2192 '+i.next+'\n'; });
+    });
+    t += '\n';
+  });
+  return t;
 }
 
 function fillPrintDocument() {
- const el = document.getElementById('print-document');
- if (!el) return;
- let html = `
- <h1 style="font-family:Georgia,serif;font-weight:400;">KYH — Health findings</h1>
- <p style="color:#555;font-size:13px;">
- ${esc(profile.sex || '')} · age ${esc(String(profile.age || '—'))}<br>
- ${esc(new Date().toLocaleString())}<br>
- Self-assessment — not a medical diagnosis
- </p>`;
- insightsByStep(cachedInsights).forEach(({ step, items }) => {
- html += `<h2>${esc(step.title)}</h2>`;
- if (!items.length) {
- html += `<p style="color:#666;">No insights from this step.</p>`;
- return;
- }
- const b = toneBucket(items);
- [['Act', b.act], ['Watch', b.watch], ['Sustain', b.good]].forEach(([label, list]) => {
- if (!list.length) return;
- html += `<h3 style="font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:#666;">${label}</h3>`;
- list.forEach(i => {
- html += `<div style="margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid #ddd;">
- <div style="font-weight:600;">${esc(i.title)}</div>
- <div style="font-size:13px;margin-top:4px;">${esc(i.detail)}</div>
- ${i.next ? `<div style="font-size:13px;margin-top:4px;"><b>What next:</b> ${esc(i.next)}</div>` : ''}
- </div>`;
- });
- });
- });
- el.innerHTML = html;
+  const el = document.getElementById('print-document');
+  const insEl = document.getElementById('insights');
+  if (!el) return;
+  let html = '<h1 style="font-family:Georgia,serif;font-weight:400;">KYH \u2014 Health findings</h1>'
+    + '<p style="color:#555;font-size:13px;">' + esc(profile.sex||'') + ' \u00b7 age ' + esc(String(profile.age||'\u2014')) + '<br>' + esc(new Date().toLocaleString()) + '<br>Self-assessment \u2014 not a medical diagnosis</p>';
+  insightsByStep(cachedInsights).forEach(({step,items}) => {
+    html += '<h2>' + esc(step.title) + '</h2>';
+    if (!items.length) { html += '<p style="color:#666;">No insights from this step.</p>'; return; }
+    const b = toneBucket(items);
+    [['Act',b.act],['Watch',b.watch],['Sustain',b.good]].forEach(([label,list]) => {
+      if (!list.length) return;
+      html += '<h3 style="font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:#666;">' + label + '</h3>';
+      list.forEach(i => {
+        html += '<div style="margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid #ddd;"><div style="font-weight:600;">' + esc(i.title) + '</div><div style="font-size:13px;margin-top:4px;">' + esc(i.detail) + '</div>' + (i.next?'<div style="font-size:13px;margin-top:4px;"><b>What next:</b> '+esc(i.next)+'</div>':'') + '</div>';
+      });
+    });
+  });
+  el.innerHTML = html;
+  if (insEl) {
+    insEl.innerHTML = '<div class="cat-title">Review your insights</div>' + insightsByStep(cachedInsights).map(({step,items}) => stepCardHtml(step,items,'print-')).join('');
+  }
 }
-
 function downloadText(filename, text) {
- const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
- const url = URL.createObjectURL(blob);
- const a = document.createElement('a');
- a.href = url;
- a.download = filename;
- document.body.appendChild(a);
- a.click();
- a.remove();
- setTimeout(() => URL.revokeObjectURL(url), 1000);
+  const blob = new Blob([text], {type:'text/plain;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href=url; a.download=filename;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
+/* --- Video helpers --- */
+function deriveInterestTags(st) {
+  const p = st.profile || {};
+  const symptomTags = [...(p.symptoms||[])];
+  const ctx = new Set();
+  if (p.reproStatus==='Perimenopausal'||p.reproStatus==='Post-menopausal') ctx.add('Menopause');
+  if (p.pcos) ctx.add('PCOS');
+  const kind = bmiClass(p.bmi, p);
+  if (kind==='over'||kind==='obese') ctx.add('Weight Loss');
+  if ((p.whtr||0)>=0.5) ctx.add('Belly Fat');
+  if (p.famMetabolic) { ctx.add('Blood Sugar'); ctx.add('Insulin Resistance'); }
+  const freq = (st.diet&&st.diet.frequency)||{};
+  if (freq.sugary_drinks==='Daily'||freq.sugary_drinks==='3-5x/Wk') ctx.add('Sugar');
+  if (freq.fried_ultraprocessed==='Daily'||freq.fried_ultraprocessed==='3-5x/Wk') ctx.add('Ultra-Processed Foods');
+  if (freq.leafy_greens==='Rarely'||freq.fruits==='Rarely') ctx.add('Healthy Eating');
+  if (st.routine&&Array.isArray(st.routine.activities)&&st.routine.activities.length) {
+    const aid = {}; (window.ACTIVITIES||[]).forEach(a => { aid[a.id]=a; });
+    const toHrs = a => (Number(a.hours)||0)+(Number(a.mins)||0)/60;
+    const sl = st.routine.activities.find(a => a.id==='act_011');
+    if (sl && toHrs(sl)<6.5) ctx.add('Sleep');
+    const ECATS = new Set(['Sports & Agility','Gym & Vigorous','Walking & Mobility','Mind & Body']);
+    const eh = st.routine.activities.reduce((s,a) => { const d=aid[a.id]; return (d&&ECATS.has(d.category))?s+toHrs(a):s; }, 0);
+    if (eh<0.5) ctx.add('Beginner Workout');
+  }
+  return { symptomTags, contextTags: [...ctx] };
+}
+function scoreVideo(v, symptomTags, contextTags) {
+  const tl=(v.title||'').toLowerCase(), dl=(v.description_short||'').toLowerCase(), vl=(v.tags||[]).map(t=>t.toLowerCase());
+  function str(t) { if(tl.includes(t)) return 3; if(vl.some(vt=>vt.includes(t)||t.includes(vt))) return 2; if(dl.includes(t)) return 1; return 0; }
+  let score=0; const matched=[];
+  symptomTags.forEach(t => { const s=str(t.toLowerCase()); if(s>0){score+=s*3;matched.push(t);} });
+  contextTags.forEach(t => { const s=str(t.toLowerCase()); if(s>0){score+=s;if(!matched.includes(t))matched.push(t);} });
+  return {score, matched};
+}
+function pickTopVideos(list, sT, cT, n) {
+  return (list||[]).map(v => { const {score,matched}=scoreVideo(v,sT,cT); return Object.assign({},v,{_score:score,_matched:matched}); })
+    .sort((a,b) => b._score-a._score||(b.view_count||0)-(a.view_count||0)).slice(0,n);
+}
+function fmtDur(sec) { if(!sec&&sec!==0) return ''; const m=Math.floor(sec/60),s=String(sec%60).padStart(2,'0'); return m+':'+s; }
+function videoCardHtml(v) {
+  const th = (v._matched&&v._matched.length) ? v._matched.slice(0,3).map(t=>'<span class="tag ok">'+esc(t)+'</span>').join('') : '<span class="tag">Popular</span>';
+  return '<a class="video-card" href="'+esc(v.url)+'" target="_blank" rel="noopener">'
+    + '<div class="video-thumb-wrap"><img src="'+esc(v.thumbnail)+'" alt="'+esc(v.title)+'" loading="lazy" onerror="this.onerror=null;this.src=\'https://i.ytimg.com/vi/'+esc(v.id)+'/hqdefault.jpg\';">'
+    + '<span class="video-duration">'+fmtDur(v.duration)+'</span></div>'
+    + '<div class="video-title">'+esc(v.title)+'</div><div class="video-tags">'+th+'</div></a>';
+}
+function videoSourceBlockHtml(title, vids, pfx) {
+  if (!vids.length) return '';
+  const top=vids.slice(0,3), rest=vids.slice(3);
+  return '<div class="video-source-title">'+title+'</div>'
+    + '<div class="video-grid">'+top.map(videoCardHtml).join('')+'</div>'
+    + (rest.length ? '<div class="video-grid" id="'+pfx+'-extra" style="display:none;margin-top:12px;">'+rest.map(videoCardHtml).join('')+'</div>'
+      + '<button type="button" class="btn secondary" id="'+pfx+'-more-btn" data-count="'+rest.length+'" style="margin-bottom:16px;">Show '+rest.length+' more &#8595;</button>' : '');
+}
+
+/* --- Wire helpers --- */
 function wireStepToggles() {
   document.querySelectorAll('.step-toggle').forEach(btn => {
     btn.addEventListener('click', () => {
-      const target = document.getElementById(btn.dataset.target);
-      if (!target) return;
-      const isHidden = target.hasAttribute('hidden');
-      if (isHidden) {
-        target.removeAttribute('hidden');
-        btn.textContent = 'Hide details ↑';
-        btn.setAttribute('aria-expanded', 'true');
-      } else {
-        target.setAttribute('hidden', '');
-        btn.textContent = 'Show details ↓';
-        btn.setAttribute('aria-expanded', 'false');
+      const t = document.getElementById(btn.dataset.target); if(!t) return;
+      const hidden = t.hasAttribute('hidden');
+      if (hidden) { t.removeAttribute('hidden'); btn.textContent='Hide details \u2191'; btn.setAttribute('aria-expanded','true'); }
+      else { t.setAttribute('hidden',''); btn.textContent='Show details \u2193'; btn.setAttribute('aria-expanded','false'); }
+    });
+  });
+}
+function wireExportActions() {
+  const sv = document.getElementById('btn-save-findings');
+  const pr = document.getElementById('btn-print-findings');
+  if (sv) sv.addEventListener('click', () => { downloadText('KYH-findings-'+new Date().toISOString().slice(0,10)+'.txt', formatAllFindingsText()); });
+  if (pr) pr.addEventListener('click', () => { fillPrintDocument(); window.print(); });
+}
+function wireVideoShowMore() {
+  ['sb-sum','nbs-sum'].forEach(pfx => {
+    const btn = document.getElementById(pfx+'-more-btn'); if(!btn) return;
+    btn.addEventListener('click', () => {
+      const ex = document.getElementById(pfx+'-extra');
+      const showing = ex.style.display!=='none';
+      ex.style.display = showing?'none':'grid';
+      btn.textContent = showing ? 'Show '+btn.dataset.count+' more \u2193' : 'Show fewer \u2191';
+    });
+  });
+}
+function wireAIPrompt(opts) {
+  const sel = document.getElementById('ai-prompt-select');
+  const disp = document.getElementById('ai-prompt-display');
+  function render() { if(sel&&disp) disp.textContent = opts[sel.value]||''; }
+  if (sel) { sel.addEventListener('change', render); render(); }
+  const cp = document.getElementById('copy-prompt-btn');
+  if (cp) cp.addEventListener('click', () => {
+    const text = opts[sel?sel.value:'all']||'';
+    navigator.clipboard.writeText(text).then(() => { cp.textContent='Copied \u2713'; setTimeout(()=>{ cp.textContent='Copy this prompt'; },2000); });
+  });
+}
+function wireOutcomeCards() {
+  const cards  = document.querySelectorAll('.outcome-card[data-panel]');
+  const panels = document.querySelectorAll('.outcome-panel');
+  function closeAll() {
+    cards.forEach(c => { c.classList.remove('is-active'); c.setAttribute('aria-expanded','false'); });
+    panels.forEach(p => p.classList.remove('is-open'));
+  }
+  cards.forEach(card => {
+    card.addEventListener('click', () => {
+      const panel = document.getElementById(card.dataset.panel);
+      if (!panel) return;
+      const isOpen = panel.classList.contains('is-open');
+      closeAll();
+      if (!isOpen) {
+        card.classList.add('is-active');
+        card.setAttribute('aria-expanded','true');
+        panel.classList.add('is-open');
+        setTimeout(() => panel.scrollIntoView({behavior:'smooth',block:'nearest'}), 50);
       }
     });
   });
 }
 
-function wireExportActions() {
- const saveBtn = document.getElementById('btn-save-findings');
- const printBtn = document.getElementById('btn-print-findings');
- if (saveBtn) {
- saveBtn.addEventListener('click', () => {
- const stamp = new Date().toISOString().slice(0, 10);
- downloadText(`KYH-findings-${stamp}.txt`, formatAllFindingsText());
- });
- }
- if (printBtn) {
- printBtn.addEventListener('click', () => {
- fillPrintDocument();
- window.print();
- });
- }
-}
-
+/* --- Main render --- */
 function render() {
- if (!profile.sex) {
- main.innerHTML = `<div class="empty-state">No profile found. <a href="profile.html">Start here →</a></div>`;
- return;
- }
+  if (!profile.sex) {
+    main.innerHTML = '<div class="empty-state">No profile found. <a href="profile.html">Start here \u2192</a></div>';
+    return;
+  }
+  try { cachedInsights = typeof buildInsights==='function' ? (buildInsights(state)||[]) : []; }
+  catch(e) { console.error(e); cachedInsights=[]; }
 
- try {
- cachedInsights = typeof buildInsights === 'function' ? (buildInsights(state) || []) : [];
- } catch (e) {
- console.error(e);
- cachedInsights = [];
- }
+  fillPrintDocument();
 
- fillPrintDocument();
+  const byStep = insightsByStep(cachedInsights);
+  const total  = cachedInsights.length;
 
- const byStep = insightsByStep(cachedInsights);
- const total = cachedInsights.length;
+  const aiPrompt = typeof buildInsightAIPrompt==='function' ? buildInsightAIPrompt(state,cachedInsights) : {full:'',header:'',sections:[]};
+  const doctorItems = typeof buildInsightDoctorPrep==='function' ? buildInsightDoctorPrep(cachedInsights) : [];
+  const {symptomTags,contextTags} = deriveInterestTags(state);
+  const sbVids  = pickTopVideos(window.SB_VIDEOS,  symptomTags, contextTags, 9);
+  const nbsVids = pickTopVideos(window.NBS_VIDEOS, symptomTags, contextTags, 9);
+  const AI_OPTS = {all: aiPrompt.full};
+  aiPrompt.sections.forEach(s => { AI_OPTS[s.key]=s.withContext; });
 
- const iconDoctor = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 14h6M12 11v6"/></svg>`;
- const iconAI = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2l2.4 7.4H22l-6 4.6 2.3 7.4L12 17.3 5.7 21.4 8 14 2 9.4h7.6z"/></svg>`;
- const iconLearn = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>`;
- const iconSnap = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/></svg>`;
+  const iconDoctor = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 14h6M12 11v6"/></svg>';
+  const iconAI     = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2l2.4 7.4H22l-6 4.6 2.3 7.4L12 17.3 5.7 21.4 8 14 2 9.4h7.6z"/></svg>';
+  const iconLearn  = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>';
+  const iconSnap   = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/></svg>';
+  const chevron    = '<span class="card-chevron">&#8964;</span>';
+  const execSummary = total ? buildExecutiveSummary(state, cachedInsights) : '';
 
- const execSummary = total ? buildExecutiveSummary(state, cachedInsights) : '';
+  const doctorPanel = doctorItems.length
+    ? '<div class="note-block teal" style="margin:0;"><span class="k">Bring this to your next visit</span><ul style="margin:8px 0 0 18px;padding:0;line-height:1.65;">' + doctorItems.map(i=>'<li>'+esc(i)+'</li>').join('') + '</ul></div>'
+    : '<p class="lede" style="color:var(--muted);">Complete more steps to generate doctor prep notes.</p>';
 
- main.innerHTML = `
- <div class="summary-hero no-print">
- <h1>You took the first step toward <em>great</em>.</h1>
- <p class="sub">Your private health picture is ready. Nothing left this browser.</p>
- </div>
+  const aiPanel = '<p style="font-size:14px;margin:0 0 16px;">Four ready-to-copy prompts &mdash; pick the conversation you want to have.</p>'
+    + '<div class="field" style="max-width:440px;margin-bottom:16px;"><label class="intake-label" for="ai-prompt-select">Choose a prompt</label>'
+    + '<select id="ai-prompt-select"><option value="all">All three, with shared context</option>'
+    + aiPrompt.sections.map(s=>'<option value="'+esc(s.key)+'">'+esc(s.label)+'</option>').join('')
+    + '</select></div><div class="prompt-box" id="ai-prompt-display"></div>'
+    + '<button type="button" class="btn" id="copy-prompt-btn" style="margin:0 0 4px;" aria-live="polite">Copy this prompt</button>';
 
- ${execSummary
- ? `<div class="note-block teal exec-summary no-print" style="margin-bottom:28px;">${esc(execSummary)}</div>`
- : `<p class="lede no-print" style="margin-bottom:28px;">Choose how you want to use what you built.</p>`}
+  const learnPanel = (sbVids.length||nbsVids.length)
+    ? '<p style="font-size:14px;margin:0 0 4px;">Ranked by relevance to your symptoms and risk profile.</p>'
+      + videoSourceBlockHtml('Saurabh Bothra \u00b7 Habuild Yoga', sbVids, 'sb-sum')
+      + videoSourceBlockHtml('Nourished by Science \u00b7 Mario Kratz, PhD', nbsVids, 'nbs-sum')
+    : '<p class="lede" style="color:var(--muted);">Video library not loaded.</p>';
 
- <div class="outcome-grid action-grid no-print" style="margin-bottom:28px;">
- <a class="outcome-card" href="nextsteps.html#doctor">
- <div class="icon-lg">${iconDoctor}</div>
- <div class="verb">Consult</div>
- <h3>Doctor brief</h3>
- <p>Act and watch items, phrased for your next clinical visit.</p>
- </a >
- <a class="outcome-card" href="nextsteps.html#ai">
- <div class="icon-lg">${iconAI}</div>
- <div class="verb">Plan</div>
- <h3>AI action prompt</h3>
- <p>Copy an insight-based prompt into ChatGPT, Claude, or any assistant.</p>
- </a>
- <a class="outcome-card" href="nextsteps.html#learn">
- <div class="icon-lg">${iconLearn}</div>
- <div class="verb">Learn</div>
- <h3>Learning resources</h3>
- <p>Videos matched to your symptoms, routine, and diet signals.</p>
- </a>
- <a class="outcome-card" href="#insights">
- <div class="icon-lg">${iconSnap}</div>
- <div class="verb">Review</div>
- <h3>Your insights</h3>
- <p>Findings grouped by profile, symptoms, tests, routine, and diet.</p>
- </a>
- </div>
+  const insightsPanel = byStep.map(({step,items}) => stepCardHtml(step,items,'panel-')).join('');
 
- <div class="note-block teal no-print" style="margin-bottom:28px;">
- <span class="k">You're in control</span>
- Insights stay on this device. Save or print a copy if you want them outside the browser.
- </div>
+  main.innerHTML =
+    '<div class="summary-hero no-print">'
+    + '<h1>You took the first step toward <em>great</em>.</h1>'
+    + '<p class="sub">Your private health picture is ready. Nothing left this browser.</p></div>'
+    + (execSummary
+      ? '<div class="note-block teal exec-summary no-print" style="margin-bottom:28px;">'+esc(execSummary)+'</div>'
+      : '<p class="lede no-print" style="margin-bottom:28px;">Choose how you want to use what you built.</p>')
+    + '<div class="outcome-grid action-grid no-print" style="margin-bottom:12px;">'
+    + '<button class="outcome-card" data-panel="panel-doctor" aria-expanded="false"><div class="icon-lg">'+iconDoctor+'</div><div class="verb">Consult</div><h3>Doctor brief</h3><p>Act and watch items, phrased for your next clinical visit.</p>'+chevron+'</button>'
+    + '<button class="outcome-card" data-panel="panel-ai" aria-expanded="false"><div class="icon-lg">'+iconAI+'</div><div class="verb">Plan</div><h3>AI action prompt</h3><p>Copy an insight-based prompt into ChatGPT, Claude, or any assistant.</p>'+chevron+'</button>'
+    + '<button class="outcome-card" data-panel="panel-learn" aria-expanded="false"><div class="icon-lg">'+iconLearn+'</div><div class="verb">Learn</div><h3>Learning resources</h3><p>Videos matched to your symptoms, routine, and diet signals.</p>'+chevron+'</button>'
+    + '<button class="outcome-card" data-panel="panel-insights" aria-expanded="false"><div class="icon-lg">'+iconSnap+'</div><div class="verb">Review</div><h3>Your insights</h3><p>Findings grouped by profile, symptoms, tests, routine, and diet.</p>'+chevron+'</button>'
+    + '</div>'
+    + '<div class="outcome-panels no-print">'
+    + '<div class="outcome-panel" id="panel-doctor"><div class="panel-inner">'+doctorPanel+'</div></div>'
+    + '<div class="outcome-panel" id="panel-ai"><div class="panel-inner">'+aiPanel+'</div></div>'
+    + '<div class="outcome-panel" id="panel-learn"><div class="panel-inner">'+learnPanel+'</div></div>'
+    + '<div class="outcome-panel" id="panel-insights"><div class="panel-inner">'+insightsPanel+'</div></div>'
+    + '</div>'
+    + '<div class="note-block teal no-print" style="margin-bottom:28px;"><span class="k">You\'re in control</span> Insights stay on this device. Save or print a copy if you want them outside the browser.</div>'
+    + '<div class="page-footer-nav no-print"><a href="diet-synthesis.html" class="btn secondary">&larr; Back</a>'
+    + '<div style="display:flex;flex-wrap:wrap;gap:10px;">'
+    + '<button type="button" class="btn secondary" id="btn-save-findings">Save findings</button>'
+    + '<button type="button" class="btn secondary" id="btn-print-findings">Print findings</button>'
+    + '<a href="index.html" class="btn">Done</a></div></div>';
 
- <div id="insights">
- <div class="cat-title no-print">Review your insights</div>
- ${byStep.map(({ step, items }) => stepCardHtml(step, items)).join('')}
- </div>
-
- <div class="page-footer-nav no-print">
- <a href="diet-synthesis.html" class="btn secondary">← Back</a>
- <div style="display:flex;flex-wrap:wrap;gap:10px;">
- <button type="button" class="btn secondary" id="btn-save-findings">Save findings</button>
- <button type="button" class="btn secondary" id="btn-print-findings">Print findings</button>
- <a href="index.html" class="btn">Done</a>
- </div>
- </div>
- `;
-
- wireExportActions();
- wireStepToggles();
+  wireOutcomeCards();
+  wireAIPrompt(AI_OPTS);
+  wireVideoShowMore();
+  wireStepToggles();
+  wireExportActions();
 }
 
 render();
