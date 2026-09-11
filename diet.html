@@ -121,11 +121,23 @@ function renderPage() {
 
     <div class="cat-title">Nutrient Priorities</div>
     <p class="lede" style="font-size:14px; margin-bottom:16px;" id="priority-meta">Ranked for you</p>
+    <div id="soft-gate-banner" style="display:none; border:2px solid var(--amber); background:var(--amber-soft); padding:16px 18px; margin-bottom:28px; color:#5a3d1c;" role="status">
+      <div style="font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--amber);margin-bottom:6px;">A few nutrients unanswered</div>
+      <div style="font-size:14px;line-height:1.6;">
+        Your answers tell us which nutrients are already covered vs. where the real gaps are &mdash;
+        the more you fill in, the more focused your dietary priorities become.
+      </div>
+      <div style="margin-top:10px;">
+        <a href="#" id="soft-gate-continue-link" style="font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--amber);text-decoration:underline;">
+          That&rsquo;s fine &mdash; continue anyway &rarr;
+        </a>
+      </div>
+    </div>
     <div id="nutrient-list"></div>
 
     <div class="page-footer-nav">
       <a href="routine-plan.html" class="btn secondary">← Back</a>
-      <span class="validation-msg" id="validation-msg" style="margin-right:14px;"></span>
+      <span id="answer-counter" style="font-family:var(--mono);font-size:12px;color:var(--muted);margin:0 14px;white-space:nowrap;"></span>
       <button type="button" class="btn" id="continue-btn">Synthesize Diet →</button>
     </div>
   `;
@@ -147,33 +159,88 @@ function renderPage() {
     }
  });
 
-  // Continue
-  document.getElementById("continue-btn").addEventListener("click", () => {
-    const msg = document.getElementById("validation-msg");
-    if (Object.keys(dietState.frequency || {}).length < (window.FOOD_QUALITY || []).length) {
-      msg.textContent = "Please answer all Food Quality markers before continuing.";
-      return;
-    }
-    msg.textContent = "";
+  // Soft gate: live answer counter + two-click confirm (nutrient cards)
+  let confirmPending = false;
+  function countNutrientAnswered() {
+    return [...document.querySelectorAll('#nutrient-list .test-card')]
+      .filter(card => card.querySelector('input[type=radio]:checked')).length;
+  }
+  function updateCounter() {
+    const n = countNutrientAnswered();
+    const total = document.querySelectorAll('#nutrient-list .test-card').length;
+    const el = document.getElementById('answer-counter');
+    const btn = document.getElementById('continue-btn');
+    if (!el || !total) return;
+    el.textContent = n === total ? '' : `${n} of ${total} answered`;
+    el.style.color = 'var(--muted)';
+    el.style.fontWeight = '';
+    el.style.fontSize = '12px';
+    confirmPending = false;
+    btn.textContent = 'Synthesize Diet \u2192';
+    document.querySelectorAll('#nutrient-list .test-card.card-needs-answer').forEach(c => c.classList.remove('card-needs-answer'));
+    const banner = document.getElementById('soft-gate-banner');
+    if (banner) banner.style.display = 'none';
+  }
+  updateCounter();
 
+  function proceedToNext() {
     const estBurn = Number(routine.estimatedCalories) || 2200;
     const { cal: targetCal, factor } = estimateTargetCalories(estBurn, profile);
     const waterL = estimateWaterLiters(profile, estBurn);
-
     dietState.target = {
       cal: targetCal,
       waterL: waterL,
       factor: factor,
-      note: `Burn ~${estBurn.toLocaleString()} kcal × ${factor} (body-composition adjusted)`
+      note: `Burn ~${estBurn.toLocaleString()} kcal \u00d7 ${factor} (body-composition adjusted)`
     };
-
     dietState.priorities = (window.NUTRIENTS || [])
       .map(n => ({ ...n, ...scoreNutrient(n) }))
       .sort((a, b) => b.score - a.score)
       .slice(0, 10);
+    goTo("diet-synthesis.html", Object.assign({}, state, { diet: dietState }));
+  }
 
-    const nextState = Object.assign({}, state, { diet: dietState });
-    goTo("diet-synthesis.html", nextState);
+  document.getElementById('soft-gate-continue-link').addEventListener('click', e => {
+    e.preventDefault();
+    proceedToNext();
+  });
+
+  // Continue
+  document.getElementById('continue-btn').addEventListener('click', () => {
+    // Food quality markers are required — they feed the scoring algorithm
+    if (Object.keys(dietState.frequency || {}).length < (window.FOOD_QUALITY || []).length) {
+      const el = document.getElementById('answer-counter');
+      el.textContent = 'Please answer all Food Quality markers first.';
+      el.style.color = 'var(--rose)';
+      el.style.fontWeight = '600';
+      el.style.fontSize = '13px';
+      document.querySelector('#markers-container').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      return;
+    }
+
+    const n = countNutrientAnswered();
+    const total = document.querySelectorAll('#nutrient-list .test-card').length;
+    if (n < total && !confirmPending) {
+      confirmPending = true;
+      const banner = document.getElementById('soft-gate-banner');
+      banner.style.display = '';
+      banner.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      const el = document.getElementById('answer-counter');
+      el.textContent = `${n} of ${total} answered`;
+      el.style.color = 'var(--amber)';
+      el.style.fontWeight = '600';
+      el.style.fontSize = '12px';
+      document.getElementById('continue-btn').textContent = 'Continue anyway \u2192';
+      const unanswered = [...document.querySelectorAll('#nutrient-list .test-card')]
+        .filter(card => !card.querySelector('input[type=radio]:checked'));
+      unanswered.forEach(card => {
+        card.classList.remove('card-needs-answer');
+        void card.offsetWidth;
+        card.classList.add('card-needs-answer');
+      });
+      return;
+    }
+    proceedToNext();
   });
 }
 
@@ -322,8 +389,12 @@ function renderNutrients() {
       if (!dietState.intake) dietState.intake = {};
       dietState.intake[nutrient] = { meeting: this.value };
       saveDietProgress();
+      if (typeof updateCounter === 'function') updateCounter();
     });
   });
+
+  // Refresh live counter after nutrient list re-renders
+  if (typeof updateCounter === 'function') updateCounter();
 }
 
 renderPage();

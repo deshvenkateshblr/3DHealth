@@ -1,4 +1,4 @@
-﻿/* --- High-Visibility Alert Banner --- */
+/* --- High-Visibility Alert Banner --- */
 .alert-banner:not(:empty) {
   display: flex;
   align-items: center;
@@ -574,6 +574,20 @@ footer {
   background: var(--panel);
   padding: 14px 16px;
   margin-bottom: 10px;
+  transition: border-left-color .2s, background .2s;
+}
+
+/* Soft-gate: visual nudge for unanswered cards */
+@keyframes card-nudge-pulse {
+  0%   { background: var(--panel); border-left-color: var(--teal); }
+  15%  { background: var(--amber-soft); border-left-color: var(--amber); }
+  70%  { background: var(--amber-soft); border-left-color: var(--amber); }
+  100% { background: var(--panel); border-left-color: var(--teal); }
+}
+.card-needs-answer {
+  animation: card-nudge-pulse 2.2s ease forwards;
+  outline: 2px solid var(--amber);
+  outline-offset: -2px;
 }
 .test-card .head {
   display: flex;

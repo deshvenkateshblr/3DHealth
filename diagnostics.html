@@ -335,9 +335,22 @@ function renderResultsStage(){
   </div>
   <p class="lede">${symptomLine}</p>
   <p class="section-sub" style="display:block;margin-bottom:14px;">${matches.length} tests matched your profile &middot; ${symptomDrivenCount} pulled in directly from your symptoms, the rest fill out your baseline risk panel</p>
+  <div id="soft-gate-banner" style="display:none; border:2px solid var(--amber); background:var(--amber-soft); padding:16px 18px; margin-bottom:28px; color:#5a3d1c;" role="status">
+    <div style="font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--amber);margin-bottom:6px;">A few tests unanswered</div>
+    <div style="font-size:14px;line-height:1.6;">
+      Knowing which tests you&rsquo;ve already had lets us highlight exactly what&rsquo;s still missing &mdash;
+      your summary and action plan sharpen with every answer.
+    </div>
+    <div style="margin-top:10px;">
+      <a href="#" id="soft-gate-continue-link" style="font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--amber);text-decoration:underline;">
+        That&rsquo;s fine &mdash; continue anyway &rarr;
+      </a>
+    </div>
+  </div>
   <div id="cards">${cardsHtml}</div>
   <div class="page-footer-nav">
     <a href="symptoms.html" class="btn secondary">&larr; Back</a>
+    <span id="answer-counter" style="font-family:var(--mono);font-size:12px;color:var(--muted);margin:0 14px;white-space:nowrap;"></span>
     <button class="btn" id="continue-btn">Continue to Routine &rarr;</button>
   </div>`;
 
@@ -355,30 +368,89 @@ function renderResultsStage(){
     });
   });
 
-  document.getElementById('continue-btn').addEventListener('click', ()=>{
+
+  // Soft gate: live answer counter + two-click confirm
+  let confirmPending = false;
+  function countAnswered() {
+    return [...document.querySelectorAll('.test-card')]
+      .filter(card => card.querySelector('input[type=radio]:checked')).length;
+  }
+  function updateCounter() {
+    const n = countAnswered(), total = document.querySelectorAll('.test-card').length;
+    const el = document.getElementById('answer-counter');
+    const btn = document.getElementById('continue-btn');
+    if (!el) return;
+    el.textContent = n === total ? '' : `${n} of ${total} answered`;
+    el.style.color = 'var(--muted)';
+    el.style.fontWeight = '';
+    el.style.fontSize = '12px';
+    confirmPending = false;
+    btn.textContent = 'Continue to Routine \u2192';
+    document.querySelectorAll('.test-card.card-needs-answer').forEach(c => c.classList.remove('card-needs-answer'));
+    const banner = document.getElementById('soft-gate-banner');
+    if (banner) banner.style.display = 'none';
+  }
+  document.getElementById('cards').addEventListener('change', e => {
+    if (e.target.type === 'radio') updateCounter();
+  });
+  updateCounter();
+
+  function proceedToNext() {
     const answers = {};
-    document.querySelectorAll('.test-card').forEach((card, i)=>{
+    document.querySelectorAll('.test-card').forEach((card, i) => {
       const testName = card.dataset.test;
       const yesChecked = card.querySelector(`#done-${i}-yes`).checked;
-      const noChecked = card.querySelector(`#done-${i}-no`).checked;
-      const recency = card.querySelector(`#recency-${i}`).value;
-      const resultStatus = card.querySelector(`#result-status-${i}`).value;
-      const resultNote = card.querySelector(`#result-note-${i}`).value.trim();
-      if(yesChecked || noChecked){
+      const noChecked  = card.querySelector(`#done-${i}-no`).checked;
+      const recency       = card.querySelector(`#recency-${i}`).value;
+      const resultStatus  = card.querySelector(`#result-status-${i}`).value;
+      const resultNote    = card.querySelector(`#result-note-${i}`).value.trim();
+      if (yesChecked || noChecked) {
         answers[testName] = {
           done: yesChecked,
-          recency: yesChecked ? (recency||null) : null,
-          resultStatus: yesChecked ? (resultStatus||null) : null,
-          resultNote: yesChecked ? (resultNote||null) : null
+          recency:      yesChecked ? (recency      || null) : null,
+          resultStatus: yesChecked ? (resultStatus || null) : null,
+          resultNote:   yesChecked ? (resultNote   || null) : null
         };
       }
     });
     const diagnostics = {
-      topTests: top10.map(d=>({test:d.test, group:d.group, bySymptom:d.bySymptom, viaSymptoms:d.viaSymptoms, viaRiskGroup:d.viaRiskGroup||false, riskGroupReason:d.riskGroupReason||null})),
+      topTests: top10.map(d => ({test:d.test, group:d.group, bySymptom:d.bySymptom, viaSymptoms:d.viaSymptoms, viaRiskGroup:d.viaRiskGroup||false, riskGroupReason:d.riskGroupReason||null})),
       answers
     };
-    const next = Object.assign({}, state, {diagnostics});
-    goTo('routine.html', next);
+    goTo('routine.html', Object.assign({}, state, {diagnostics}));
+  }
+
+  document.getElementById('soft-gate-continue-link').addEventListener('click', e => {
+    e.preventDefault();
+    proceedToNext();
+  });
+
+  document.getElementById('continue-btn').addEventListener('click', () => {
+    const n = countAnswered(), total = document.querySelectorAll('.test-card').length;
+    if (n < total && !confirmPending) {
+      confirmPending = true;
+      // Show banner at top and scroll to it
+      const banner = document.getElementById('soft-gate-banner');
+      banner.style.display = '';
+      banner.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      // Update footer counter to a simple amber count (no long message — banner handles it)
+      const el = document.getElementById('answer-counter');
+      el.textContent = `${n} of ${total} answered`;
+      el.style.color = 'var(--amber)';
+      el.style.fontWeight = '600';
+      el.style.fontSize = '12px';
+      document.getElementById('continue-btn').textContent = 'Continue anyway \u2192';
+      // Flash all unanswered cards
+      const unanswered = [...document.querySelectorAll('.test-card')]
+        .filter(card => !card.querySelector('input[type=radio]:checked'));
+      unanswered.forEach(card => {
+        card.classList.remove('card-needs-answer');
+        void card.offsetWidth;
+        card.classList.add('card-needs-answer');
+      });
+      return;
+    }
+    proceedToNext();
   });
 }
 

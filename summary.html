@@ -120,6 +120,7 @@
 <script src="shared/data.diagnostics.js"></script>
 <script src="shared/data.videos.sb.js"></script>
 <script src="shared/data.videos.nbs.js"></script>
+<script src="shared/drsk_video_data.js"></script>
 <script src="shared/data.activities.js"></script>
 <script src="shared/utils.js"></script>
 <script src="shared/insights.js"></script>
@@ -311,7 +312,7 @@ function wireExportActions() {
   if (pr) pr.addEventListener('click', () => { fillPrintDocument(); window.print(); });
 }
 function wireVideoShowMore() {
-  ['sb-sum','nbs-sum'].forEach(pfx => {
+  ['sb-sum','nbs-sum','drsk-sum'].forEach(pfx => {
     const btn = document.getElementById(pfx+'-more-btn'); if(!btn) return;
     btn.addEventListener('click', () => {
       const ex = document.getElementById(pfx+'-extra');
@@ -374,6 +375,7 @@ function render() {
   const {symptomTags,contextTags} = deriveInterestTags(state);
   const sbVids  = pickTopVideos(window.SB_VIDEOS,  symptomTags, contextTags, 9);
   const nbsVids = pickTopVideos(window.NBS_VIDEOS, symptomTags, contextTags, 9);
+  const drskVids = pickTopVideos(window.DRSUMIT_VIDEOS, symptomTags, contextTags, 9);
   const AI_OPTS = {all: aiPrompt.full};
   aiPrompt.sections.forEach(s => { AI_OPTS[s.key]=s.withContext; });
 
@@ -395,10 +397,11 @@ function render() {
     + '</select></div><div class="prompt-box" id="ai-prompt-display"></div>'
     + '<button type="button" class="btn" id="copy-prompt-btn" style="margin:0 0 4px;" aria-live="polite">Copy this prompt</button>';
 
-  const learnPanel = (sbVids.length||nbsVids.length)
+  const learnPanel = (sbVids.length||nbsVids.length||drskVids.length)
     ? '<p style="font-size:14px;margin:0 0 4px;">Ranked by relevance to your symptoms and risk profile.</p>'
       + videoSourceBlockHtml('Saurabh Bothra \u00b7 Habuild Yoga', sbVids, 'sb-sum')
       + videoSourceBlockHtml('Nourished by Science \u00b7 Mario Kratz, PhD', nbsVids, 'nbs-sum')
+      + videoSourceBlockHtml('Dr Sumit Kapadia', drskVids, 'drsk-sum')
     : '<p class="lede" style="color:var(--muted);">Video library not loaded.</p>';
 
   const insightsPanel = byStep.map(({step,items}) => stepCardHtml(step,items,'panel-')).join('');

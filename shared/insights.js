@@ -1,4 +1,4 @@
-﻿/* ============================================================
+/* ============================================================
    shared/insights.js
    KYH — turns session state into actionable insights.
    Every major user input should appear in at least one insight's
@@ -758,6 +758,27 @@ const KYH_BRAND_BLURB =
       }));
     }
 
+    // ----- Casual nudge for silently-skipped fields -----
+    if (hasActivities) {
+      const missing = [];
+      if (act.sleep === 0)                   missing.push('sleep');
+      if (act.desk === 0 && act.idle === 0)  missing.push('sitting time');
+      if (habits.steps == null)              missing.push('daily steps');
+      if (habits.sun == null)                missing.push('sunlight');
+      if (habits.dinner == null)             missing.push('meal timing');
+
+      if (missing.length >= 2) {
+        const examples = missing.slice(0, 2).join(' and ');
+        out.push(insight({
+          id: 'routine-partial', domain: 'routine', tone: 'watch', priority: 70,
+          title: 'A few routine fields look empty',
+          detail: `Looks like ${examples} weren't filled in — adding those would round out the picture a bit more.`,
+          next: 'Head back to the Routine step to fill in the gaps.',
+          sources: ['routine']
+        }));
+      }
+    }
+
     return out;
   }
 
@@ -767,17 +788,33 @@ const KYH_BRAND_BLURB =
       || (exercises && exercises.topExercises) || [];
     if (!list.length) return out;
 
-    const practicing = list.filter(ex =>
-      ex.isPracticing === true ||
-      (exercises && exercises.answers && exercises.answers[ex.exercise || ex]?.practicing)
-    );
-    const names = list.map(ex => ex.exercise || ex);
-    const practicingNames = practicing.map(ex => ex.exercise || ex);
-    const notPracticingNames = names.filter(n => !practicingNames.includes(n));
+    const answers = (exercises && exercises.answers) || {};
     const n = list.length;
-    const k = practicing.length;
 
-    if (k === 0) {
+    // Bucket each exercise by its answer state
+    const practicingYes  = [];  // answered Yes  → good (sustain)
+    const practicingNo   = [];  // answered No   → watch
+    const unanswered     = [];  // no answer at all
+
+    list.forEach(ex => {
+      const name = ex.exercise || ex;
+      const ans  = answers[name];
+      if (!ans)                      unanswered.push(ex);
+      else if (ans.practicing)       practicingYes.push(ex);
+      else                           practicingNo.push(ex);
+    });
+
+    const yesCount  = practicingYes.length;
+    const noCount   = practicingNo.length;
+    const skipCount = unanswered.length;
+
+    // ----- 1) Summary card (always present) -----
+    const names        = list.map(ex => ex.exercise || ex);
+    const yesNames     = practicingYes.map(ex => ex.exercise || ex);
+    const noNames      = practicingNo.map(ex => ex.exercise || ex);
+
+    if (yesCount === 0 && skipCount === n) {
+      // Nobody answered anything — generic plan card
       out.push(insight({
         id: 'move-plan', domain: 'movement', tone: 'watch', priority: 29,
         title: 'You have a personalised movement list — not started yet',
@@ -785,15 +822,7 @@ const KYH_BRAND_BLURB =
         next: 'Pick one or two low-equipment moves and schedule them on fixed days.',
         sources: ['routine.recommendedExercises', 'exercises']
       }));
-    } else if (k < n) {
-      out.push(insight({
-        id: 'move-partial', domain: 'movement', tone: 'good', priority: 41,
-        title: `You are already practicing ${k} of ${n} recommended moves`,
-        detail: `Currently practicing: ${practicingNames.join(', ')}. Not yet started: ${notPracticingNames.slice(0, 6).join(', ')}${notPracticingNames.length > 6 ? '…' : ''}.`,
-        next: 'Add one more from the list once the current ones feel automatic.',
-        sources: ['routine.recommendedExercises', 'exercises.answers']
-      }));
-    } else {
+    } else if (yesCount === n) {
       out.push(insight({
         id: 'move-all', domain: 'movement', tone: 'good', priority: 36,
         title: 'You are practicing your full recommended set',
@@ -801,7 +830,71 @@ const KYH_BRAND_BLURB =
         next: 'Stay consistent; progress range or control before adding intensity.',
         sources: ['routine.recommendedExercises']
       }));
+    } else {
+      out.push(insight({
+        id: 'move-partial', domain: 'movement', tone: yesCount > 0 ? 'good' : 'watch', priority: 41,
+        title: yesCount > 0
+          ? `You are already practicing ${yesCount} of ${n} recommended moves`
+          : 'None of your recommended exercises are marked as in practice',
+        detail: yesCount > 0
+          ? `Practicing: ${yesNames.join(', ')}.${noNames.length ? ` Not yet: ${noNames.slice(0, 5).join(', ')}${noNames.length > 5 ? '…' : ''}.` : ''}`
+          : `${n} exercises recommended; mark which you are doing to personalise insights.`,
+        next: yesCount > 0
+          ? 'Add one more from the list once the current ones feel automatic.'
+          : 'Pick one or two and mark them as practicing on the Exercises page.',
+        sources: ['routine.recommendedExercises', 'exercises.answers']
+      }));
     }
+
+    // ----- 2) Per-exercise granular insights (capped at 3 each) -----
+
+    // Good (sustain) — each exercise marked Yes
+    practicingYes.slice(0, 3).forEach(ex => {
+      const name = ex.exercise || ex;
+      const freq = (answers[name] && answers[name].frequency) || null;
+      out.push(insight({
+        id: 'ex-ok-' + name.replace(/\W+/g, '-').toLowerCase(),
+        domain: 'movement', tone: 'good', priority: 44,
+        title: `${name} is part of your routine`,
+        detail: freq
+          ? `Marked as currently practicing at ${freq}.`
+          : 'Marked as currently practicing.',
+        next: 'Maintain consistency; note if intensity, form, or duration needs a tweak.',
+        sources: ['exercises.answers']
+      }));
+    });
+
+    // Watch — each exercise explicitly marked No
+    practicingNo.slice(0, 3).forEach(ex => {
+      const name = ex.exercise || ex;
+      const bySymptom = ex.bySymptom;
+      out.push(insight({
+        id: 'ex-no-' + name.replace(/\W+/g, '-').toLowerCase(),
+        domain: 'movement', tone: 'watch', priority: 30,
+        title: `${name} not yet in practice`,
+        detail: bySymptom
+          ? `Recommended based on your symptoms and profile — not yet started.`
+          : `Part of your personalised movement baseline — not yet started.`,
+        next: `Try ${name} once a week first; add frequency once it feels manageable.`,
+        sources: ['exercises.answers']
+      }));
+    });
+
+    // ----- 3) Nudge if too many exercises were left unanswered -----
+    // Only fire when the user *has* started answering but left more than half blank.
+    // When nobody answered at all, move-plan already covers the "not started" message.
+    const answerThreshold = Math.ceil(n / 2);
+    const answeredCount   = yesCount + noCount;
+    if (n > 0 && answeredCount > 0 && answeredCount < answerThreshold) {
+      out.push(insight({
+        id: 'move-intake-nudge', domain: 'movement', tone: 'watch', priority: 68,
+        title: 'Exercise practicing answers not filled in',
+        detail: `${skipCount} of your ${n} recommended exercises have no "Currently practicing?" answer — those would show up under Act and Sustain here.`,
+        next: 'Head back to Exercises and mark Yes or No for each recommended move.',
+        sources: ['exercises.answers', 'exercises.topExercises']
+      }));
+    }
+
     return out;
   }
 
@@ -937,14 +1030,110 @@ const KYH_BRAND_BLURB =
         sources: ['diet.frequency']
       }));
     }
-    sustains.push(insight({
-      id: 'diet-pref', domain: 'diet', tone: 'good', priority: 55,
-      title: 'Eating pattern constraints are clear',
-      detail: `${diet.type}${diet.cuisine ? ' · ' + diet.cuisine : ''} — plans should respect this.`,
-      next: 'Use cuisine-familiar foods when acting on nutrient priorities.',
-      sources: ['diet.type', 'diet.cuisine']
-    }));
+
     sustains.slice(0, 3).forEach(s => out.push(s));
+
+    // ----- Casual nudge for skipped food frequency fields -----
+    const FQ_LABELS = {
+      sugary_drinks: 'sugary drinks', fried_ultraprocessed: 'fried / processed foods',
+      fruits: 'fruit intake', leafy_greens: 'leafy greens', legumes: 'legumes', nuts_seeds: 'nuts & seeds'
+    };
+    const missingFq = Object.keys(FQ_LABELS).filter(k => freq[k] == null);
+    if (missingFq.length >= 2) {
+      const examples = missingFq.slice(0, 2).map(k => FQ_LABELS[k]).join(' and ');
+      out.push(insight({
+        id: 'diet-partial', domain: 'diet', tone: 'watch', priority: 70,
+        title: 'A couple of food frequency fields look empty',
+        detail: `Looks like ${examples} weren't filled in — those would sharpen the diet picture a bit.`,
+        next: 'Head back to the Diet step to fill in the gaps.',
+        sources: ['diet.frequency']
+      }));
+    }
+
+    // 5) Nutrient intake self-assessment (yes / partial / no per nutrient on the Diet page)
+    //    "optimize" nutrients: yes → sustain, partial → watch, no → act
+    //    "limit"    nutrients: yes → sustain (keeping it in check), no → act (not limiting it)
+    const intake = diet.intake || {};
+    const rankedPriorities = diet.priorities || [];
+
+    const intakeGap     = [];  // meeting = 'no'      → act
+    const intakePartial = [];  // meeting = 'partial'  → watch  (optimize only)
+    const intakeMet     = [];  // meeting = 'yes'      → good (sustain)
+
+    rankedPriorities.forEach(p => {
+      const ans = (intake[p.nutrient] || {}).meeting;
+      if (!ans) return;
+      const isLimit = p.direction === 'limit';
+      if (ans === 'yes')                       intakeMet.push({ ...p, isLimit });
+      else if (ans === 'partial' && !isLimit)  intakePartial.push({ ...p, isLimit });
+      else if (ans === 'no')                   intakeGap.push({ ...p, isLimit });
+    });
+
+    // Act — not meeting (capped at top 3 by existing priority rank)
+    intakeGap.slice(0, 3).forEach(p => {
+      out.push(insight({
+        id: 'intake-gap-' + p.nutrient.replace(/\W+/g, '-').toLowerCase(),
+        domain: 'diet', tone: 'act', priority: 13,
+        title: p.isLimit
+          ? `${p.nutrient} intake needs to come down`
+          : `${p.nutrient} intake is below target`,
+        detail: p.isLimit
+          ? `You reported not keeping ${p.nutrient} limited — it is flagged as a priority to reduce for your profile.`
+          : `You reported not meeting your ${p.nutrient} target — it is ranked as a priority nutrient for your profile.`,
+        next: p.isLimit
+          ? 'Cut back on the most frequent sources first; check the Diet page for what to reduce.'
+          : `Add ${p.nutrient}-rich foods daily; use the examples on the Diet page as a guide.`,
+        sources: ['diet.intake', 'diet.priorities']
+      }));
+    });
+
+    // Watch — partially meeting (capped at top 3)
+    intakePartial.slice(0, 3).forEach(p => {
+      out.push(insight({
+        id: 'intake-partial-' + p.nutrient.replace(/\W+/g, '-').toLowerCase(),
+        domain: 'diet', tone: 'watch', priority: 20,
+        title: `${p.nutrient} intake is only partially met`,
+        detail: `You reported partially meeting your ${p.nutrient} target — ranked as a priority nutrient for your profile.`,
+        next: `Aim for a consistent daily source of ${p.nutrient}; variety helps more than quantity alone.`,
+        sources: ['diet.intake', 'diet.priorities']
+      }));
+    });
+
+    // Good (sustain) — meeting target or keeping limit (capped at top 3)
+    intakeMet.slice(0, 3).forEach(p => {
+      out.push(insight({
+        id: 'intake-ok-' + p.nutrient.replace(/\W+/g, '-').toLowerCase(),
+        domain: 'diet', tone: 'good', priority: 53,
+        title: p.isLimit
+          ? `${p.nutrient} is being kept in check`
+          : `${p.nutrient} intake looks on track`,
+        detail: p.isLimit
+          ? `You reported keeping ${p.nutrient} limited — a protective habit for your profile.`
+          : `You reported meeting your ${p.nutrient} target — solid for your profile.`,
+        next: 'Keep it consistent; vary your sources to avoid palate fatigue.',
+        sources: ['diet.intake', 'diet.priorities']
+      }));
+    });
+
+    // Nudge when the user has a prioritised nutrient list but hasn't answered
+    // enough intake questions. Fire for both "none answered" and "partially answered".
+    const answeredCount = intakeGap.length + intakePartial.length + intakeMet.length;
+    const threshold = Math.ceil(rankedPriorities.length / 2);
+    if (rankedPriorities.length > 0 && answeredCount < threshold) {
+      const unanswered = rankedPriorities.length - answeredCount;
+      const noneAnswered = answeredCount === 0;
+      out.push(insight({
+        id: 'diet-intake-nudge', domain: 'diet', tone: 'watch', priority: 68,
+        title: noneAnswered
+          ? 'You have a prioritised nutrient list — intake not marked yet'
+          : 'Nutrient intake answers only partially filled in',
+        detail: noneAnswered
+          ? `${rankedPriorities.length} nutrients ranked for your profile, but none have been marked for whether you are meeting the target — this drives what shows up under Act and Sustain.`
+          : `${unanswered} of your ${rankedPriorities.length} priority nutrients still have no intake answer.`,
+        next: 'Head back to the Diet step and answer "Are you meeting this?" for each nutrient.',
+        sources: ['diet.intake', 'diet.priorities']
+      }));
+    }
 
     return out;
   }
@@ -965,13 +1154,19 @@ const KYH_BRAND_BLURB =
       .concat(insightsMovement(state.routine, state.exercises))
       .concat(insightsDiet(state.diet, state.routine, profile));
 
+    // Cross-domain dedup: suppress 'routine-partial' when 'move-plan' is already present.
+    // Both nudge the user to go back and fill things in; showing them back-to-back in the
+    // same Watch block feels repetitive. move-plan is more specific so it wins.
+    const hasMovePlan = list.some(i => i.id === 'move-plan');
+    const filtered = hasMovePlan ? list.filter(i => i.id !== 'routine-partial') : list;
+
     const toneOrder = { act: 0, watch: 1, good: 2 };
-    list.sort((a, b) => {
+    filtered.sort((a, b) => {
       const t = toneOrder[a.tone] - toneOrder[b.tone];
       if (t !== 0) return t;
       return (a.priority || 50) - (b.priority || 50);
     });
-    return list;
+    return filtered;
   }
 
   function groupInsights(insights) {
@@ -1009,7 +1204,8 @@ const KYH_BRAND_BLURB =
     'fq-sugary': 'added sugar intake', 'fq-upf': 'processed food intake',
     'fq-low-fruits': 'fruit intake', 'fq-low-leafy_greens': 'leafy greens intake',
     'fq-low-legumes': 'legume intake', 'fq-low-nuts_seeds': 'nuts & seeds intake',
-    'fq-protect': 'protective foods', 'fq-protective-ok': 'protective foods', 'diet-pref': 'dietary preference'
+    'fq-protect': 'protective foods', 'fq-protective-ok': 'protective foods',
+    'routine-partial': 'a few routine gaps', 'diet-partial': 'a few diet gaps'
   };
 
   function shortLabel(i) {
@@ -1087,7 +1283,7 @@ const KYH_BRAND_BLURB =
     // as summarizeSection does, so it doesn't turn into a broken sentence.
     const routineSentence = (routine.length === 1 && /-none$/.test(routine[0].id))
       ? routine[0].detail
-      : domainStatusSentence(routine, 'Your routine looks', 'steady across', 'lighter than typical on');
+      : domainStatusSentence(routine, 'Your routine looks', 'steady across', 'worth a look on');
     const dietSentence = (diet.length === 1 && /-none$/.test(diet[0].id))
       ? diet[0].detail
       : domainStatusSentence(diet, 'Your diet looks', 'well-aligned on', 'worth a look on');
