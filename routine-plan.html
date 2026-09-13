@@ -202,8 +202,8 @@ function renderResultsStage() {
     ).join('');
 
     const originTag = ex.bySymptom
-      ? `<span class="tag ok" style="flex-shrink:0; align-self:flex-start;">Matches: ${esc(ex.viaSymptoms.join(', '))}</span>`
-      : `<span class="tag" style="flex-shrink:0; align-self:flex-start;">${esc(ex.group)}</span>`;
+      ? `<span class="tag ok">Matches: ${esc(ex.viaSymptoms.join(', '))}</span>`
+      : `<span class="tag">${esc(ex.group)}</span>`;
 
     const contraNote = (ex.contraindications && ex.contraindications.length)
       ? `<div class="contra">Avoid if you have: ${esc(ex.contraindications.join(', '))}</div>`
@@ -233,6 +233,7 @@ const intensityChip = `<span class="meta-chip">${esc(ex.intensity || '—')} int
           <div class="name">${i + 1}. ${esc(ex.exercise)}</div>
           <div class="test-desc">${esc(ex.note)}</div>
           <div class="meta-row">
+              ${originTag}
               ${moveChip}
               ${intensityChip}
               ${equipmentChip}
@@ -241,7 +242,6 @@ const intensityChip = `<span class="meta-chip">${esc(ex.intensity || '—')} int
           <div class="symptom"><b>Helpful for:</b> ${esc(watchFor)}</div>
           ${contraNote}
         </div>
-        ${originTag}
       </div>
       <div class="answers">
         <span class="intake-label" style="margin:0;">Currently practicing?</span>
