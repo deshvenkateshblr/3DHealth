@@ -1,156 +1,214 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="Know Your Health (KYH) helps you understand your health across diet, daily routine, and diagnostics with personalized insights and clear next steps.">
-<title>KYH — Know Your Health</title>
-<link rel="stylesheet" href="shared/styles.css?v=3">
+  <head>
+    <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="description" content="Know Your Health (KYH) helps you understand your health across diet, daily routine, and diagnostics with personalized insights and clear next steps.">
+          <title>KYH — Know Your Health</title>
+          <link rel="stylesheet" href="shared/styles.css?v=3">
+            <style>
+              .hero-section {
+              padding: 40px clamp(16px, 4vw, 48px) 40px;
+              text-align: center;
+              }
+              .trust-badge {
+              display: inline-flex;
+              align-items: center;
+              gap: 8px;
+              background: var(--panel);
+              border: 1px solid var(--line);
+              padding: 8px 16px;
+              border-radius: 100px;
+              font-family: var(--mono);
+              font-size: 11.5px;
+              color: var(--ink-soft);
+              margin-bottom: 28px;
+              }
+              .trust-badge strong { color: var(--teal); }
 
-</head>
-<body>
+              .hero-question h1 {
+              font-family: var(--serif);
+              font-weight: 400;
+              font-size: clamp(36px, 6vw, 56px);
+              line-height: 1.1;
+              margin: 0 0 12px;
+              letter-spacing: -0.02em;
+              }
+              .hero-question .sub {
+              font-family: var(--serif);
+              font-style: italic;
+              font-size: clamp(18px, 2.5vw, 22px);
+              color: var(--ink-soft);
+              margin: 0 auto;
+              max-width: 650px;
+              line-height: 1.4;
+              }
 
-<header class="masthead" id="app-header"></header>
+              .cta-group {
+              display: flex;
+              justify-content: center;
+              align-items: center;
+              gap: 16px;
+              margin-top: 32px;
+              flex-wrap: wrap;
+              }
+              .cta-group .btn {
+              font-size: 13.5px;
+              padding: 16px 36px;
+              }
 
-<main style="max-width:1000px;">
-  <section class="hero-section" style="padding-left:0; padding-right:0;">
+              .micro-copy {
+              font-family: var(--mono);
+              font-size: 12px;
+              color: var(--muted);
+              margin-top: 16px;
+              }
 
-    <div class="hero-question">
-      <h1>How are you?</h1>
-      <p class="sub">Fine is just the starting point.</p>
-    </div>
+              .outcome-grid {
+              display: grid;
+              grid-template-columns: repeat(3, 1fr);
+              gap: 20px;
+              margin-top: 56px;
+              margin-bottom: 48px;
+              text-align: left;
+              }
 
-    <p class="hero-summary">
-      In under 10 minutes, get a clear map of where you are and the simple next steps toward feeling genuinely great.
-      No Login, No Accounts, No Data Sent to Servers.
-    </p>
-<div class="outcome-grid">
-  <div class="outcome-card">
-    <div class="verb">
-      <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/>
-        <rect x="9" y="3" width="6" height="4" rx="1"/>
-      </svg>
-      Review
-    </div>
-    <h3>Personalized lab tests</h3>
-    <p>Only the tests that actually matter for your age, sex, symptoms and family history — not a generic checklist.</p>
-  </div>
+              @media (max-width: 768px) {
+              .outcome-grid { grid-template-columns: 1fr; }
+              .cta-group { flex-direction: column; width: 100%; }
+              .cta-group .btn { width: 100%; max-width: 320px; }
+              }
+            </style>
+          </head>
+  <body>
 
-  <div class="outcome-card">
-    <div class="verb">
-      <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <circle cx="12" cy="12" r="9"/>
-        <path d="M12 7v5l3.5 2"/>
-      </svg>
-      Visualize
-    </div>
-    <h3>Your daily routine</h3>
-    <p>Map your true daily calorie burn and get a realistic exercise plan tailored to your specific symptoms</p>
-  </div>
+    <header class="masthead" id="app-header"></header>
 
-  <div class="outcome-card">
-    <div class="verb">
-      <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <circle cx="12" cy="12" r="9"/>
-        <circle cx="12" cy="12" r="4"/>
-      </svg>
-      Audit
-    </div>
-    <h3>Your nutrition map</h3>
-    <p>Turn your diet into macro and micronutrient targets tailored to your body and lifestyle.</p>
-  </div>
+    <main style="max-width:1000px;">
+      <section class="hero-section" style="padding-left:0; padding-right:0;">
 
-  <div class="outcome-card">
-    <div class="verb">
-      <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-        <path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/>
-      </svg>
-      Prepare
-    </div>
-    <h3>Clear next steps</h3>
-    <p>A clean summary for your doctor, curated learning videos, and an AI prompt, all in your personal context.</p>
-  </div>
-</div>
-
-    <div class="start-wrap" style="text-align: center;">
-      <!-- Your Original Start Button -->
-      <a class="btn" href="about.html" aria-label="Start health assessment">Start</a>
-
-      <!-- Expandable Video Toggle -->
-      <div style="margin-top: 16px; margin-bottom: 12px;">
-        <button id="toggleVideoBtn" type="button" aria-expanded="false" aria-controls="videoContainer" style="background: none; border: none; color: inherit; font-size: 14px; font-weight: 500; cursor: pointer; text-decoration: underline; text-underline-offset: 4px; display: inline-flex; align-items: center; gap: 6px; padding: 0; font-family: inherit;">
-          <span id="toggleIcon" aria-hidden="true">▶</span>
-          <span id="toggleText">Watch 7-min Walkthrough</span>
-        </button>
-      </div>
-
-      <!-- Your Original Disclaimer -->
-      <p>Runs entirely in your browser · Nothing is sent to a server</p>
-
-      <!-- Collapsible Video Container (Hidden by default) -->
-      <div id="videoContainer" style="max-height: 0; opacity: 0; overflow: hidden; transition: max-height 0.4s ease, opacity 0.4s ease; max-width: 760px; margin: 0 auto;">
-        <div style="position: relative; width: 100%; aspect-ratio: 16/9; margin-top: 20px; border-radius: 6px; overflow: hidden; box-shadow: 0 4px 18px rgba(0,0,0,0.1);">
-          <iframe id="videoPlayer" title="Know Your Health - Walkthrough Video" style="width: 100%; height: 100%; border: 0;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen=""></iframe>
+        <div class="trust-badge">
+          <span aria-hidden="true">🔒</span>
+          <span>
+            <strong>Privacy First:</strong> Runs locally on your device. Nothing stored on server.
+          </span>
         </div>
-      </div>
-    </div>
-    
 
-  </section>
-</main>
+        <div class="hero-question">
+          <h1>Stop Googling your symptoms.</h1>
+          <p class="sub">Get a clear, <strong>everything in your personal context,</strong> medically-grounded map of your health in under 10 minutes.</p>
+        </div>
 
-<footer>
-  <span>KYH — Know Your Health. Own Your Path. Runs entirely in your browser. Nothing is sent to a server.</span>
-  <span>Not a substitute for professional medical advice.</span>
-</footer>
+        <div class="start-wrap">
+          <div class="cta-group">
+            <a class="btn" href="about.html" aria-label="Start health assessment">Start Assessment &rarr;</a>
+            <button id="toggleVideoBtn" type="button" class="btn secondary" aria-expanded="false" aria-controls="videoContainer">
+              <span id="toggleIcon" aria-hidden="true">&#9654;</span>
+              <span id="toggleText">See How It Works</span>
+            </button>
+          </div>
 
-<script src="shared/utils.js"></script>
-<script>document.addEventListener('DOMContentLoaded', () => {
-  renderHeader('fine', 'Know Your Health — Own Your Path');
-}); </script>
+          <p class="micro-copy">Health is wealth, invest in it today.</p>
 
-  <script>
-    const toggleBtn = document.getElementById('toggleVideoBtn');
-    const toggleText = document.getElementById('toggleText');
-    const toggleIcon = document.getElementById('toggleIcon');
-    const container = document.getElementById('videoContainer');
-    const player = document.getElementById('videoPlayer');
+          <!-- Collapsible Video Container (Hidden by default) -->
+          <div id="videoContainer" style="max-height: 0; opacity: 0; overflow: hidden; transition: max-height 0.4s ease, opacity 0.4s ease; max-width: 760px; margin: 0 auto;">
+            <div style="position: relative; width: 100%; aspect-ratio: 16/9; margin-top: 24px; border-radius: 6px; overflow: hidden; box-shadow: 0 4px 18px rgba(0,0,0,0.1); border: 1px solid var(--line);">
+              <iframe id="videoPlayer" title="Know Your Health - Walkthrough Video" style="width: 100%; height: 100%; border: 0;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen=""></iframe>
+            </div>
+          </div>
+        </div>
 
-    // Your YouTube video URL with autoplay enabled
-    // Updated URL to prevent Error 153
-    const videoUrl = "https://www.youtube-nocookie.com/embed/harhr3ju3DI?autoplay=1";
+        <div class="outcome-grid">
+          <div class="outcome-card">
+            <div class="verb">
+              <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/>
+                <rect x="9" y="3" width="6" height="4" rx="1"/>
+              </svg>
+              Decode
+            </div>
+            <h3>Decode your symptoms</h3>
+            <p>Stop guessing. Get a personalized list of the lab tests that actually matter for your age, profile, and specific symptoms.</p>
+          </div>
 
-    let isOpen = false;
+          <div class="outcome-card">
+            <div class="verb">
+              <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="9"/>
+                <path d="M12 7v5l3.5 2"/>
+              </svg>
+              Optimize
+            </div>
+            <h3>Fuel your wellness</h3>
+            <p>Turn your daily routine and diet into actionable targets. Get exercise and nutrition recommendations perfectly tailored to your personal context.</p>
+          </div>
 
-    toggleBtn.addEventListener('click', () => {
-    isOpen = !isOpen;
+          <div class="outcome-card">
+            <div class="verb">
+              <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 2l2.4 7.4H22l-6 4.6 2.3 7.4L12 17.3 5.7 21.4 8 14 2 9.4h7.6z"/>
+              </svg>
+              Take Action
+            </div>
+            <h3>Own your next steps</h3>
+            <p>Learn from curated expert videos, use our AI prompt to refine what needs attention, and walk into your next doctor's visit with intelligent, relevant questions.</p>
+          </div>
+        </div>
 
-    // Update ARIA accessibility state
-    toggleBtn.setAttribute('aria-expanded', isOpen);
+      </section>
+    </main>
 
-    if (isOpen) {
-    player.src = videoUrl;
-    // 600px gives enough room for the 16:9 ratio player
-    container.style.maxHeight = "600px";
-    container.style.opacity = "1";
-    toggleText.textContent = "Hide Walkthrough";
-    toggleIcon.textContent = "▼";
+    <footer>
+      <span>KYH — Know Your Health. Own Your Path. Runs entirely in your browser. Nothing is sent to a server.</span>
+      <span>Not a substitute for professional medical advice.</span>
+    </footer>
 
-    // Smoothly scroll down so the video enters into view
-    setTimeout(() => {
-    container.scrollIntoView({ behavior: 'smooth', block: 'end' });
-    }, 200);
-    } else {
-    player.src = ""; // Instantly stops playback and audio
-    container.style.maxHeight = "0";
-    container.style.opacity = "0";
-    toggleText.textContent = "Watch 7-min Walkthrough";
-    toggleIcon.textContent = "▶";
-    }
-    });
-  </script>
+    <script src="shared/utils.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', () => {
+      renderHeader('fine', 'Know Your Health — Own Your Path');
+      });
+    </script>
 
-</body>
+    <script>
+      const toggleBtn = document.getElementById('toggleVideoBtn');
+      const toggleText = document.getElementById('toggleText');
+      const toggleIcon = document.getElementById('toggleIcon');
+      const container = document.getElementById('videoContainer');
+      const player = document.getElementById('videoPlayer');
+
+      // YouTube video URL with autoplay enabled
+      const videoUrl = "https://www.youtube-nocookie.com/embed/harhr3ju3DI?autoplay=1";
+
+      let isOpen = false;
+
+      toggleBtn.addEventListener('click', () => {
+      isOpen = !isOpen;
+
+      // Update ARIA accessibility state
+      toggleBtn.setAttribute('aria-expanded', isOpen);
+
+      if (isOpen) {
+      player.src = videoUrl;
+      // 600px gives enough room for the 16:9 ratio player
+      container.style.maxHeight = "600px";
+      container.style.opacity = "1";
+      toggleText.textContent = "Hide Walkthrough";
+      toggleIcon.innerHTML = "&#9660;"; // Down triangle
+
+      // Smoothly scroll down so the video enters into view
+      setTimeout(() => {
+      container.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 200);
+      } else {
+      player.src = ""; // Instantly stops playback and audio
+      container.style.maxHeight = "0";
+      container.style.opacity = "0";
+      toggleText.textContent = "See How It Works";
+      toggleIcon.innerHTML = "&#9654;"; // Right triangle
+      }
+      });
+    </script>
+
+  </body>
 </html>

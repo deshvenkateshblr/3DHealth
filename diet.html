@@ -210,7 +210,7 @@ function renderPage() {
     // Food quality markers are required — they feed the scoring algorithm
     if (Object.keys(dietState.frequency || {}).length < (window.FOOD_QUALITY || []).length) {
       const el = document.getElementById('answer-counter');
-      el.textContent = 'Please answer all Food Quality markers first.';
+      el.textContent = 'Please answer all Food Quality markers.';
       el.style.color = 'var(--rose)';
       el.style.fontWeight = '600';
       el.style.fontSize = '13px';
