@@ -73,8 +73,205 @@
       goTo('diagnostics.html', state);
       });
 
+      // Helper: Check if activity is sports/gym (vigorous)
+      function isSportsOrGym(activityId) {
+        const activity = window.ACTIVITIES.find(a => a.id === activityId);
+        if (!activity) return false;
+        return activity.category === 'Sports & Agility' || activity.category === 'Gym & Vigorous';
+      }
+
+      // Helper: Get minimum required hours for an activity
+      function getMinimumHours(activityId) {
+        const activity = window.ACTIVITIES.find(a => a.id === activityId);
+        if (!activity) return 0;
+
+        // Define minimum hours based on activity type/name
+        const name = activity.name.toLowerCase();
+        const category = activity.category;
+
+        // Critical baseline activities - must stay at 8 hours
+        if (category === 'Rest & Passive') {
+          if (name.includes('sleeping')) return 8;
+        }
+
+        // Office work and professional activities - respect 8-hour work day
+        if (category === 'Routine & Chores') {
+          if (name.includes('office work') || name.includes('desk')) return 8;
+        }
+
+        return 0; // Other activities have no minimum
+      }
+
+      // Helper: Round hours to nearest 30-minute interval (0.5 hours)
+      function roundTo30Minutes(hours) {
+        return Math.round(hours * 2) / 2;
+      }
+
+      // Helper: Intelligently redistribute hours
+      function intelligentlyDistributeHours(activities) {
+        if (!activities || activities.length === 0) return activities;
+
+        // Separate daily from weekly activities
+        const dailyActivities = [];
+        const weeklyActivities = [];
+
+        activities.forEach(act => {
+          if (act.freq === 'weekly' || isSportsOrGym(act.id)) {
+            // Respect user-set weekly freq OR auto-mark sports/gym as weekly
+            weeklyActivities.push(Object.assign({}, act, { freq: 'weekly' }));
+          } else {
+            dailyActivities.push(Object.assign({}, act));
+          }
+        });
+
+        // If all activities are sports/gym, return weekly only
+        if (dailyActivities.length === 0) {
+          return weeklyActivities.length > 0 ? weeklyActivities : activities;
+        }
+
+        // First pass: Allocate minimum required hours
+        let allocatedHours = 0;
+        const minimumAllocation = {};
+
+        dailyActivities.forEach(act => {
+          const minHours = getMinimumHours(act.id);
+          minimumAllocation[act.id] = minHours;
+          allocatedHours += minHours;
+        });
+
+        // Calculate remaining hours to distribute
+        const remainingHours = 24 - allocatedHours;
+
+        if (remainingHours < 0) {
+          // Edge case: minimum requirements exceed 24 hours
+          const scaleFactor = 24 / allocatedHours;
+          dailyActivities.forEach(act => {
+            const scaledHours = minimumAllocation[act.id] * scaleFactor;
+            const rounded = roundTo30Minutes(scaledHours);
+            act.hours = Math.floor(rounded);
+            act.mins = (rounded % 1) * 60;
+          });
+        } else {
+          // Second pass: Distribute remaining hours proportionally among flexible activities
+          const flexibleActivities = dailyActivities.filter(act => getMinimumHours(act.id) === 0);
+
+          if (flexibleActivities.length === 0) {
+            // All activities have minimums - distribute remaining to all proportionally
+            const hoursPerActivity = remainingHours / dailyActivities.length;
+            dailyActivities.forEach(act => {
+              const minHours = minimumAllocation[act.id];
+              const totalHours = minHours + hoursPerActivity;
+              const rounded = roundTo30Minutes(totalHours);
+              act.hours = Math.floor(rounded);
+              act.mins = (rounded % 1) * 60;
+            });
+          } else {
+            // Calculate current hours allocated to flexible activities
+            const currentFlexibleTotal = flexibleActivities.reduce((sum, act) => {
+              return sum + (Number(act.hours) || 0) + ((Number(act.mins) || 0) / 60);
+            }, 0);
+
+            // Scale flexible activities proportionally
+            const scaleFactor = currentFlexibleTotal > 0.1 ? remainingHours / currentFlexibleTotal : remainingHours / flexibleActivities.length;
+
+            // Calculate all scaled values first
+            const scaledFlexible = [];
+            flexibleActivities.forEach(act => {
+              const currentTotal = (Number(act.hours) || 0) + ((Number(act.mins) || 0) / 60);
+              const scaledHours = currentTotal * scaleFactor;
+              const rounded = roundTo30Minutes(scaledHours);
+              scaledFlexible.push({ act, rounded });
+            });
+
+            // Apply scaled hours to flexible activities
+            scaledFlexible.forEach(({ act, rounded }) => {
+              act.hours = Math.floor(rounded);
+              act.mins = (rounded % 1) * 60;
+            });
+
+            // Apply minimums to protected activities
+            dailyActivities.forEach(act => {
+              if (getMinimumHours(act.id) > 0) {
+                act.hours = getMinimumHours(act.id);
+                act.mins = 0;
+              }
+            });
+
+            // Adjust for rounding errors to ensure exactly 24 hours (ITERATIVE)
+            let adjustmentCount = 0;
+            const maxAdjustments = 48; // Safety limit to prevent infinite loops
+
+            while (adjustmentCount < maxAdjustments) {
+              let totalHours = dailyActivities.reduce((sum, act) => {
+                return sum + (Number(act.hours) || 0) + ((Number(act.mins) || 0) / 60);
+              }, 0);
+
+              const difference = 24 - totalHours;
+
+              // If we're within 1 minute (0.0167 hours), consider it exact
+              if (Math.abs(difference) < 0.0167) {
+                break;
+              }
+
+              // For larger errors, adjust by 0.5 hours at a time
+              if (Math.abs(difference) >= 0.25) {
+                // Find flexible activity with most 30-min blocks to adjust
+                let bestIdx = -1;
+                let maxAdjustable = -1;
+
+                flexibleActivities.forEach((act, idx) => {
+                  const hours = Number(act.hours) || 0;
+                  // Prefer to adjust activities that have hours to remove or can take more
+                  const adjustable = difference > 0 ? hours : (24 - (totalHours - hours));
+                  if (adjustable > maxAdjustable) {
+                    maxAdjustable = adjustable;
+                    bestIdx = idx;
+                  }
+                });
+
+                if (bestIdx >= 0) {
+                  const adjustment = difference > 0 ? 0.5 : -0.5;
+                  const act = flexibleActivities[bestIdx];
+                  const currentTotal = (Number(act.hours) || 0) + ((Number(act.mins) || 0) / 60);
+                  const newTotal = currentTotal + adjustment;
+
+                  // Ensure we don't go negative
+                  if (newTotal >= 0) {
+                    act.hours = Math.floor(newTotal);
+                    act.mins = (newTotal % 1) * 60;
+                  }
+                }
+              } else {
+                // For small remaining differences, distribute among flexible activities
+                const perActivity = difference / flexibleActivities.length;
+                flexibleActivities.forEach(act => {
+                  if (perActivity !== 0) {
+                    const currentTotal = (Number(act.hours) || 0) + ((Number(act.mins) || 0) / 60);
+                    const newTotal = currentTotal + perActivity;
+
+                    if (newTotal >= 0) {
+                      const rounded = roundTo30Minutes(newTotal);
+                      act.hours = Math.floor(rounded);
+                      act.mins = (rounded % 1) * 60;
+                    }
+                  }
+                });
+                break; // Exit after small adjustment distribution
+              }
+
+              adjustmentCount++;
+            }
+          }
+        }
+
+        // Combine and return
+        return [...dailyActivities, ...weeklyActivities];
+      }
+
       document.getElementById('continue-btn').addEventListener('click', () => {
-      const routineState = Object.assign({}, state.routine || {}, { activities: selectedActivities });
+      // Apply intelligent redistribution before proceeding
+      const redistributedActivities = intelligentlyDistributeHours(selectedActivities);
+      const routineState = Object.assign({}, state.routine || {}, { activities: redistributedActivities });
       const next = Object.assign({}, state, { routine: routineState });
       goTo('routine-config.html', next); // Move to step 2!
       });
