@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
  <meta charset="UTF-8">
@@ -121,6 +121,8 @@
 <script src="shared/data.videos.sb.js"></script>
 <script src="shared/data.videos.nbs.js"></script>
 <script src="shared/drsk_video_data.js"></script>
+<script src="shared/ayushyp_video_data.js"></script>
+<script src="shared/curated_routine_video_data.js"></script>
 <script src="shared/data.activities.js"></script>
 <script src="shared/utils.js"></script>
 <script src="shared/insights.js"></script>
@@ -312,13 +314,14 @@ function wireExportActions() {
   if (pr) pr.addEventListener('click', () => { fillPrintDocument(); window.print(); });
 }
 function wireVideoShowMore() {
-  ['sb-sum','nbs-sum','drsk-sum'].forEach(pfx => {
-    const btn = document.getElementById(pfx+'-more-btn'); if(!btn) return;
+  document.querySelectorAll('[id$="-more-btn"]').forEach(btn => {
     btn.addEventListener('click', () => {
-      const ex = document.getElementById(pfx+'-extra');
-      const showing = ex.style.display!=='none';
-      ex.style.display = showing?'none':'grid';
-      btn.textContent = showing ? 'Show '+btn.dataset.count+' more \u2193' : 'Show fewer \u2191';
+      const pfx = btn.id.replace(/-more-btn$/, '');
+      const ex = document.getElementById(pfx + '-extra');
+      if (!ex) return;
+      const showing = ex.style.display !== 'none';
+      ex.style.display = showing ? 'none' : 'grid';
+      btn.textContent = showing ? 'Show ' + btn.dataset.count + ' more \u2193' : 'Show fewer \u2191';
     });
   });
 }
@@ -373,9 +376,23 @@ function render() {
   const aiPrompt = typeof buildInsightAIPrompt==='function' ? buildInsightAIPrompt(state,cachedInsights) : {full:'',header:'',sections:[]};
   const doctorItems = typeof buildInsightDoctorPrep==='function' ? buildInsightDoctorPrep(cachedInsights) : [];
   const {symptomTags,contextTags} = deriveInterestTags(state);
-  const sbVids  = pickTopVideos(window.SB_VIDEOS,  symptomTags, contextTags, 9);
-  const nbsVids = pickTopVideos(window.NBS_VIDEOS, symptomTags, contextTags, 9);
-  const drskVids = pickTopVideos(window.DRSUMIT_VIDEOS, symptomTags, contextTags, 9);
+  // ─── Video source registry ────────────────────────────────────────────────
+  // To add a new source (e.g. AYUSH_VIDEOS), append one object here:
+  //   { globalVar: 'AYUSH_VIDEOS', label: 'Ayush Channel Name', pfx: 'ayush-sum' }
+  // No other code changes are needed.
+  const VIDEO_SOURCES = [
+    { globalVar: 'SB_VIDEOS',       label: 'Saurabh Bothra \u00b7 Habuild Yoga',          pfx: 'sb-sum'      },
+    { globalVar: 'NBS_VIDEOS',      label: 'Nourished by Science \u00b7 Mario Kratz, PhD', pfx: 'nbs-sum'     },
+    { globalVar: 'DRSUMIT_VIDEOS',  label: 'Dr Sumit Kapadia',                          pfx: 'drsk-sum'    },
+    { globalVar: 'AYUSH_VIDEOS',    label: 'National Institute of Yoga',         pfx: 'ayush-sum'   },
+    { globalVar: 'CURATED_VIDEOS',  label: 'Curated \u00b7 KYH Picks',                      pfx: 'curated-sum' },
+  ];
+
+  const pickedSources = VIDEO_SOURCES.map(src => ({
+    ...src,
+    vids: pickTopVideos(window[src.globalVar], symptomTags, contextTags, 9),
+  }));
+
   const AI_OPTS = {all: aiPrompt.full};
   aiPrompt.sections.forEach(s => { AI_OPTS[s.key]=s.withContext; });
 
@@ -397,11 +414,9 @@ function render() {
     + '</select></div><div class="prompt-box" id="ai-prompt-display"></div>'
     + '<button type="button" class="btn" id="copy-prompt-btn" style="margin:0 0 4px;" aria-live="polite">Copy this prompt</button>';
 
-  const learnPanel = (sbVids.length||nbsVids.length||drskVids.length)
+  const learnPanel = pickedSources.some(s => s.vids.length)
     ? '<p style="font-size:14px;margin:0 0 4px;">Ranked by relevance to your symptoms and risk profile.</p>'
-      + videoSourceBlockHtml('Saurabh Bothra \u00b7 Habuild Yoga', sbVids, 'sb-sum')
-      + videoSourceBlockHtml('Nourished by Science \u00b7 Mario Kratz, PhD', nbsVids, 'nbs-sum')
-      + videoSourceBlockHtml('Dr Sumit Kapadia', drskVids, 'drsk-sum')
+      + pickedSources.map(s => videoSourceBlockHtml(s.label, s.vids, s.pfx)).join('')
     : '<p class="lede" style="color:var(--muted);">Video library not loaded.</p>';
 
   const insightsPanel = byStep.map(({step,items}) => stepCardHtml(step,items,'panel-')).join('');
