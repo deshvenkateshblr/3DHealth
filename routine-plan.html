@@ -220,47 +220,92 @@ const intensityChip = `<span class="meta-chip">${esc(ex.intensity || '—')} int
     const profileChip = profileLabel
       ? `<span class="meta-chip">${esc(profileLabel)}</span>`
       : '';
-    
-    // NEW: Create the movement type chip with a teal highlight
-    const moveChip = ex.movement_type 
+  const moveChip = ex.movement_type 
       ? `<span class="meta-chip" style="color: var(--teal); border-color: var(--teal); font-weight: 600;">${esc(ex.movement_type)}</span>` 
       : '';
+
+    // Create the button only if a URL exists
+    const videoBtn = ex.video_url 
+      ? `<button class="demo-toggle-btn" data-index="${i}" data-url="${esc(ex.video_url)}" data-target="video-wrap-${i}" aria-expanded="false">
+           <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+           Watch Demo
+         </button>`
+      : '';
+      
+    // Video container target
+    const videoContainer = ex.video_url
+      ? `<div id="video-wrap-${i}" class="demo-video-container" style="display: none;"></div>`
+      : '';
+
+    // Build form tags as plain strings to prevent editor auto-formatting issues
+    const radioYes = '<input type="radio" name="prac-' + i + '" id="prac-' + i + '-yes" value="yes" ' + (doingYes ? 'checked' : '') + '>';
+    const radioNo  = '<input type="radio" name="prac-' + i + '" id="prac-' + i + '-no" value="no" ' + (doingNo ? 'checked' : '') + '>';
+    const selectTag = '<select class="freq-select" id="freq-' + i + '" ' + (doingYes ? '' : 'disabled') + '>';
+
+    const extendedText = ex.extended_info || ex.note;
+    
+        // Build the 'Also known as' line if an alternate name exists
+    const akaLine = (ex.aka && ex.aka.trim())
+      ? `<div style="font-size: 12.5px; color: var(--muted); margin-bottom: 6px;">
+           <span style="font-style: italic;">Also known as:</span> <strong style="color: var(--ink); font-weight: 600;">${esc(ex.aka)}</strong>
+         </div>`
+      : '';
+    
+    
 
     cardsHtml += `
     <div class="test-card" data-exercise="${esc(ex.exercise)}">
       <div class="head">
         <div style="flex:1; min-width:0;">
-          <div class="name">${i + 1}. ${esc(ex.exercise)}</div>
-          <div class="test-desc">${esc(ex.note)}</div>
-          <div class="meta-row">
-              ${originTag}
-              ${moveChip}
-              ${intensityChip}
-              ${equipmentChip}
-              ${profileChip}
+          <!-- Title Row -->
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px;">
+            <div class="name">${i + 1}. ${esc(ex.exercise)}</div>
+            ${videoBtn}
           </div>
-          <div class="symptom"><b>Helpful for:</b> ${esc(watchFor)}</div>
-          ${contraNote}
+
+          <!-- Standard Info Block (Hidden during Demo mode) -->
+          <div id="standard-info-${i}">
+            <div class="test-desc">${esc(ex.note)}</div>
+            <div class="meta-row">
+                ${originTag}
+                ${moveChip}
+                ${intensityChip}
+                ${equipmentChip}
+                ${profileChip}
+            </div>
+            <div class="symptom"><b>Helpful for:</b> ${esc(watchFor)}</div>
+            ${contraNote}
+          </div>
+
+          <!-- Extended Info Block (Visible only during Demo mode) -->
+          <div id="extended-info-${i}" style="display: none; margin-top: 10px; margin-bottom: 12px; font-size: 13.5px; line-height: 1.6; color: var(--ink-soft);">
+            ${akaLine}
+            <div>${esc(extendedText)}</div>
+          </div>
+          
+          <!-- Lazy-Loaded Video Embed -->
+          ${videoContainer}
         </div>
       </div>
       <div class="answers">
         <span class="intake-label" style="margin:0;">Currently practicing?</span>
         <div class="radio-pair">
-          <input type="radio" name="prac-${i}" id="prac-${i}-yes" value="yes" ${doingYes ? 'checked' : ''}>
+          ${radioYes}
           <label for="prac-${i}-yes">Yes</label>
-          <input type="radio" name="prac-${i}" id="prac-${i}-no" value="no" ${doingNo ? 'checked' : ''}>
+          ${radioNo}
           <label for="prac-${i}-no">No</label>
         </div>
-        <select class="freq-select" id="freq-${i}" ${doingYes ? '' : 'disabled'}>
+        ${selectTag}
           <option value="">How often?</option>
           ${freqOpts}
         </select>
       </div>
     </div>`;
-  });
+   
+    });
 
-  const symptomDrivenCount = top10.filter(e => e.bySymptom).length;
-  const symptomLine = symptoms.length
+    const symptomDrivenCount = top10.filter(e => e.bySymptom).length;
+    const symptomLine = symptoms.length
     ? `Based on: ${symptoms.map(esc).join(', ')} &middot; <a href="symptoms.html">adjust symptoms &rarr;</a>`
     : `No symptoms on file — showing a balanced movement baseline. <a href="symptoms.html">Add symptoms &rarr;</a>`;
 
@@ -293,81 +338,126 @@ const intensityChip = `<span class="meta-chip">${esc(ex.intensity || '—')} int
     <span id="answer-counter" style="font-family:var(--mono);font-size:12px;color:var(--muted);margin:0 14px;white-space:nowrap;"></span>
     <button class="btn" id="continue-btn">Continue to Diet &rarr;</button>
   </div>`;
+      // Wire up Video Demo Accordions with Content Swap
+      document.querySelectorAll('.demo-toggle-btn').forEach(btn => {
+      btn.addEventListener('click', function() {
+      const idx = this.getAttribute('data-index');
+      const targetId = this.getAttribute('data-target');
+      const rawUrl = this.getAttribute('data-url');
+      const container = document.getElementById(targetId);
+      const standardBlock = document.getElementById('standard-info-' + idx);
+      const extendedBlock = document.getElementById('extended-info-' + idx);
+      const isExpanded = this.getAttribute('aria-expanded') === 'true';
 
-  // Wire Yes/No → enable/disable frequency select
-  document.querySelectorAll('.test-card').forEach((card, i) => {
-    const yes = card.querySelector(`#prac-${i}-yes`);
-    const no  = card.querySelector(`#prac-${i}-no`);
-    const sel = card.querySelector(`#freq-${i}`);
+      if (isExpanded) {
+      // Return to standard view
+      this.setAttribute('aria-expanded', 'false');
+      this.innerHTML = `<svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+        <polygon points="5 3 19 12 5 21 5 3"></polygon>
+      </svg> View Details`;
 
-    yes.addEventListener('change', () => { sel.disabled = false; updateCounter(); });
-    no.addEventListener('change', () => {
+      container.style.display = 'none';
+      container.innerHTML = '';
+
+      extendedBlock.style.display = 'none';
+      standardBlock.style.display = 'block';
+      } else {
+      // Switch to Demo view: swap content and inject player
+      this.setAttribute('aria-expanded', 'true');
+      this.innerHTML = `✕ Close Details`;
+
+      standardBlock.style.display = 'none';
+      extendedBlock.style.display = 'block';
+      container.style.display = 'block';
+
+      let embedUrl = rawUrl;
+      if (rawUrl.includes('watch?v=')) {
+      const videoId = rawUrl.split('watch?v=')[1].split('&')[0];
+      embedUrl = `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1`;
+      }
+
+      container.innerHTML = `
+      <div class="demo-video-wrapper">
+        <iframe src="${embedUrl}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen=""></iframe>
+      </div>`;
+      }
+      });
+      });
+
+      // Wire Yes/No → enable/disable frequency select
+      document.querySelectorAll('.test-card').forEach((card, i) => {
+      const yes = card.querySelector(`#prac-${i}-yes`);
+      const no  = card.querySelector(`#prac-${i}-no`);
+      const sel = card.querySelector(`#freq-${i}`);
+
+      yes.addEventListener('change', () => { sel.disabled = false; updateCounter(); });
+      no.addEventListener('change', () => {
       sel.disabled = true;
       sel.value = '';
       updateCounter();
-    });
-  });
+      });
+      });
 
-  // Soft gate: live answer counter + two-click confirm
-  let confirmPending = false;
-  function countAnswered() {
-    return [...document.querySelectorAll('.test-card')]
+      // Soft gate: live answer counter + two-click confirm
+      let confirmPending = false;
+      function countAnswered() {
+      return [...document.querySelectorAll('.test-card')]
       .filter(card => card.querySelector('input[type=radio]:checked')).length;
-  }
-  function updateCounter() {
-    const n = countAnswered(), total = document.querySelectorAll('.test-card').length;
-    const el = document.getElementById('answer-counter');
-    const btn = document.getElementById('continue-btn');
-    if (!el) return;
-    el.textContent = n === total ? '' : `${n} of ${total} answered`;
-    el.style.color = 'var(--muted)';
-    el.style.fontWeight = '';
-    el.style.fontSize = '12px';
-    confirmPending = false;
-    btn.textContent = 'Continue to Diet \u2192';
-    document.querySelectorAll('.test-card.card-needs-answer').forEach(c => c.classList.remove('card-needs-answer'));
-    const banner = document.getElementById('soft-gate-banner');
-    if (banner) banner.style.display = 'none';
-  }
-  updateCounter();
+      }
+      function updateCounter() {
+      const n = countAnswered(), total = document.querySelectorAll('.test-card').length;
+      const el = document.getElementById('answer-counter');
+      const btn = document.getElementById('continue-btn');
+      if (!el) return;
+      el.textContent = n === total ? '' : `${n} of ${total} answered`;
+      el.style.color = 'var(--muted)';
+      el.style.fontWeight = '';
+      el.style.fontSize = '12px';
+      confirmPending = false;
+      btn.textContent = 'Continue to Diet \u2192';
+      document.querySelectorAll('.test-card.card-needs-answer').forEach(c => c.classList.remove('card-needs-answer'));
+      const banner = document.getElementById('soft-gate-banner');
+      if (banner) banner.style.display = 'none';
+      }
+      updateCounter();
 
-  function proceedToNext() {
-    const answers = {};
-    document.querySelectorAll('.test-card').forEach((card, i) => {
+      function proceedToNext() {
+      const answers = {};
+      document.querySelectorAll('.test-card').forEach((card, i) => {
       const name = card.dataset.exercise;
       const yesChecked = card.querySelector(`#prac-${i}-yes`).checked;
       const noChecked  = card.querySelector(`#prac-${i}-no`).checked;
       const frequency  = card.querySelector(`#freq-${i}`).value;
       if (yesChecked || noChecked) {
-        answers[name] = {
-          practicing: yesChecked,
-          frequency: yesChecked ? (frequency || null) : null
-        };
+      answers[name] = {
+      practicing: yesChecked,
+      frequency: yesChecked ? (frequency || null) : null
+      };
       }
-    });
-    const exercises = {
+      });
+      const exercises = {
       topExercises: top10.map(e => ({
-        exercise: e.exercise,
-        group: e.group,
-        bySymptom: e.bySymptom,
-        viaSymptoms: e.viaSymptoms,
-        intensity: e.intensity,
-        equipment: e.equipment,
-        videoTag: e.videoTag || null
+      exercise: e.exercise,
+      group: e.group,
+      bySymptom: e.bySymptom,
+      viaSymptoms: e.viaSymptoms,
+      intensity: e.intensity,
+      equipment: e.equipment,
+      videoTag: e.videoTag || null
       })),
       answers
-    };
-    goTo('diet.html', Object.assign({}, state, { exercises }));
-  }
+      };
+      goTo('diet.html', Object.assign({}, state, { exercises }));
+      }
 
-  document.getElementById('soft-gate-continue-link').addEventListener('click', e => {
-    e.preventDefault();
-    proceedToNext();
-  });
+      document.getElementById('soft-gate-continue-link').addEventListener('click', e => {
+      e.preventDefault();
+      proceedToNext();
+      });
 
-  document.getElementById('continue-btn').addEventListener('click', () => {
-    const n = countAnswered(), total = document.querySelectorAll('.test-card').length;
-    if (n < total && !confirmPending) {
+      document.getElementById('continue-btn').addEventListener('click', () => {
+      const n = countAnswered(), total = document.querySelectorAll('.test-card').length;
+      if (n < total && !confirmPending) {
       confirmPending = true;
       const banner = document.getElementById('soft-gate-banner');
       banner.style.display = '';
