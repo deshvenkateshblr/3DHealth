@@ -56,6 +56,7 @@ window.DIAG = [
     "age": "All",
     "note": "Monitors bone and immune health",
     "symptoms": [
+      "Vitamin D Deficiency",
       "Fatigue",
       "Headache",
       "Migraine",
@@ -144,6 +145,7 @@ window.DIAG = [
     "age": "All",
     "note": "Detects iron deficiency or overload",
     "symptoms": [
+      "Iron Deficiency",
       "Fatigue",
       "Headache",
       "Migraine",
@@ -206,6 +208,7 @@ window.DIAG = [
     "age": "All",
     "note": "Monitors bone and heart health",
     "symptoms": [
+      "Calcium Deficiency",
       "Back Pain",
       "Muscle Weakness",
       "Osteoporosis",
@@ -224,6 +227,7 @@ window.DIAG = [
     "age": "All",
     "note": "Detects deficiency common in restricted diets",
     "symptoms": [
+      "B12 Deficiency",
       "Fatigue",
       "Headache",
       "Migraine",

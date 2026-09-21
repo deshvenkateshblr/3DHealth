@@ -20,45 +20,42 @@
 <footer id="app-footer"></footer>
 
 <script src="shared/data.diagnostics.js"></script>
+<script src="shared/data.symptoms.js"></script> <!-- ADDED -->
 <script src="shared/utils.js"></script>
 <script>
-const state = loadState();
+  const state = loadState();
 
-renderHeader('fine', 'KYH-Profile-Symptoms');
-renderFooter();
 
-const profile = state.profile;
-const main = document.getElementById('main-content');
+  renderHeader('fine', 'KYH-Profile-Symptoms');
+  renderFooter();
 
-/* Symptom categories, validated to cover the full vocabulary derived from DIAG with
-   no gaps and no duplicates (each test's symptoms[] array is the single source of truth). */
-const CATEGORIES = [
-  {name:'Known conditions', items:['High Blood Pressure','Low Blood Pressure','Diabetes','High Cholesterol','Thyroid Disorder']},
-  {name:'Energy, Sleep & Mood', items:['Insomnia','Fatigue','Low Energy','Restlessness','Stress','Anxiety','Depression','Mood Swings','Irritability','Burnout','Snoring']},
-  {name:'Musculoskeletal & Joints', items:['Back Pain','Neck Pain','Shoulder Pain','Knee Pain','Hip Pain','Leg Pain','Foot Pain','Toe Pain','Leg Cramps','Sciatica','Arthritis','Osteoporosis','Carpal Tunnel','Frozen Shoulder','Joint Stiffness','Poor Posture','Slouching','Weak Core','Muscle Weakness','Balance Issues','Sports Injury','Sprain','Strain','Recovery Fatigue','Overtraining','Plantar Fasciitis']},
-  {name:'Digestive', items:['Indigestion','Acid Reflux','Constipation','Diarrhea','Bloating','Irritable Bowel Syndrome','Gastritis','Ulcer','Nausea','Vomiting','Gut Health','Hemorrhoids','Loss of Appetite','Blood in Stool']},
-  {name:'Heart & Circulation', items:[,'Heart Palpitations','Chest Pain','Poor Circulation','Varicose Veins','Edema','Swelling','Fainting / Passing Out']},
-  {name:'Weight & Metabolic', items:['Obesity','Overweight','Underweight','Weight Loss','Sugar Cravings','Emotional Eating','Excessive Thirst']},
-  {name:'Hormonal & Reproductive', items:['PCOS','Menstrual Pain','Menopause Symptoms','Hot Flashes','Night Sweats','Infertility','Pregnancy Discomfort','Postpartum Recovery']},
-  {name:'Head & Neurological', items:['Migraine','Headache','Vertigo','Memory Loss','Poor Concentration','Brain Fog','Cognitive Decline','Numbness or Tingling']},
-  {name:'Respiratory & Allergy', items:['Asthma','Bronchitis','Shortness of Breath','Allergies','Cold','Sinus Congestion','Chronic Cough']},
-  {name:'Skin & Hair', items:['Skin Acne','Eczema','Psoriasis','Dry Skin','Hair Loss','Dandruff','Itching','Skin Rash','Bruising Easily','Sweaty Hands']},
-  {name:'Urinary, Liver & Kidney', items:['Urinary Tract Infection','Kidney Stones','Frequent Urination','Liver Disorder','Fatty Liver','Gallstones','Pancreatitis']},
-  {name:'Eyes, Ears & Mouth', items:['Eye Strain','Eye Dryness','Watery Eyes','Hearing Loss','Dental Pain','Mouth Ulcers','Jaw Pain','Blurry Vision','Ringing in Ears']},
-  {name:'Immune & General', items:['Immune Weakness','Frequent Infections','Fever','Inflammation','Cold Intolerance','Heat Intolerance','Palpable Lump']}
-];
-const SYMPTOM_LIST_RAW = [...new Set([
-  ...DIAG.flatMap(d=>d.symptoms||[]),
-  ...CATEGORIES.flatMap(c=>c.items)
-])].sort();
-const FEMALE_ONLY = new Set(['PCOS','Menstrual Pain','Menopause Symptoms','Pregnancy Discomfort','Postpartum Recovery']);
-const isMale = profile && profile.sex === 'Male';
-const SYMPTOM_LIST = isMale ? SYMPTOM_LIST_RAW.filter(s=>!FEMALE_ONLY.has(s)) : SYMPTOM_LIST_RAW;
-if(isMale){
-  CATEGORIES.forEach(c=>{ c.items = c.items.filter(s=>!FEMALE_ONLY.has(s)); });
-}
+  const profile = state.profile;
+  const main = document.getElementById('main-content');
 
-let selectedSymptoms = new Set((profile && profile.symptoms) || []);
+  const isMale = profile && profile.sex === 'Male';
+
+  // 1. Deep clone the global categories so we can safely filter them for males
+  const CATEGORIES = JSON.parse(JSON.stringify(window.SYMPTOM_CATEGORIES));
+
+  // 2. Build the master list dynamically
+  const SYMPTOM_LIST_RAW = [...new Set([
+  ...window.DIAG.flatMap(d => d.symptoms || []),
+  ...CATEGORIES.flatMap(c => c.items)
+  ])].sort();
+
+  // 3. Filter based on sex
+  const SYMPTOM_LIST = isMale
+  ? SYMPTOM_LIST_RAW.filter(s => !window.FEMALE_ONLY_SYMPTOMS.has(s))
+  : SYMPTOM_LIST_RAW;
+
+  if (isMale) {
+  CATEGORIES.forEach(c => {
+  c.items = c.items.filter(s => !window.FEMALE_ONLY_SYMPTOMS.has(s));
+  });
+  }
+
+
+  let selectedSymptoms = new Set((profile && profile.symptoms) || []);
 const vitals = state.vitals || {};
 let searchQuery = '';
 const CATEGORIZED_SET = new Set(CATEGORIES.flatMap(c=>c.items));
