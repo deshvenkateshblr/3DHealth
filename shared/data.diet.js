@@ -125,14 +125,14 @@ window.NUTRIENTS = [
     nutrient: "Added Sugars / Refined Carbohydrates",
     profile: "Metabolic;Cardiometabolic",
     note: "Limit for blood-sugar stability, inflammation control and gut health",
-    symptoms: ["Sugar Cravings", "Emotional Eating", "Fatigue", "Bloating", "Brain Fog", "Overweight", "Obesity"],
+    symptoms: ["Diabetes", "Sugar Cravings", "Emotional Eating", "Fatigue", "Bloating", "Brain Fog", "Overweight", "Obesity"],
     direction: "limit"
   },
   {
     nutrient: "Vitamin D",
     profile: "Low Risk;Metabolic;Cardiometabolic",
     note: "Bone health, immune modulation, mood and muscle function",
-    symptoms: ["Fatigue", "Low Energy", "Muscle Weakness", "Depression", "Brain Fog", "Back Pain", "Joint Stiffness"],
+    symptoms: ["Vitamin D Deficiency","Fatigue", "Low Energy", "Muscle Weakness", "Depression", "Brain Fog", "Back Pain", "Joint Stiffness"],
     direction: "optimize"
   },
   {
@@ -146,14 +146,14 @@ window.NUTRIENTS = [
     nutrient: "Iron",
     profile: "Low Risk;Cardiometabolic",
     note: "Oxygen transport and energy production",
-    symptoms: ["Fatigue", "Low Energy", "Hair Loss", "Brain Fog", "Cold Intolerance"],
+    symptoms: ["Iron Deficiency","Fatigue", "Low Energy", "Hair Loss", "Brain Fog", "Cold Intolerance"],
     direction: "optimize"
   },
   {
     nutrient: "Vitamin B12",
     profile: "Low Risk;Cardiometabolic",
     note: "Nerve health, red blood cell formation and energy metabolism",
-    symptoms: ["Fatigue", "Low Energy", "Brain Fog", "Poor Concentration", "Numbness or Tingling", "Memory Loss"],
+    symptoms: ["B12 Deficiency","Fatigue", "Low Energy", "Brain Fog", "Poor Concentration", "Numbness or Tingling", "Memory Loss"],
     direction: "optimize"
   },
   {
@@ -174,7 +174,7 @@ window.NUTRIENTS = [
     nutrient: "Calcium",
     profile: "Low Risk;Metabolic",
     note: "Bone density, muscle contraction and nerve signalling",
-    symptoms: ["Muscle Weakness", "Back Pain", "Osteoporosis", "Leg Cramps", "Joint Stiffness"],
+    symptoms: ["Calcium Deficiency","Muscle Weakness", "Back Pain", "Osteoporosis", "Leg Cramps", "Joint Stiffness"],
     direction: "optimize"
   },
   {
