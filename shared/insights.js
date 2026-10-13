@@ -530,7 +530,9 @@ const KYH_BRAND_BLURB =
   function insightsRoutine(routine, profile) {
     const out = [];
     const habits = (routine && routine.habits) || {};
-    const hasActivities = !!(routine && Array.isArray(routine.activities) && routine.activities.length);
+    // Placeholder week the person never confirmed: do not present it as their own.
+    const assumedWeek = !!(routine && routine.activitiesConfirmed === false);
+    const hasActivities = !assumedWeek && !!(routine && Array.isArray(routine.activities) && routine.activities.length);
     const hasBurn = routine && routine.estimatedCalories != null && !isNaN(Number(routine.estimatedCalories));
     const hasHabits =
       habits.steps != null ||
@@ -539,6 +541,15 @@ const KYH_BRAND_BLURB =
       habits.postMealWalk === true ||
       habits.postMealWalk === false;
 
+    if (assumedWeek) {
+      out.push(insight({
+        id: 'routine-assumed', domain: 'routine', tone: 'watch', priority: 41,
+        title: 'Your typical week was not entered',
+        detail: 'The routine step still holds the example week we pre-fill, so sleep, sitting and activity insights are left out rather than guessed.',
+        next: 'Go back to Routine, adjust the activities to match your week and tick "This matches my typical week".',
+        sources: ['routine']
+      }));
+    }
     if (!routine || (!hasActivities && !hasBurn && !hasHabits)) {
       out.push(insight({
         id: 'routine-none', domain: 'routine', tone: 'watch', priority: 42,
@@ -560,7 +571,7 @@ const KYH_BRAND_BLURB =
     const burn = estimateDailyBurn(routine, profile && profile.weightKg);
     const band = burn ? activityBandFromBurn(burn) : null;
 
-    if (burn && band) {
+    if (burn && band && !assumedWeek) {
       let tone = 'good';
       let title = 'Estimated daily burn is in a typical adult range';
       let next = 'Match food intake to hunger and your diet targets rather than chasing burn precisely.';

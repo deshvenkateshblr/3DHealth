@@ -408,6 +408,17 @@ function calculateCalories(met, freq, hours, mins) {
 
   renderConfiguration();
   restoreHabits();
+  // Placeholder week: tell the person, and treat any edit here as confirmation.
+  if (state.routine && state.routine.activitiesConfirmed === false) {
+    const note = document.createElement('div');
+    note.className = 'note-block';
+    note.style.cssText = 'margin:0 0 16px 0;border-left:4px solid var(--amber);';
+    note.innerHTML = '<span class="k">Placeholder values</span><p style="margin:6px 0 0 0;font-size:13px;line-height:1.5;">These hours are an example week, not your answers. Change them to match your day; until you do, your results will not use them.</p>';
+    const lede = main.querySelector('.lede');
+    if (lede) lede.insertAdjacentElement('afterend', note);
+    main.addEventListener('input', () => { state.routine.activitiesConfirmed = true; note.remove(); }, { once: true });
+    main.addEventListener('change', () => { state.routine.activitiesConfirmed = true; note.remove(); }, { once: true });
+  }
 }
 
 if(!profile) {

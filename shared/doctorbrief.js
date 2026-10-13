@@ -141,8 +141,9 @@
 
   function routineBlock(state) {
     const routine = state.routine || {};
+    const assumedWeek = routine.activitiesConfirmed === false;
     const defs = global.ACTIVITIES || [];
-    const acts = (routine.activities || []).map(a => {
+    const acts = (assumedWeek ? [] : (routine.activities || [])).map(a => {
       const d = defs.find(x => x.id === a.id);
       const mins = (Number(a.hours) || 0) * 60 + (Number(a.mins) || 0);
       return d && mins > 0 ? { id: a.id, name: d.name, cat: d.category, freq: a.freq, mins } : null;
@@ -186,10 +187,10 @@
         practicing: !!(answers[name] && answers[name].practicing)
       };
     });
-    const burn = Number(routine.estimatedCalories) || 0;
+    const burn = assumedWeek ? 0 : (Number(routine.estimatedCalories) || 0);
     let band = null;
     if (burn && global.KYHInsights && global.KYHInsights.activityBandFromBurn) band = global.KYHInsights.activityBandFromBurn(burn);
-    return { items, burn, band, dayParts, activeList, habits, hasActivities: acts.length > 0 };
+    return { items, burn, band, dayParts, activeList, habits, hasActivities: acts.length > 0, assumedWeek };
   }
 
   const MEET_LABEL = { yes: 'Meeting', partial: 'Partly', no: 'Not meeting' };
@@ -351,7 +352,7 @@
       ? kv('Typical day:', r.dayParts.join(' \u00b7 '))
         + kv('Regular activity:', r.activeList.length ? r.activeList.slice(0, 5).join('; ') + (r.activeList.length > 5 ? '; +' + (r.activeList.length - 5) + ' more' : '') : 'none logged beyond daily routine')
         + kv('Other:', r.habits.join(' \u00b7 '), 'db-opt')
-      : '<p class="db-muted">Routine step not completed.</p>';
+      : '<p class="db-muted">' + (r.assumedWeek ? 'Typical week not entered.' : 'Routine step not completed.') + '</p>';
     return '<section class="db-sec">' + sectionHead(ICON.move, 'Physical activity', 'My usual routine, and exercises I\u2019m considering')
       + tdee + summary
       + subhead('Are these exercises suitable for me? Any precautions?') + '<ol class="db-list">' + items + '</ol></section>';

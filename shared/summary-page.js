@@ -129,7 +129,7 @@ function deriveInterestTags(st) {
   if (freq.sugary_drinks==='Daily'||freq.sugary_drinks==='3-5x/Wk') ctx.add('Sugar');
   if (freq.fried_ultraprocessed==='Daily'||freq.fried_ultraprocessed==='3-5x/Wk') ctx.add('Ultra-Processed Foods');
   if (freq.leafy_greens==='Rarely'||freq.fruits==='Rarely') ctx.add('Healthy Eating');
-  if (st.routine&&Array.isArray(st.routine.activities)&&st.routine.activities.length) {
+  if (st.routine&&st.routine.activitiesConfirmed!==false&&Array.isArray(st.routine.activities)&&st.routine.activities.length) {
     const aid = {}; (window.ACTIVITIES||[]).forEach(a => { aid[a.id]=a; });
     const toHrs = a => (Number(a.hours)||0)+(Number(a.mins)||0)/60;
     const sl = st.routine.activities.find(a => a.id==='act_011');

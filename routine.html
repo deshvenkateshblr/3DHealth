@@ -30,11 +30,15 @@
       const categories = [...new Set(window.ACTIVITIES.map(a => a.category))];
       let searchQuery = '';
       let selectedActivities = [];
+      // False while the list is still the pre-filled placeholder week.
+      let confirmedByUser = false;
 
       function init() {
       // Pre-populate if empty
       if (state.routine && state.routine.activities) {
       selectedActivities = [...state.routine.activities];
+      // States saved before this flag existed count as confirmed.
+      confirmedByUser = state.routine.activitiesConfirmed === undefined || state.routine.activitiesConfirmed === true;
       } else {
       selectedActivities = [
       { id: "act_011", freq: "daily", hours: 8, mins: 0 },
@@ -52,6 +56,11 @@
         <h2>1. Select Your Activities</h2>
       </div>
       <p class="lede">Search and tap all the activities you do in a typical week. We've pre-filled a standard baseline to get you started.</p>
+      <div class="note-block" id="placeholder-note" style="margin:0 0 16px 0;border-left:4px solid var(--amber);${confirmedByUser ? 'display:none;' : ''}">
+        <span class="k">Placeholder week</span>
+        <p style="margin:6px 0 8px 0;font-size:13px;line-height:1.5;">These activities are a generic example, not your answers. Tap to add or remove activities so it matches your week &mdash; until then your results will not use it.</p>
+        <label style="font-size:13px;display:flex;gap:8px;align-items:center;"><input type="checkbox" id="confirm-week"${confirmedByUser ? ' checked' : ''}> This matches my typical week</label>
+      </div>
 
       <div class="symptom-search-full" style="position:sticky; top:0; background:var(--paper); padding:16px 0; z-index:10; border-bottom:1px solid var(--line);">
         <input type="text" id="act-input" class="field" placeholder="Search activities, sports, chores&hellip;" autocomplete="off">
@@ -271,7 +280,9 @@
       document.getElementById('continue-btn').addEventListener('click', () => {
       // Apply intelligent redistribution before proceeding
       const redistributedActivities = intelligentlyDistributeHours(selectedActivities);
-      const routineState = Object.assign({}, state.routine || {}, { activities: redistributedActivities });
+      const cw = document.getElementById('confirm-week');
+      if (cw && cw.checked) confirmedByUser = true;
+      const routineState = Object.assign({}, state.routine || {}, { activities: redistributedActivities, activitiesConfirmed: confirmedByUser });
       const next = Object.assign({}, state, { routine: routineState });
       goTo('routine-config.html', next); // Move to step 2!
       });
@@ -313,7 +324,9 @@
 
       if (existingIdx >= 0) {
       selectedActivities.splice(existingIdx, 1);
+      confirmedByUser = true;
       } else {
+      confirmedByUser = true;
       // Default to "daily" and 1 hour, as requested
       selectedActivities.push({ id, freq: 'daily', hours: 1, mins: 0 });
       }
