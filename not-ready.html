@@ -193,8 +193,8 @@
 renderHeader('fine', 'Not Ready Yet');
 
 // Parse URL parameters to determine which bailout condition
-const params = new URLSearchParams(window.location.search);
-const reason = params.get('reason');
+// Read from the #fragment (legacy ?reason= links still work). See getUrlParam in utils.js.
+const reason = getUrlParam('reason');
 
 const icons = {
   'pregnancy': '🤰',

@@ -31,8 +31,45 @@ const NO_SYMPTOM_FALLBACK = {
    Default: sessionStorage only (cleared when the tab/window closes).
    Optional: localStorage when the user opts in on Profile
    ("Remember my progress on this device").
-   State also travels as a base64 payload on the URL between pages,
-   as a backup for file:// multi-page testing. */
+   State also travels as a base64 payload between pages as a backup
+   (for file:// multi-page testing, or when storage is blocked).
+
+   PRIVACY: that payload lives in the URL #fragment (#d=...), never in the
+   query string. Browsers do not send the fragment to the server or in the
+   Referer header, so health data cannot reach server logs, proxies or
+   third parties. Once the state is safely in sessionStorage the fragment is
+   removed from the address bar (see scrubStateFromUrl). Legacy ?d= links
+   are still read, then removed, so old bookmarks keep working. */
+
+/* Read a value from the #fragment (#k=v&k2=v2); fall back to the legacy query string. */
+function getUrlParam(key) {
+  const parts = location.hash.replace(/^#/, '').split('&');
+  for (const part of parts) {
+    if (part.indexOf(key + '=') === 0) {
+      try { return decodeURIComponent(part.slice(key.length + 1)); } catch (e) { return null; }
+    }
+  }
+  return new URLSearchParams(location.search).get(key);
+}
+
+/* Remove the state payload from the address bar once it is stored safely.
+   If storage is unavailable the URL is the only copy, so leave it alone. */
+function scrubStateFromUrl() {
+  if (!(window.history && history.replaceState)) return;
+  if (!location.hash && !location.search) return;
+  try {
+    if (sessionStorage.getItem(STATE_KEY) === null) return;
+  } catch (e) { return; }
+  try {
+    const q = new URLSearchParams(location.search);
+    q.delete('d');
+    const newSearch = q.toString() ? '?' + q.toString() : '';
+    const keep = location.hash.replace(/^#/, '').split('&').filter(p => p && p.indexOf('d=') !== 0);
+    const newHash = keep.length ? '#' + keep.join('&') : '';
+    if (newSearch === location.search && newHash === location.hash) return;
+    history.replaceState(history.state, '', location.pathname + newSearch + newHash);
+  } catch (e) { /* ignore: cosmetic only */ }
+}
 
 function isRememberEnabled() {
   try {
@@ -55,10 +92,10 @@ function setRememberEnabled(on) {
 
 function loadState() {
   let fromUrl = null;
-  const params = new URLSearchParams(location.search);
-  if (params.has('d')) {
+  const payload = getUrlParam('d');
+  if (payload) {
     try {
-      const binary = atob(decodeURIComponent(params.get('d')));
+      const binary = atob(payload);
       const bytes = Uint8Array.from(binary, c => c.charCodeAt(0));
       const json = new TextDecoder().decode(bytes);
       fromUrl = JSON.parse(json);
@@ -82,6 +119,7 @@ function loadState() {
   // Merge: local (resume) < session < URL (latest navigation wins)
   const state = Object.assign({}, fromLocal || {}, fromSession || {}, fromUrl || {});
   persistState(state);
+  scrubStateFromUrl();
   return state;
 }
 
@@ -112,13 +150,14 @@ function goTo(url, state) {
 
   try {
     const payload = encodeStateParam(state);
-    // On https deployment: only use ?d= when the payload is still small.
-    // On file:// keep the query string so multi-page local testing still works.
+    // Carry the payload in the #fragment (never sent to the server), not the
+    // query string. On https only when it is still small; on file:// always,
+    // so multi-page local testing still works.
     if (isFile || payload.length <= URL_PAYLOAD_MAX) {
-      href = url + (url.includes('?') ? '&' : '?') + 'd=' + payload;
+      href = url + (url.includes('#') ? '&' : '#') + 'd=' + payload;
     }
   } catch (e) {
-    // encoding failed → navigate without query string
+    // encoding failed → navigate without the payload
   }
 
   location.href = href;

@@ -1,6 +1,6 @@
 # KYH (3DHealth) — Site Map & Functionality
 
-KYH is a browser-only, privacy-first self-assessment app. Users move through a guided path (**Fine → Diagnostics → Routine → Diet → Great**) and finish with a plan to take to their doctor. State lives in the browser (`loadState` / `persistState` / `goTo` in `shared/utils.js`); nothing is sent to a server.
+KYH is a browser-only, privacy-first self-assessment app. Users move through a guided path (**Fine → Diagnostics → Routine → Diet → Great**) and finish with a plan to take to their doctor. State lives in the browser (`loadState` / `persistState` / `goTo` in `shared/utils.js`); nothing is sent to a server. The page-to-page backup payload travels in the URL `#fragment` (`#d=…`, `#reason=…`), which browsers never send to servers or in Referer headers, and it is removed from the address bar once stored. Legacy `?d=` links still load.
 
 ## User flow
 

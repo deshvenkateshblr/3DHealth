@@ -340,8 +340,11 @@ function fmtDuration(sec) {
       }
 
       // Honour deep links from summary cards
-      if (location.hash) {
-      const el = document.querySelector(location.hash);
+      // The hash may briefly hold a state payload (#d=...), which is not a valid
+      // selector, so only honour plain anchor ids.
+      const anchorId = location.hash.replace(/^#/, '');
+      if (/^[A-Za-z][\w-]*$/.test(anchorId)) {
+      const el = document.getElementById(anchorId);
       if (el) setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
       }
       }
