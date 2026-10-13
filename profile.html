@@ -475,7 +475,8 @@ document.getElementById('profile-form').addEventListener('submit', (e) => {
         medicalStatus: (state.profile && state.profile.medicalStatus) || 'stable'
       }
     });
-    window.location.href = `not-ready.html?reason=${bailoutReason}`;
+    // #fragment, not ?query: pregnancy / medical status must never reach server logs.
+    window.location.href = `not-ready.html#reason=${encodeURIComponent(bailoutReason)}`;
     return;
   }
 
