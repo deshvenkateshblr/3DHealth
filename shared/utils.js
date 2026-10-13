@@ -49,6 +49,7 @@ function setRememberEnabled(on) {
     } else {
       localStorage.removeItem(REMEMBER_KEY);
       localStorage.removeItem(STATE_KEY);
+      localStorage.removeItem('kyh_brief_history_v1');
     }
   } catch (e) { /* ignore */ }
 }

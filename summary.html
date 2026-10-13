@@ -78,6 +78,9 @@
               .step-summary { font-size: 13.5px; line-height: 1.55; color: var(--ink-soft); margin: 0 0 2px; }
               .step-toggle { background: none; border: none; padding: 0; font-family: var(--mono); font-size: 11px; letter-spacing: .05em; text-transform: uppercase; color: var(--teal); cursor: pointer; margin-top: 8px; display: inline-block; }
               .step-toggle:hover { text-decoration: underline; }
+              @media (pointer: coarse), (max-width: 640px) { .step-toggle { min-height: 44px; padding: 14px 0 !important; } }
+              .db-zoom-btn { display: none; margin: 0 0 8px; background: var(--teal-soft); color: var(--teal); border: 1px solid var(--teal); font-family: var(--mono); font-size: 11px; letter-spacing: .06em; text-transform: uppercase; padding: 10px 14px; min-height: 44px; cursor: pointer; }
+              .db-preview-wrap.zoomed { overflow-x: auto; -webkit-overflow-scrolling: touch; }
               .step-details[hidden] { display: none; }
               .step-details { margin-top: 14px; }
               .exec-summary { font-size: 15px; line-height: 1.7; max-width: 640px; margin: 0 auto; text-align: left; }
@@ -125,10 +128,15 @@
               .detail-divider::after { content: ""; flex: 1; height: 1px; background: var(--line); }
 
               /* Doctor brief -- one A4 page (screen preview + print) */
+              .db-input { margin: 0 0 14px; }
+              .db-input label { display: block; font-size: 13.5px; font-weight: 600; margin-bottom: 6px; }
+              .db-input textarea { width: 100%; min-height: 128px; resize: vertical; font: inherit; font-size: 14px; line-height: 1.45; padding: 10px 12px; border: 1px solid var(--line); background: var(--panel); color: var(--ink); }
+              .db-input textarea:focus { outline: 2px solid var(--teal); outline-offset: 1px; }
+              .db-input .db-input-meta { font-size: 12px; color: var(--muted); margin-top: 5px; display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
               .db-preview-wrap { width: 100%; overflow: hidden; background: var(--paper); border: 1px solid var(--line); padding: 12px; margin-bottom: 14px; }
               .db-preview-scaler { transform-origin: top left; }
               .db-sheet, .db-sheet * { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-              .db-sheet { width: 194mm; height: 281mm; overflow: hidden; background: #fff; color: #182620; font-family: var(--sans); font-size: 8.4pt; line-height: 1.32; padding: 5mm 6mm 4mm; display: flex; flex-direction: column; gap: 3.2mm; border: 1px solid #d7ddd2; }
+              .db-sheet { width: 194mm; height: 281mm; overflow: hidden; background: #fff; color: #182620; font-family: var(--sans); font-size: 8.4pt; line-height: 1.32; padding: 5mm 6mm 4mm; display: flex; flex-direction: column; gap: 2.6mm; border: 1px solid #d7ddd2; }
               #db-print-root .db-sheet { width: 100%; border: none; }
               .db-head { display: flex; align-items: center; gap: 4mm; padding-bottom: 2.6mm; border-bottom: 0.6mm solid #1f7a6c; }
               .db-logo { height: 13mm; width: auto; display: block; }
@@ -138,20 +146,20 @@
               .db-date { text-align: right; font-weight: 600; font-size: 9.5pt; white-space: nowrap; }
               .db-date span { display: block; font-family: var(--mono); font-size: 6.5pt; letter-spacing: .12em; text-transform: uppercase; color: #6d786f; font-weight: 400; }
               .db-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 3.2mm; align-items: start; }
-              .db-grid-2:first-of-type { grid-template-columns: 1.25fr 1fr; }
-              .db-sec { border: 0.3mm solid #d7ddd2; border-radius: 1.6mm; padding: 2.4mm 3mm 2.6mm; min-width: 0; }
-              .db-sec-head { display: flex; align-items: center; gap: 2.6mm; margin-bottom: 1.8mm; }
-              .db-icon { width: 10.5mm; height: 10.5mm; flex: 0 0 10.5mm; border-radius: 50%; background: #e3f0ec; color: #1f7a6c; display: flex; align-items: center; justify-content: center; }
+              .db-grid-2:first-of-type { grid-template-columns: 1.45fr 1fr; }
+              .db-sec { border: 0.3mm solid #d7ddd2; border-radius: 1.6mm; padding: 2mm 3mm 2.2mm; min-width: 0; }
+              .db-sec-head { display: flex; align-items: center; gap: 2.6mm; margin-bottom: 1.4mm; }
+              .db-icon { width: 9.5mm; height: 9.5mm; flex: 0 0 9.5mm; border-radius: 50%; background: #e3f0ec; color: #1f7a6c; display: flex; align-items: center; justify-content: center; }
               .db-icon svg { width: 6.4mm; height: 6.4mm; }
               .db-sec-title { font-family: var(--serif); font-size: 11.5pt; line-height: 1.1; }
               .db-sec-sub { font-family: var(--mono); font-size: 6.4pt; letter-spacing: .05em; text-transform: uppercase; color: #6d786f; margin-top: 0.5mm; }
-              .db-facts { margin: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 1.2mm 3mm; }
+              .db-facts { margin: 0; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.2mm 3mm; }
               .db-facts dt { font-family: var(--mono); font-size: 6.2pt; letter-spacing: .08em; text-transform: uppercase; color: #6d786f; }
               .db-facts dd { margin: 0; font-weight: 600; font-size: 8.4pt; }
               .db-chips { display: flex; flex-wrap: wrap; gap: 1.2mm; }
               .db-chip { background: #e3f0ec; color: #14584d; border-radius: 10mm; padding: 0.5mm 2.4mm; font-size: 7.6pt; }
               .db-muted { color: #6d786f; margin: 0; font-size: 8pt; }
-              .db-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 1.8mm; }
+              .db-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 1.3mm; }
               .db-item { display: flex; gap: 2.2mm; }
               .db-num { flex: 0 0 5mm; height: 5mm; border-radius: 50%; background: #1f7a6c; color: #fff; font-weight: 700; font-size: 7.4pt; display: flex; align-items: center; justify-content: center; margin-top: 0.3mm; }
               .db-item-body { min-width: 0; }
@@ -163,23 +171,33 @@
               .db-badge.db-within { background: #e3f0ec; color: #14584d; }
               .db-badge.db-flagged { background: #f3e2dd; color: #a8503f; }
               .db-badge.db-suggested { background: #f7e9d8; color: #8a5219; }
-              .db-rolls { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 2mm; margin-top: 2.2mm; padding-top: 2mm; border-top: 0.3mm dashed #d7ddd2; }
-              .db-roll { border-radius: 1.2mm; padding: 1.4mm 2mm; font-size: 7.2pt; }
-              .db-roll-within { background: #e3f0ec; } .db-roll-flagged { background: #f3e2dd; } .db-roll-suggested { background: #f7e9d8; }
-              .db-roll-h { font-weight: 700; font-size: 7.6pt; }
-              .db-roll-n { font-family: var(--serif); font-size: 11pt; }
-              .db-roll-list { color: #3d4a44; margin-top: 0.4mm; }
-              .db-stat { display: flex; align-items: center; gap: 2.4mm; background: #e3f0ec; border-radius: 1.4mm; padding: 1.6mm 2.4mm; margin-bottom: 2mm; }
+              .db-stat { display: flex; align-items: center; gap: 2.2mm; background: #e3f0ec; border-radius: 1.4mm; padding: 1mm 2.2mm; margin-bottom: 1.6mm; }
               .db-stat-ic { width: 6mm; height: 6mm; color: #1f7a6c; flex: 0 0 6mm; } .db-stat-ic svg { width: 100%; height: 100%; }
-              .db-stat-val { font-family: var(--serif); font-size: 12.5pt; line-height: 1.1; color: #14584d; }
+              .db-stat-val { font-family: var(--serif); font-size: 11.5pt; line-height: 1.1; color: #14584d; }
               .db-stat-lbl { font-size: 7pt; color: #3d4a44; }
               .db-foot { margin-top: auto; display: flex; justify-content: space-between; align-items: center; gap: 4mm; border-top: 0.3mm solid #d7ddd2; padding-top: 1.8mm; font-size: 6.8pt; color: #6d786f; }
-              .db-url { font-family: var(--mono); font-weight: 700; color: #1f7a6c; font-size: 7.6pt; white-space: nowrap; }
+              .db-url { font-family: var(--mono); font-weight: 700; color: #1f7a6c; font-size: 7.6pt; white-space: nowrap; text-decoration: underline; }
               .db-compact .db-wf { display: none; }
-              .db-flagbox { margin-top: 2mm; padding: 1.6mm 2.4mm; background: #f3e2dd; border-left: 0.8mm solid #a8503f; border-radius: 1mm; }
-              .db-flagbox-h { font-family: var(--mono); font-size: 6.4pt; letter-spacing: .08em; text-transform: uppercase; color: #a8503f; margin-bottom: 0.8mm; }
-              .db-flag-row { font-size: 7.8pt; margin-top: 0.6mm; overflow-wrap: anywhere; }
-              .db-note { color: #182620; }
+              .db-lean .db-wl { display: none; }
+              .db-subh { font-family: var(--mono); font-size: 6.6pt; letter-spacing: .06em; text-transform: uppercase; color: #14584d; margin: 1.6mm 0 1.2mm; }
+              .db-cols { display: grid; gap: 3.5mm; }
+              .db-cols-2 { grid-template-columns: 1fr 1fr; }
+              .db-cols .db-subh:first-child { margin-top: 0; }
+              .db-res { padding: 0.8mm 0 1mm; border-bottom: 0.25mm dotted #c9d2c6; }
+              .db-res:last-child { border-bottom: none; }
+              .db-res-h b { font-size: 8.8pt; }
+              .db-res-note { margin-top: 0.5mm; color: #182620; overflow-wrap: anywhere; }
+              .db-res-plain { font-size: 7.6pt; color: #3d4a44; }
+              .db-kv { font-size: 7.8pt; color: #3d4a44; margin-bottom: 0.9mm; overflow-wrap: anywhere; }
+              .db-kv b { color: #182620; }
+              .db-hist-text { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 8.4pt; }
+              .db-lines i { display: block; height: 4.8mm; border-bottom: 0.25mm solid #c9d2c6; }
+              .db-badge.db-cut { background: #f7e9d8; color: #8a5219; margin-left: 0; }
+              .db-limit-wrap { margin-top: 1.6mm; padding-top: 1.4mm; border-top: 0.3mm dashed #d7ddd2; }
+              .db-limit { border-left: 0.8mm solid #c98a3d; background: #fbf3e8; border-radius: 1mm; padding: 1.2mm 2.2mm; }
+              .db-limit + .db-limit { margin-top: 1mm; }
+              .db-tight .db-opt { display: none; }
+              .db-tight .db-lines i { height: 4.6mm; }
               .db-tight { font-size: 7.4pt; }
               .db-tight .db-item-title, .db-tight .db-facts dd { font-size: 7.8pt; }
               #db-print-root { display: none; }
@@ -222,6 +240,7 @@
     <script src="shared/curated_routine_video_data.js"></script>
     <script src="shared/data.activities.js"></script>
     <script src="shared/data.exercises.js"></script>
+    <script src="shared/data.diet.js"></script>
     <script src="shared/utils.js"></script>
     <script src="shared/insights.js"></script>
     <script src="shared/doctorbrief.js"></script>

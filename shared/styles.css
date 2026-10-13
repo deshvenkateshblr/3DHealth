@@ -1501,3 +1501,10 @@ footer {
   from { opacity: 0; transform: translateY(-4px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+/* Touch targets: on phones/tablets give small controls a thumb-sized hit area (desktop unchanged) */
+@media (pointer: coarse), (max-width: 640px) {
+  .unit-toggle button { min-height: 40px; min-width: 44px; }
+  .demo-toggle-btn { min-height: 40px; padding: 8px 14px; }
+  .conf-hr, .conf-min { min-height: 40px; }
+}

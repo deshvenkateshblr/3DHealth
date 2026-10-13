@@ -184,7 +184,7 @@ function wireExportActions() {
   const sv = document.getElementById('btn-save-findings');
   const pr = document.getElementById('btn-print-findings');
   if (sv) sv.addEventListener('click', () => { downloadText('KYH-findings-'+new Date().toISOString().slice(0,10)+'.txt', formatAllFindingsText()); });
-  if (pr) pr.addEventListener('click', () => { fillPrintDocument(); window.print(); });
+  if (pr) pr.addEventListener('click', () => { clearPrintMode(); fillPrintDocument(); window.print(); });
 }
 function wireVideoShowMore() {
   document.querySelectorAll('[id$="-more-btn"]').forEach(btn => {
@@ -282,24 +282,33 @@ function aiGuideHtml() {
 }
 
 /* --- Doctor brief preview scaling + printing --- */
+let briefZoomed = false;
 function fitBriefPreview() {
   const wrap = document.getElementById('db-preview-wrap');
   const scaler = document.getElementById('db-preview-scaler');
   const sheet = scaler && scaler.querySelector('.db-sheet');
+  const zbtn = document.getElementById('btn-zoom-brief');
   if (!wrap || !sheet) return;
   scaler.style.transform = 'none';
   const avail = wrap.clientWidth - 24;
   const natW = sheet.offsetWidth, natH = sheet.offsetHeight;
   if (!natW || avail <= 0) return;
-  const k = Math.min(1, avail / natW);
+  const fit = Math.min(1, avail / natW);
+  // On a phone the whole sheet shrinks too far to read, so offer a full-size view that scrolls sideways.
+  const small = fit < 0.7;
+  if (zbtn) { zbtn.style.display = small ? 'inline-block' : 'none'; zbtn.textContent = briefZoomed ? 'Fit to screen' : 'Enlarge to read'; }
+  const k = (small && briefZoomed) ? 1 : fit;
+  wrap.classList.toggle('zoomed', small && briefZoomed);
   scaler.style.transform = 'scale(' + k + ')';
   scaler.style.width = natW + 'px';
   wrap.style.height = Math.ceil(natH * k + 24) + 'px';
 }
+function clearPrintMode() { document.body.removeAttribute('data-print'); }
 function printDoctorBrief() {
   document.body.setAttribute('data-print', 'brief');
-  const done = () => { document.body.removeAttribute('data-print'); window.removeEventListener('afterprint', done); };
-  window.addEventListener('afterprint', done);
+  // Desktop fires afterprint; some mobile browsers don't, so the next touch on the page also resets it.
+  window.addEventListener('afterprint', clearPrintMode, { once: true });
+  document.addEventListener('pointerdown', clearPrintMode, { once: true });
   window.print();
 }
 
@@ -347,6 +356,10 @@ function render() {
   const execSummary = total ? buildExecutiveSummary(state, cachedInsights) : '';
 
   const doctorPanel = '<p style="font-size:14px;margin:0 0 12px;">A one-page sheet to print and take with you. It lists questions to ask, not conclusions. Choose <b>A4</b> in the print dialog (or save as PDF).</p>'
+    + '<div class="db-input"><label for="db-history">Past visits, hospital stays, medicines, allergies &mdash; anything your doctor should know</label>'
+    + '<textarea id="db-history" rows="6" maxlength="600" placeholder="e.g. Jan 2024: admitted 2 days for dengue. On thyroxine 50 mcg since 2022. Allergic to penicillin. Last saw Dr. Rao (physician) in June."></textarea>'
+    + '<div class="db-input-meta"><span>Optional. Printed on your brief exactly as typed. Kept in this browser only and not used in the AI prompts.</span><span id="db-history-count">0 / 600</span></div></div>'
+    + '<button type="button" class="db-zoom-btn" id="btn-zoom-brief">Enlarge to read</button>'
     + '<div class="db-preview-wrap" id="db-preview-wrap"><div class="db-preview-scaler" id="db-preview-scaler"><div id="db-preview"></div></div></div>'
     + '<button type="button" class="btn" id="btn-print-brief" style="margin:0 0 4px;">Print doctor brief</button>';
 
@@ -403,6 +416,27 @@ function render() {
     KYHDoctorBrief.mountDoctorBrief(document.getElementById('db-preview'), state);
     KYHDoctorBrief.mountDoctorBrief(document.getElementById('db-print-root'), state);
   }
+  const hist = document.getElementById('db-history');
+  if (hist && window.KYHDoctorBrief) {
+    const counter = document.getElementById('db-history-count');
+    const max = KYHDoctorBrief.HISTORY_MAX;
+    hist.value = KYHDoctorBrief.getHistory();
+    const paint = () => { counter.textContent = hist.value.length + ' / ' + max; };
+    paint();
+    let t = null;
+    hist.addEventListener('input', () => {
+      paint();
+      KYHDoctorBrief.setHistory(hist.value);
+      clearTimeout(t);
+      t = setTimeout(() => {
+        KYHDoctorBrief.mountDoctorBrief(document.getElementById('db-preview'), state);
+        KYHDoctorBrief.mountDoctorBrief(document.getElementById('db-print-root'), state);
+        fitBriefPreview();
+      }, 150);
+    });
+  }
+  const zb = document.getElementById('btn-zoom-brief');
+  if (zb) zb.addEventListener('click', () => { briefZoomed = !briefZoomed; fitBriefPreview(); });
   const pb = document.getElementById('btn-print-brief');
   if (pb) pb.addEventListener('click', printDoctorBrief);
   fitBriefPreview();
