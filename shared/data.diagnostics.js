@@ -864,7 +864,7 @@ window.DIAG = [
     "test": "Mammography",
     "profile": "Female Specific;Age Specific;Low Risk",
     "gender": "Female",
-    "age": "All",
+    "age": ">40",
     "note": "Breast cancer screening",
     "symptoms": [
       "Palpable Lump"

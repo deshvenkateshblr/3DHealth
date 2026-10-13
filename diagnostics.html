@@ -51,6 +51,18 @@ DIAG.forEach(d=>{
 function getPriorityRiskTests(profile){
   const out = [];
   const age = profile.age || 0;
+  const syms = profile.symptoms || [];
+  // Core cardiometabolic checks (NEEDS PHYSICIAN REVIEW): standard first-line
+  // work-up for a known cardiovascular/metabolic condition, or from age 40.
+  const knownCardio = ['High Blood Pressure', 'Hypertension', 'High Cholesterol'].some(x => syms.includes(x));
+  const knownMetabolic = ['Diabetes', 'Type 2 Diabetes', 'Pre-diabetes', 'Prediabetes'].some(x => syms.includes(x));
+  if (knownCardio || knownMetabolic || age >= 40) {
+    out.push({test: 'Lipid Profile', reason: knownCardio || knownMetabolic ? 'Known condition' : 'Age 40+'});
+    out.push({test: 'HbA1c', reason: knownMetabolic ? 'Known condition' : knownCardio ? 'Blood-pressure work-up' : 'Age 40+'});
+  }
+  if (knownCardio) {
+    out.push({test: 'ECG', reason: 'Blood-pressure work-up'});
+  }
   const menopausal = profile.reproStatus === 'Perimenopausal' || profile.reproStatus === 'Post-menopausal';
   const highDeficiencyRiskDiet = ['Vegan', 'Vegetarian', 'Jain'].includes(profile.dietType);
 
@@ -97,6 +109,8 @@ function getPriorityRiskTests(profile){
 }
 
 /* ---- baseline (category-driven) selection, used to fill any slots symptoms/priority don't cover ---- */
+/* Specialist endocrine tests: not useful as a no-symptom baseline fill. (NEEDS PHYSICIAN REVIEW) */
+const BASELINE_LAST = ['Cortisol', 'DHEA-S'];
 function selectBaseline(matches, cats, limit, exclude){
   const groups = {};
   matches.forEach(d=>{
@@ -108,6 +122,7 @@ function selectBaseline(matches, cats, limit, exclude){
 
   Object.keys(groups).forEach(g =>
     groups[g].sort((a, b) =>
+      (BASELINE_LAST.includes(a.test) - BASELINE_LAST.includes(b.test)) ||
       (a.clinical_tier || 3) - (b.clinical_tier || 3) ||
       a.test.localeCompare(b.test)
     )
@@ -151,55 +166,93 @@ function selectFromSymptoms(matches, cats, selectedSymptomsArr){
   return out;
 }
 
+/* Overlap families: tests that largely measure the same thing. Only the
+   best-ranked member of a family is shown, so the top 10 isn't spent three
+   times on the same organ. (NEEDS PHYSICIAN REVIEW) */
+const OVERLAP_FAMILIES = [
+  ['Kidney Function Tests', 'Creatinine', 'Basic Metabolic Panel', 'Electrolyte Panel']
+];
+/* Screening / specialist tests that should not outrank first-line tests when
+   the ONLY link is a non-specific symptom such as fatigue. (NEEDS PHYSICIAN REVIEW) */
+const NONSPECIFIC_SYMPTOMS = ['Fatigue', 'Low Energy'];
+const SECOND_LINE_FOR_VAGUE = ['Hepatitis B Surface Antigen', 'Hepatitis C Antibody', 'Tuberculosis Test',
+  'Bone Marrow Biopsy', 'C-Peptide', 'Insulin', 'OGTT', 'BNP', 'Echocardiogram', 'Iodine'];
+const MAX_RESERVED = 4;   // slots held for risk-group / condition tests
+const MIN_SYMPTOM_SLOTS = 6;
+
+function dedupeFamilies(list){
+  const seenFam = new Set();
+  return list.filter(t => {
+    const fi = OVERLAP_FAMILIES.findIndex(f => f.includes(t.test));
+    if (fi < 0) return true;
+    if (seenFam.has(fi)) return false;
+    seenFam.add(fi);
+    return true;
+  });
+}
+function vagueOnly(t){
+  return SECOND_LINE_FOR_VAGUE.includes(t.test) &&
+    (t.viaSymptoms || []).length > 0 &&
+    t.viaSymptoms.every(s => NONSPECIFIC_SYMPTOMS.includes(s));
+}
+function rankCmp(a, b){
+  return (vagueOnly(a) - vagueOnly(b)) ||
+    (a.clinical_tier || 3) - (b.clinical_tier || 3) ||
+    b.viaSymptoms.length - a.viaSymptoms.length ||
+    a.test.localeCompare(b.test);
+}
+
 function buildRecommendations(matches, cats, selectedSymptomsArr, profile){
-  // 1. Symptom-matched tests always take precedence -- this is the real
-  //    "based on what you told us" value, so nothing should crowd it out.
-  const symptomTests = selectFromSymptoms(matches, cats, selectedSymptomsArr)
-    .sort((a, b) =>
-      b.viaSymptoms.length - a.viaSymptoms.length ||
-      (a.clinical_tier || 3) - (b.clinical_tier || 3) ||
-      a.test.localeCompare(b.test)
-    )
-    .slice(0,10);
+  const byName = {};
+  matches.forEach(d => { byName[d.test] = d; });
 
-  const usedNames = new Set(symptomTests.map(t=>t.test));
-  const combined = symptomTests.slice();
+  // 1. Risk-group / known-condition tests (reserved slots, capped).
+  const reserved = [];
+  const usedNames = new Set();
+  getPriorityRiskTests(profile).forEach(({test, reason}) => {
+    if (reserved.length >= MAX_RESERVED || usedNames.has(test)) return;
+    const d = byName[test];
+    if (!d) return; // not eligible for this profile's age/gender/category
+    usedNames.add(test);
+    const tokens = d.profile.split(';').map(s => s.trim());
+    const g = GROUP_ORDER.find(o => tokens.includes(o) && cats.includes(o)) || 'Low Risk';
+    reserved.push(Object.assign({group: g, viaSymptoms: [], bySymptom: false, viaRiskGroup: true, riskGroupReason: reason}, d));
+  });
 
-  // Enrich any symptom-matched test that's ALSO a named risk-group priority
-  // (e.g. Vitamin D matched via a symptom, but the person is also
-  // postmenopausal) so the badge shows the fuller reason without re-ranking.
+  // 2. Symptom-matched tests: first-line first, then by how many of the
+  //    person's symptoms they explain; overlapping tests collapsed.
   const priorityByTest = {};
   getPriorityRiskTests(profile).forEach(({test, reason}) => {
     if (!(test in priorityByTest)) priorityByTest[test] = reason;
   });
-  combined.forEach(t => {
-    if (priorityByTest[t.test]) {
-      t.viaRiskGroup = true;
-      t.riskGroupReason = priorityByTest[t.test];
-    }
+  const symptomAll = selectFromSymptoms(matches, cats, selectedSymptomsArr)
+    .filter(t => !usedNames.has(t.test));
+  // A reserved test that is also symptom-matched keeps its symptom links.
+  selectFromSymptoms(matches, cats, selectedSymptomsArr).forEach(t => {
+    const r = reserved.find(x => x.test === t.test);
+    if (r) { r.viaSymptoms = t.viaSymptoms; r.bySymptom = true; }
+  });
+  const room = 10 - reserved.length;
+  const symptomTests = dedupeFamilies(symptomAll.sort(rankCmp).filter(t => {
+    // drop family members already covered by a reserved test
+    const f = OVERLAP_FAMILIES.find(f => f.includes(t.test));
+    return !(f && reserved.some(r => f.includes(r.test)));
+  })).slice(0, Math.max(room, MIN_SYMPTOM_SLOTS));
+  symptomTests.forEach(t => {
+    if (priorityByTest[t.test]) { t.viaRiskGroup = true; t.riskGroupReason = priorityByTest[t.test]; }
   });
 
-  // 2. Named risk-group priority tests get pinned next, ahead of the
-  //    generic baseline fill -- only for tests the profile is actually
-  //    eligible for (present in `matches`).
-  if (combined.length < 10) {
-    const byName = {};
-    matches.forEach(d => { byName[d.test] = d; });
-    getPriorityRiskTests(profile).forEach(({test, reason}) => {
-      if (combined.length >= 10) return;
-      if (usedNames.has(test)) return;
-      const d = byName[test];
-      if (!d) return; // not eligible for this profile's age/gender/category
-      usedNames.add(test);
-      const tokens = d.profile.split(';').map(s => s.trim());
-      const g = GROUP_ORDER.find(o => tokens.includes(o) && cats.includes(o)) || 'Low Risk';
-      combined.push(Object.assign({group: g, viaSymptoms: [], bySymptom: false, viaRiskGroup: true, riskGroupReason: reason}, d));
-    });
-  }
+  // 3. Merge, order by tier then symptom relevance, cap at 10.
+  let combined = reserved.concat(symptomTests);
+  combined.sort((a, b) => (a.clinical_tier || 3) - (b.clinical_tier || 3) ||
+    b.viaSymptoms.length - a.viaSymptoms.length || a.test.localeCompare(b.test));
+  combined = combined.slice(0, 10);
+  combined.forEach(t => usedNames.add(t.test));
+  symptomTests.forEach(t => usedNames.add(t.test));
 
-  // 3. Baseline fill for whatever's left, unchanged.
-  if(combined.length<10){
-    selectBaseline(matches, cats, 10-combined.length, usedNames).forEach(t=>combined.push(t));
+  // 4. Baseline fill for whatever's left.
+  if (combined.length < 10) {
+    selectBaseline(matches, cats, 10 - combined.length, usedNames).forEach(t => combined.push(t));
   }
   return combined;
 }

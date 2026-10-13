@@ -169,7 +169,40 @@ function buildRecommendations(matches, selectedSymptomsArr) {
     selectBaseline(matches, 10 - combined.length, excluded)
       .forEach(e => combined.push(e));
   }
-  return combined;
+  return ensureBalance(combined, matches, selectedSymptomsArr);
+}
+
+/* Balance guard (NEEDS PHYSICIAN / TRAINER REVIEW): adults should see at least
+   2 strength and 1 aerobic option when any are eligible (not contraindicated),
+   so the list is not all breathwork and stretches. Swaps out the lowest-ranked
+   items that are neither. */
+const isStrengthEx = e => /strength|squat|bridge|plank|carry/i.test(e.movement_type || '') || /push-up|squat|row|step-up|lunge|calf raise/i.test(e.exercise);
+const isAerobicEx  = e => /cardio/i.test(e.movement_type || '') || /walk|stroll|swimming|pedaling|marching/i.test(e.exercise);
+function ensureBalance(list, matches, symptoms) {
+  const out = list.slice();
+  const have = new Set(out.map(e => e.exercise));
+  const rank = (a, b) => (b.symptoms || []).filter(x => symptoms.includes(x)).length -
+                         (a.symptoms || []).filter(x => symptoms.includes(x)).length ||
+                         a.exercise.localeCompare(b.exercise);
+  function top(pred, n) {
+    const protectedNames = new Set(out.filter(e => isStrengthEx(e) || isAerobicEx(e)).map(e => e.exercise));
+    const cands = matches.filter(e => pred(e) && !have.has(e.exercise)).sort(rank);
+    let added = 0;
+    for (const c of cands) {
+      if (added >= n) break;
+      const idx = out.map(e => e.exercise).reverse().findIndex(nm => !protectedNames.has(nm));
+      if (idx < 0) break;
+      const at = out.length - 1 - idx;
+      have.delete(out[at].exercise);
+      out.splice(at, 1);
+      out.push(Object.assign({group: assignGroup(c), viaSymptoms: [], bySymptom: false}, c));
+      have.add(c.exercise);
+      added++;
+    }
+  }
+  top(isStrengthEx, Math.max(0, 2 - out.filter(isStrengthEx).length));
+  top(isAerobicEx,  Math.max(0, 1 - out.filter(isAerobicEx).length));
+  return out;
 }
 
 function renderResultsStage() {
