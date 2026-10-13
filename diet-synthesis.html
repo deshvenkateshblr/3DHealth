@@ -137,8 +137,9 @@ function init() {
 
       const lines = [];
       priorities.slice(0, 6).forEach(p => {
-        const name = p.nutrient;
-        const raw = intake[name] || {};
+        const name = esc(p.nutrient);
+        const rawName = p.nutrient;
+        const raw = intake[rawName] || {};
         // support new + legacy shapes
         const meeting = raw.meeting
           || (raw.tracking === "yes" ? "yes" : raw.tracking === "no" ? "no" : "");
@@ -147,7 +148,7 @@ function init() {
 
         const isLimit = p.direction === "limit";
         const guide = (typeof nutrientTargetLabel === "function")
-          ? nutrientTargetLabel(name, profile, estBurn)
+          ? nutrientTargetLabel(rawName, profile, estBurn)
           : null;
 
         if (isLimit) {
@@ -212,18 +213,18 @@ function factorLabel(f) {
     }
 
     const top = priorities.slice(0, 5);
-    const names = top.map(p => p.nutrient);
+    const names = top.map(p => esc(p.nutrient));
 
     let text = `Based on your symptoms and current eating patterns, the nutrients that deserve the most attention right now are `;
     text += names.slice(0, -1).join(", ") + (names.length > 1 ? " and " : "") + names[names.length - 1] + ". ";
 
     if (top[0]?.note) {
-      text += top[0].note + " ";
+      text += esc(top[0].note) + " ";
     }
 
     const limits = priorities.filter(p => p.direction === "limit");
     if (limits.length) {
-      text += `It is also worth actively limiting ${limits.map(l => l.nutrient.toLowerCase()).join(" and ")}.`;
+      text += `It is also worth actively limiting ${limits.map(l => esc(String(l.nutrient).toLowerCase())).join(" and ")}.`;
     }
 
     return text;
@@ -235,7 +236,7 @@ function factorLabel(f) {
     let insights = [];
 
     if (priorities[0]?.matched?.length) {
-      insights.push(`Your top priority is <b>${priorities[0].nutrient}</b> (linked to: ${priorities[0].matched.slice(0,3).join(", ")}).`);
+      insights.push(`Your top priority is <b>${esc(priorities[0].nutrient)}</b> (linked to: ${priorities[0].matched.slice(0,3).map(esc).join(", ")}).`);
     }
 
     if ((symptoms.includes("Fatigue") || symptoms.includes("Low Energy")) &&
@@ -318,7 +319,7 @@ function factorLabel(f) {
 <div class="cat-title">Daily Macro Targets</div>
 <p class="lede" style="font-size:14px; margin-bottom:20px;">
   Practical portion guides for a ~${targetCal.toLocaleString()} kcal target 
-  (${diet.type}${diet.cuisine ? ` · ${diet.cuisine}` : ""}). 
+  (${esc(diet.type)}${diet.cuisine ? ` · ${esc(diet.cuisine)}` : ""}). 
   One portion ≈ size of your palm / fist.
 </p>
 

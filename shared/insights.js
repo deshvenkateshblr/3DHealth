@@ -255,7 +255,7 @@ const KYH_BRAND_BLURB =
         out.push(insight({
           id: 'repro', domain: 'body', tone: 'watch', priority: 24,
           title: 'Menopause transition raises cardio-metabolic vigilance',
-          detail: `Status: ${profile.reproStatus}. This stage often shifts fat distribution, sleep, and heart risk.`,
+          detail: `Status: ${esc(profile.reproStatus)}. This stage often shifts fat distribution, sleep, and heart risk.`,
           next: 'Protect strength training and protein; discuss bone and heart screening cadence with your clinician.',
           sources: ['reproStatus']
         }));
@@ -263,7 +263,7 @@ const KYH_BRAND_BLURB =
         out.push(insight({
           id: 'repro', domain: 'body', tone: 'good', priority: 65,
           title: 'Reproductive status noted for tailored screening',
-          detail: `Recorded as ${profile.reproStatus}. Recommendations stay aligned with female-specific pathways where relevant.`,
+          detail: `Recorded as ${esc(profile.reproStatus)}. Recommendations stay aligned with female-specific pathways where relevant.`,
           next: 'Update this if your cycle or pregnancy status changes.',
           sources: ['reproStatus']
         }));
@@ -274,7 +274,7 @@ const KYH_BRAND_BLURB =
       out.push(insight({
         id: 'age-40', domain: 'body', tone: 'watch', priority: 30,
         title: 'Age supports a proactive screening stance',
-        detail: `At ${profile.age}, baseline cardiovascular and metabolic checks are more valuable even without symptoms.`,
+        detail: `At ${esc(profile.age)}, baseline cardiovascular and metabolic checks are more valuable even without symptoms.`,
         next: 'Use your diagnostics list as a conversation starter at the next visit.',
         sources: ['age', 'sex']
       }));
@@ -919,7 +919,7 @@ const KYH_BRAND_BLURB =
         id: 'diet-none', domain: 'diet', tone: 'watch', priority: 43,
         title: 'Diet preferences not completed',
         detail: diet.type
-          ? `Preference on file: ${diet.type}${diet.cuisine ? ' · ' + diet.cuisine : ''}. Calorie target, macros, and nutrient priorities become available once the Diet step is completed.`
+          ? `Preference on file: ${esc(diet.type)}${diet.cuisine ? ' · ' + esc(diet.cuisine) : ''}. Calorie target, macros, and nutrient priorities become available once the Diet step is completed.`
           : 'Calorie target, macros, and nutrient priorities become available once the Diet step is completed.',
         next: 'Visit Diet for energy and nutrient insights.',
         sources: ['diet', 'profile.dietType', 'profile.cuisine']

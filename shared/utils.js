@@ -91,6 +91,36 @@ function setRememberEnabled(on) {
   } catch (e) { /* ignore */ }
 }
 
+/* Defence in depth for state arriving via a link (#d= / ?d=): the link is
+   untrusted input. Keep only known top-level keys, drop prototype-polluting
+   keys, cap size/depth, and strip < > from every string so it can never be
+   turned into markup even if some page forgets to escape it. */
+const STATE_ALLOWED_KEYS = ['acknowledgedLimitations','profile','vitals','diagnostics','routine','exercises','diet'];
+function sanitizeIncomingState(input) {
+  const BAD = { '__proto__': 1, 'constructor': 1, 'prototype': 1 };
+  function clean(v, depth) {
+    if (depth > 8) return undefined;
+    if (typeof v === 'string') return v.slice(0, 500).replace(/[<>]/g, '');
+    if (typeof v === 'number') return isFinite(v) ? v : undefined;
+    if (typeof v === 'boolean' || v === null) return v;
+    if (Array.isArray(v)) return v.slice(0, 300).map(x => clean(x, depth + 1)).filter(x => x !== undefined);
+    if (typeof v === 'object') {
+      const out = {};
+      Object.keys(v).slice(0, 300).forEach(k => {
+        if (BAD[k]) return;
+        const c = clean(v[k], depth + 1);
+        if (c !== undefined) out[k.slice(0, 80).replace(/[<>]/g, '')] = c;
+      });
+      return out;
+    }
+    return undefined;
+  }
+  const out = {};
+  if (!input || typeof input !== 'object' || Array.isArray(input)) return out;
+  STATE_ALLOWED_KEYS.forEach(k => { if (k in input) { const c = clean(input[k], 0); if (c !== undefined) out[k] = c; } });
+  return out;
+}
+
 function loadState() {
   let fromUrl = null;
   const payload = getUrlParam('d');
@@ -99,7 +129,7 @@ function loadState() {
       const binary = atob(payload);
       const bytes = Uint8Array.from(binary, c => c.charCodeAt(0));
       const json = new TextDecoder().decode(bytes);
-      fromUrl = JSON.parse(json);
+      fromUrl = sanitizeIncomingState(JSON.parse(json));
     } catch (e) { /* ignore malformed payloads */ }
   }
 
