@@ -5,16 +5,16 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="description" content="Explore personalized lab test matches to your age, sex, and symptoms, track test recency and results, and prepare questions for your doctor.">
 <title>Diagnostics — KYH</title>
-<link rel="stylesheet" href="shared/styles.css?v=20261014-561611b">
+<link rel="stylesheet" href="shared/styles.css?v=20261014-43bef03">
 <!-- share:start -->
-<link rel="icon" href="shared/assets/kyh_logo_final.png?v=20261014-561611b">
+<link rel="icon" href="shared/assets/kyh_logo_final.png?v=20261014-43bef03">
 <meta name="theme-color" content="#1f7a6d">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="KYH — Know Your Health">
 <meta property="og:title" content="Diagnostics — KYH">
 <meta property="og:description" content="Explore personalized lab test matches to your age, sex, and symptoms, track test recency and results, and prepare questions for your doctor.">
 <meta property="og:url" content="https://vividnova.com/3DHealth/diagnostics.html">
-<meta property="og:image" content="https://vividnova.com/3DHealth/shared/assets/og-image.png?v=20261014-561611b">
+<meta property="og:image" content="https://vividnova.com/3DHealth/shared/assets/og-image.png?v=20261014-43bef03">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
@@ -31,8 +31,8 @@
 
 <footer id="app-footer"></footer>
 
-<script src="shared/data.diagnostics.js?v=20261014-561611b"></script>
-<script src="shared/utils.js?v=20261014-561611b"></script>
+<script src="shared/data.diagnostics.js?v=20261014-43bef03"></script>
+<script src="shared/utils.js?v=20261014-43bef03"></script>
 <script>
 const state = loadState();
 renderHeader('diagnostics', 'KYH-Diagnostics');
@@ -124,10 +124,21 @@ function getPriorityRiskTests(profile){
 /* ---- baseline (category-driven) selection, used to fill any slots symptoms/priority don't cover ---- */
 /* Specialist endocrine tests: not useful as a no-symptom baseline fill. (NEEDS PHYSICIAN REVIEW) */
 const BASELINE_LAST = ['Cortisol', 'DHEA-S'];
+/* Baseline fill (no symptom or risk reason) may only use general health-check tests.
+   Condition-specific work-ups (hormone panels, sleep study, lung function, specialist
+   imaging, STI screens that depend on personal history) never appear without a reason.
+   Age/sex limits still come from each test's own record. (NEEDS PHYSICIAN REVIEW) */
+const BASELINE_SCREENING = new Set([
+  'Basic Metabolic Panel','CBC','Urinalysis','Vitamin D','Vitamin B12','Thyroid Function Test',
+  'Lipid Profile','Fasting Glucose','HbA1c','Liver Function Tests','Kidney Function Tests',
+  'Blood Pressure Monitoring','ECG','Pap Smear','HPV Test','Mammography','Bone Density (DEXA)',
+  'PSA','Colonoscopy','FIT Test','Eye Exam','Hearing Test','Cognitive Screening',
+  'Skin Cancer Screening','Dental Exam','Hepatitis B Surface Antigen','Hepatitis C Antibody'
+]);
 function selectBaseline(matches, cats, limit, exclude){
   const groups = {};
   matches.forEach(d=>{
-    if(exclude.has(d.test)) return;
+    if(exclude.has(d.test) || !BASELINE_SCREENING.has(d.test)) return;
     const tokens = d.profile.split(';').map(s=>s.trim());
     const g = GROUP_ORDER.find(o=>tokens.includes(o) && cats.includes(o)) || 'Low Risk';
     (groups[g]=groups[g]||[]).push(d);
@@ -397,7 +408,7 @@ function renderResultsStage(){
 
   main.innerHTML = `
   <div class="section-head">
-    <h2>Your top 10 tests</h2>
+    <h2>${top10.length < 10 ? "Your recommended tests" : "Your top 10 tests"}</h2>
   </div>
   <p class="lede">${symptomLine}</p>
   <p class="section-sub" style="display:block;margin-bottom:14px;">${matches.length} tests matched your profile &middot; ${symptomDrivenCount} pulled in directly from your symptoms, the rest fill out your baseline risk panel</p>
