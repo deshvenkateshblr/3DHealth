@@ -536,7 +536,7 @@ function renderHeader(activeStep = 'fine', pageTitle = 'Know Your Health') {
           <img src="shared/assets/kyh_logo_final.png" alt="KYH" class="brand-mark">
         </a>
       </div>
-      <div class="brand-caption">${pageTitle}</div>
+      <div class="brand-caption"${Array.from(document.querySelectorAll('h1')).some(h => h.offsetParent !== null) ? '' : ' role="heading" aria-level="1"'}>${pageTitle}</div>
       <div class="map-route" aria-label="Progress from Fine to Great">
         ${stopsHtml}
       </div>
@@ -549,8 +549,16 @@ function renderFooter() {
   if (!target) return;
   target.innerHTML = `
     <span>KYH &mdash; Know Your Health. Own Your Path. Runs entirely in your browser. Nothing is sent to a server.</span>
-    <span>Not a substitute for professional medical advice.</span>
+    <span>Not a substitute for professional medical advice. <a href="#" id="kyh-start-over">Start over</a></span>
   `;
+  const so = document.getElementById('kyh-start-over');
+  if (so) so.addEventListener('click', (e) => {
+    e.preventDefault();
+    if (!confirm('Start over? This clears your answers saved in this browser.')) return;
+    try { sessionStorage.removeItem(STATE_KEY); sessionStorage.removeItem('kyh_brief_history_v1'); } catch (err) {}
+    try { localStorage.removeItem(STATE_KEY); localStorage.removeItem('kyh_brief_history_v1'); } catch (err) {}
+    location.href = 'index.html';
+  });
 }
 
 /* Compendium of Physical Activities:

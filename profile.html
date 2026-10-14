@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="description" content="Enter your basic health details, dietary preferences, and lifestyle factors to build your personalized profile and health baseline in KYH.">
 <title>About You — KYH</title>
-<link rel="stylesheet" href="shared/styles.css?v=20261014-ebb4703">
+<link rel="stylesheet" href="shared/styles.css?v=20261014-75eeb0b">
 <style>
 .scope-panel { text-align:center; padding:40px 20px; max-width:700px; margin:0 auto; }
 #scope-title:focus { outline: none; }
@@ -19,14 +19,14 @@
 .scope-panel .cta-block p { margin:0; font-size:14px; line-height:1.6; color:var(--ink-soft); }
 </style>
 <!-- share:start -->
-<link rel="icon" href="shared/assets/kyh_logo_final.png?v=20261014-ebb4703">
+<link rel="icon" href="shared/assets/kyh_logo_final.png?v=20261014-75eeb0b">
 <meta name="theme-color" content="#1f7a6d">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="KYH — Know Your Health">
 <meta property="og:title" content="About You — KYH">
 <meta property="og:description" content="Enter your basic health details, dietary preferences, and lifestyle factors to build your personalized profile and health baseline in KYH.">
 <meta property="og:url" content="https://vividnova.com/3DHealth/profile.html">
-<meta property="og:image" content="https://vividnova.com/3DHealth/shared/assets/og-image.png?v=20261014-ebb4703">
+<meta property="og:image" content="https://vividnova.com/3DHealth/shared/assets/og-image.png?v=20261014-75eeb0b">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
@@ -94,6 +94,20 @@
 
 <main id="profile-main">
   <form id="profile-form">
+
+    <div class="note-block" style="margin-bottom:22px;">
+      <span class="k">Just exploring?</span>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:8px;">
+        <label for="sample-pick" class="intake-label" style="margin:0;">Try a made-up sample profile</label>
+        <select id="sample-pick" style="min-width:220px;">
+          <option value="m52">Man, 52, high blood pressure</option>
+          <option value="f28">Woman, 28, vegetarian</option>
+          <option value="f55">Woman, 55, post-menopausal, diabetes</option>
+        </select>
+        <button type="button" class="btn secondary" id="sample-load">Fill the form</button>
+      </div>
+      <p style="font-size:12px;color:var(--ink-soft);margin:8px 0 0 0;">These are invented people, so you can see how KYH works without typing. Please never enter real patient data.</p>
+    </div>
 
     <div class="note-block teal" style="margin-bottom:22px;">
       <span class="k">Session memory</span>
@@ -293,7 +307,7 @@
 
 <footer id="app-footer"></footer>
 
-<script src="shared/utils.js?v=20261014-ebb4703"></script>
+<script src="shared/utils.js?v=20261014-75eeb0b"></script>
 <script>
 renderHeader('fine', 'KYH - Profile');
 renderFooter();
@@ -409,6 +423,35 @@ document.getElementById('f-repro-status').addEventListener('change', checkPregna
 document.getElementById('f-sex').addEventListener('change', checkPregnancyScope);
 // A saved profile or link that already falls outside scope shows the pause straight away.
 if (!checkAgeScope()) checkPregnancyScope();
+
+/* ---- made-up sample profiles (for trying the app quickly) ---- */
+const SAMPLES = {
+  m52: { sex: 'Male', age: 52, heightCm: 170, weightKg: 78, waistCm: 98, smoking: 'Never', alcohol: 'Occasional', repro: '', dietType: 'Non-Vegetarian', cuisine: 'Indian',
+         famMetabolic: true, famCardio: true, pcos: false, symptoms: ['Fatigue', 'Insomnia', 'High Blood Pressure'] },
+  f28: { sex: 'Female', age: 28, heightCm: 160, weightKg: 54, waistCm: 70, smoking: 'Never', alcohol: 'Never', repro: 'Regular cycle', dietType: 'Vegetarian', cuisine: 'Indian',
+         famMetabolic: false, famCardio: false, pcos: false, symptoms: ['Hair Loss', 'Bloating', 'Fatigue'] },
+  f55: { sex: 'Female', age: 55, heightCm: 158, weightKg: 72, waistCm: 92, smoking: 'Never', alcohol: 'Never', repro: 'Post-menopausal', dietType: 'Vegetarian', cuisine: 'Indian',
+         famMetabolic: true, famCardio: false, pcos: false, symptoms: ['Hot Flashes', 'Diabetes', 'Low Energy', 'Insomnia'] }
+};
+document.getElementById('sample-load').addEventListener('click', () => {
+  const smp = SAMPLES[document.getElementById('sample-pick').value];
+  if (!smp) return;
+  const set = (id, v) => { const el = document.getElementById(id); if (el) el.value = v; };
+  set('f-sex', smp.sex); set('f-age', smp.age);
+  if (heightUnit === 'cm') set('f-height-cm', smp.heightCm);
+  else { const { ft, inch } = cmToFtIn(smp.heightCm); set('f-height-ft', ft); set('f-height-in', inch); }
+  if (weightUnit === 'kg') set('f-weight-kg', smp.weightKg); else set('f-weight-lb', Math.round(kgToLb(smp.weightKg) * 10) / 10);
+  if (waistUnit === 'cm') set('f-waist-cm', smp.waistCm); else set('f-waist-in', Math.round(cmToInFlat(smp.waistCm) * 10) / 10);
+  set('f-smoking', smp.smoking); set('f-alcohol', smp.alcohol);
+  set('f-diet-type', smp.dietType); set('f-cuisine-type', smp.cuisine);
+  document.getElementById('f-fam-metabolic').checked = smp.famMetabolic;
+  document.getElementById('f-fam-cardio').checked = smp.famCardio;
+  updateReproVisibility();
+  if (smp.sex === 'Female') { set('f-repro-status', smp.repro); document.getElementById('f-pcos').checked = smp.pcos; }
+  p.symptoms = smp.symptoms.slice();      // carried to the Symptoms step on Continue
+  refreshMetrics();
+  document.getElementById('validation-msg').textContent = 'Sample filled in. Review it, then Continue.';
+});
 
 /* ---- reproductive health section only applies to females ---- */
 function updateReproVisibility() {

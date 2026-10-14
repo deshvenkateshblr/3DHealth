@@ -26,10 +26,11 @@
   --paper: #eef1ea;
   --panel: #ffffff;
   --line: #d7ddd2;
-  --muted: #6d786f;
-  --teal: #1f7a6c;
+  --muted: #5a665e;
+  --teal: #1b7164;
   --teal-soft: #e3f0ec;
   --amber: #c97a2b;
+  --amber-text: #8f5412;
   --amber-soft: #f7e9d8;
   --rose: #a8503f;
   --rose-soft: #f3e2dd;
@@ -448,6 +449,7 @@ footer {
 }
 .stat-card.hero .k { color: #9fb0a8; }
 .stat-card.hero .v { font-size: 30px; color: #fff; }
+.stat-card.hero .u { color: #b9c6bf; }
 .stat-card.flag .v { color: var(--rose); }
 .stat-card.good .v { color: var(--teal); }
 
@@ -480,7 +482,7 @@ footer {
   font-size: 14px;
   color: var(--teal);
 }
-.badge-ring.amber { border-color: var(--amber); color: var(--amber); }
+.badge-ring.amber { border-color: var(--amber); color: var(--amber-text); }
 .badge-ring.rose { border-color: var(--rose); color: var(--rose); }
 .badge-text {
   font-family: var(--mono);
@@ -633,7 +635,7 @@ footer {
   font-size: 10px;
   text-transform: uppercase;
   letter-spacing: .1em;
-  color: var(--amber);
+  color: var(--amber-text);
   display: block;
   margin-bottom: 4px;
 }

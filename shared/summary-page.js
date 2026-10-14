@@ -368,7 +368,7 @@ function render() {
     + '<div class="field" style="max-width:440px;margin-bottom:16px;"><label class="intake-label" for="ai-prompt-select">Choose a prompt</label>'
     + '<select id="ai-prompt-select"><option value="all">All three, with shared context</option>'
     + aiPrompt.sections.map(s=>'<option value="'+esc(s.key)+'">'+esc(s.label)+'</option>').join('')
-    + '</select></div><div class="prompt-box" id="ai-prompt-display"></div>'
+    + '</select></div><div class="prompt-box" id="ai-prompt-display" tabindex="0" role="region" aria-label="AI prompt text"></div>'
     + '<button type="button" class="btn" id="copy-prompt-btn" style="margin:0 0 4px;" aria-live="polite">Copy this prompt</button>';
 
   const learnPanel = pickedSources.some(s => s.vids.length)
@@ -389,10 +389,10 @@ function render() {
       ? '<div class="note-block teal exec-summary no-print" style="margin-bottom:28px;">'+esc(execSummary)+'</div>'
       : '<p class="lede no-print" style="margin-bottom:28px;">Choose how you want to use what you built.</p>')
     + '<div class="outcome-grid action-grid no-print" style="margin-bottom:12px;">'
-    + '<button class="outcome-card" data-panel="panel-doctor" aria-expanded="false"><div class="icon-lg">'+iconDoctor+'</div><div class="verb">Consult</div><h3>Doctor brief</h3><p>A printable one-page sheet of tests, exercises and diet questions for your visit.</p>'+chevron+'</button>'
-    + '<button class="outcome-card" data-panel="panel-ai" aria-expanded="false"><div class="icon-lg">'+iconAI+'</div><div class="verb">Plan</div><h3>AI action prompt</h3><p>Copy an insight-based prompt into ChatGPT, Claude, or any assistant.</p>'+chevron+'</button>'
-    + '<button class="outcome-card" data-panel="panel-learn" aria-expanded="false"><div class="icon-lg">'+iconLearn+'</div><div class="verb">Learn</div><h3>Learning resources</h3><p>Videos matched to your symptoms, routine, and diet signals.</p>'+chevron+'</button>'
-    + '<button class="outcome-card" data-panel="panel-insights" aria-expanded="false"><div class="icon-lg">'+iconSnap+'</div><div class="verb">Review</div><h3>Your insights</h3><p>A prioritised summary of diagnostics, routine and diet, plus tips for using the AI prompts.</p>'+chevron+'</button>'
+    + '<button class="outcome-card" data-panel="panel-doctor" aria-expanded="false"><div class="icon-lg">'+iconDoctor+'</div><div class="verb">Consult</div><h3 role="heading" aria-level="2">Doctor brief</h3><p>A printable one-page sheet of tests, exercises and diet questions for your visit.</p>'+chevron+'</button>'
+    + '<button class="outcome-card" data-panel="panel-ai" aria-expanded="false"><div class="icon-lg">'+iconAI+'</div><div class="verb">Plan</div><h3 role="heading" aria-level="2">AI action prompt</h3><p>Copy an insight-based prompt into ChatGPT, Claude, or any assistant.</p>'+chevron+'</button>'
+    + '<button class="outcome-card" data-panel="panel-learn" aria-expanded="false"><div class="icon-lg">'+iconLearn+'</div><div class="verb">Learn</div><h3 role="heading" aria-level="2">Learning resources</h3><p>Videos matched to your symptoms, routine, and diet signals.</p>'+chevron+'</button>'
+    + '<button class="outcome-card" data-panel="panel-insights" aria-expanded="false"><div class="icon-lg">'+iconSnap+'</div><div class="verb">Review</div><h3 role="heading" aria-level="2">Your insights</h3><p>A prioritised summary of diagnostics, routine and diet, plus tips for using the AI prompts.</p>'+chevron+'</button>'
     + '</div>'
     + '<div class="outcome-panels no-print">'
     + '<div class="outcome-panel" id="panel-doctor"><div class="panel-inner">'+doctorPanel+'</div></div>'

@@ -384,16 +384,33 @@
   /** Full sheet HTML. `level` is a space-separated list of: compact (drops test why/what), lean (drops exercise/diet descriptions), tight (smaller type, hides optional lines). */
   function renderDoctorBriefHtml(state, opts) {
     opts = opts || {};
-    const about = aboutBlock(state), dx = diagnosticsBlock(state), rt = routineBlock(state), dt = dietBlock(state);
+    const about = aboutBlock(state), rt = routineBlock(state), dt = dietBlock(state);
+    let dx = diagnosticsBlock(state);
+    // Last-resort trim: fewer test explanations; the rest stay named under "Also on my list".
+    let trimmed = false;
+    if (opts.maxAsks != null && dx.asks && dx.asks.length > opts.maxAsks) {
+      dx = Object.assign({}, dx, { asks: dx.asks.slice(0, opts.maxAsks), alsoOnList: dx.asks.slice(opts.maxAsks).concat(dx.alsoOnList || []) });
+      trimmed = true;
+    }
+    // Next resort: keep every result's status, but drop the free-text notes beyond the first few.
+    if (opts.maxNotes != null && dx.flagged && dx.within) {
+      let kept = 0;
+      const cap = r => { if (r.note && kept < opts.maxNotes) { kept++; return r; } return r.note ? Object.assign({}, r, { note: '' }) : r; };
+      dx = Object.assign({}, dx, { flagged: dx.flagged.map(cap), within: dx.within.map(cap) });
+      trimmed = true;
+    }
     const url = siteUrl();
     return '<div class="db-sheet' + (opts.level ? ' db-' + opts.level.split(' ').join(' db-') : '') + '">'
       + '<header class="db-head"><img class="db-logo" src="shared/assets/kyh_logo_final.png" alt="KYH">'
       + '<div class="db-head-mid"><div class="db-title">Doctor Brief</div><div class="db-tag">Prepared by me with KYH, a self-check tool \u2014 self-reported, not a diagnosis</div></div>'
       + '<div class="db-date"><span>Date</span>' + esc(fmtDate(new Date())) + '</div></header>'
+      + '<div class="db-body">'
       + '<div class="db-grid-2">' + renderAbout(about) + renderSymptoms(about) + '</div>'
       + renderHistory()
       + renderTests(dx)
       + '<div class="db-grid-2">' + renderRoutine(rt) + renderDiet(dt) + '</div>'
+      + '</div>'
+      + (trimmed ? '<div class="db-trim">Trimmed to fit one page: some test explanations and notes are shortened.</div>' : '')
       + '<div class="db-foot"><span>KYH \u2014 Know Your Health. Prepared privately in my browser; use as a discussion aid, not medical advice.</span>'
       + (url ? '<a class="db-url" href="' + esc(url) + '" target="_blank" rel="noopener">' + esc(url) + '</a>' : '') + '</div></div>';
   }
@@ -403,11 +420,30 @@
     const probe = document.createElement('div');
     probe.style.cssText = 'position:absolute;left:-10000px;top:0;width:194mm;visibility:hidden;';
     document.body.appendChild(probe);
-    let chosen = 'compact lean tight';
+    const fits = (opts) => {
+      probe.innerHTML = renderDoctorBriefHtml(state, opts);
+      const body = probe.querySelector('.db-body');
+      return !!body && body.scrollHeight <= body.clientHeight + 1;
+    };
+    let chosen = { level: 'compact lean tight' };
+    let found = false;
     for (const lvl of ['', 'compact', 'compact lean', 'compact lean tight']) {
-      probe.innerHTML = renderDoctorBriefHtml(state, { level: lvl });
-      const sheet = probe.querySelector('.db-sheet');
-      if (sheet && sheet.scrollHeight <= sheet.clientHeight + 1) { chosen = lvl; break; }
+      if (fits({ level: lvl })) { chosen = { level: lvl }; found = true; break; }
+    }
+    if (!found) {
+      const total = (diagnosticsBlock(state).asks || []).length;
+      for (let n = total - 1; n >= 0; n--) {
+        if (fits({ level: 'compact lean tight', maxAsks: n })) { chosen = { level: 'compact lean tight', maxAsks: n }; break; }
+        chosen = { level: 'compact lean tight', maxAsks: n };
+      }
+      if (!fits(chosen)) {
+        const d0 = diagnosticsBlock(state);
+        const notes = (d0.flagged || []).concat(d0.within || []).filter(x => x.note).length;
+        for (let k = notes - 1; k >= 0; k--) {
+          chosen = { level: 'compact lean tight', maxAsks: 0, maxNotes: k };
+          if (fits(chosen)) break;
+        }
+      }
     }
     probe.remove();
     return chosen;
@@ -416,7 +452,7 @@
   /** Renders into a container, trimming the why/what text (then type size) only if one A4 page would overflow. */
   function mountDoctorBrief(container, state) {
     if (!container) return;
-    container.innerHTML = renderDoctorBriefHtml(state, { level: fitLevel(state) });
+    container.innerHTML = renderDoctorBriefHtml(state, fitLevel(state));
   }
 
   const api = { renderDoctorBriefHtml, mountDoctorBrief, getHistory, setHistory, HISTORY_MAX, diagnosticsBlock, routineBlock, dietBlock, aboutBlock };
