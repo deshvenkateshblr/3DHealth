@@ -149,6 +149,13 @@ function loadState() {
 
   // Merge: local (resume) < session < URL (latest navigation wins)
   const state = Object.assign({}, fromLocal || {}, fromSession || {}, fromUrl || {});
+  // Scope guard: adults only, and not while pregnant. Any step page reached with
+  // such a profile (stale storage, edited link) goes back to Profile, which shows the pause.
+  const sp = state.profile || {};
+  const outOfScope = (Number(sp.age) > 0 && Number(sp.age) < 18) || sp.reproStatus === 'Currently pregnant';
+  if (outOfScope && !/(profile|index|about|not-ready)\.html$|\/$/.test(location.pathname)) {
+    location.replace('profile.html');
+  }
   persistState(state);
   scrubStateFromUrl();
   return state;

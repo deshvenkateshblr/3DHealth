@@ -6,12 +6,80 @@
 <meta name="description" content="Enter your basic health details, dietary preferences, and lifestyle factors to build your personalized profile and health baseline in KYH.">
 <title>About You KYH</title>
 <link rel="stylesheet" href="shared/styles.css">
+<style>
+.scope-panel { text-align:center; padding:40px 20px; max-width:700px; margin:0 auto; }
+#scope-title:focus { outline: none; }
+.scope-panel .bailout-icon { font-size:64px; margin-bottom:24px; }
+.scope-panel .lede { margin-bottom:30px; color:var(--ink-soft); font-size:16px; }
+.scope-panel .reason-box { background:var(--bg-light); border-left:4px solid var(--amber); padding:20px; margin:24px 0; border-radius:6px; text-align:left; }
+.scope-panel .reason-box h3, .scope-panel .cta-block h3 { margin:0 0 12px 0; color:var(--ink); font-size:16px; }
+.scope-panel .reason-box p, .scope-panel .reason-box li { font-size:14px; line-height:1.6; color:var(--ink-soft); margin:8px 0; }
+.scope-panel .reason-box ul { margin:12px 0 0 20px; padding:0; }
+.scope-panel .cta-block { background:linear-gradient(135deg, var(--teal-light, #e0f7f4) 0%, var(--bg-light) 100%); padding:24px; border-radius:8px; margin:30px 0; text-align:left; }
+.scope-panel .cta-block p { margin:0; font-size:14px; line-height:1.6; color:var(--ink-soft); }
+</style>
 </head>
 <body>
 
 <header class="masthead" id="app-header"></header>
 
-<main>
+<main id="scope-main" style="display:none;max-width:700px;">
+  <section class="scope-panel" role="alert" aria-live="assertive">
+    <div class="bailout-icon" id="scope-icon">⏸️</div>
+    <h1 id="scope-title" tabindex="-1" style="margin-bottom:12px;">Let's Pause</h1>
+    <p class="lede" id="scope-subtitle"></p>
+
+    <div id="scope-minor" style="display:none;">
+      <div class="reason-box">
+        <h3>🧒 KYH is built for adults (18+)</h3>
+        <p>Children and teenagers are still growing, so their health picture is completely different &mdash; and needs a different kind of guidance.</p>
+        <ul>
+          <li><strong>Different reference ranges:</strong> Body measurements, blood values and hormones change through growth and puberty</li>
+          <li><strong>Different screening:</strong> The tests and checks an adult needs are not the ones a growing body needs</li>
+          <li><strong>Growth-based assessment:</strong> Height, weight and development are tracked on growth charts, not adult cut-offs</li>
+          <li><strong>Different nutrition and activity needs:</strong> Targets built for adults can be wrong, or harmful, for a growing body</li>
+        </ul>
+      </div>
+      <div class="cta-block">
+        <h3>A paediatrician or family doctor is the right guide</h3>
+        <p>They know the growth history and can plan checks and nutrition for this stage. A parent or guardian can come along to the visit. Once you are 18, you are welcome to come back.</p>
+      </div>
+    </div>
+
+    <div id="scope-pregnancy" style="display:none;">
+      <div class="reason-box">
+        <h3>🤰 You're Expecting</h3>
+        <p>Pregnancy transforms your entire health picture. Your labs, safety protocols, and screening needs are completely different—and specialized.</p>
+        <ul>
+          <li><strong>Different reference ranges:</strong> Hematocrit, glucose, hormones all shift during pregnancy</li>
+          <li><strong>Contraindicated tests:</strong> Certain imaging and screenings must wait</li>
+          <li><strong>Trimester-specific care:</strong> Each stage has its own protocol</li>
+          <li><strong>Specialized screening:</strong> Gestational diabetes, preeclampsia, fetal development</li>
+        </ul>
+      </div>
+      <div class="cta-block">
+        <h3>Your prenatal team is the right guide</h3>
+        <p>Your OB/GYN has the expertise to curate the perfect testing plan for your specific pregnancy. They know your individual risk factors and can time everything perfectly for you and your baby.</p>
+      </div>
+    </div>
+
+    <div class="note-block teal" style="margin:30px 0;">
+      <span class="k">Nothing was saved</span>
+      <p style="font-size:13px; color:var(--ink-soft); margin:8px 0 0 0; line-height:1.5;">
+        We did not keep what you entered on this page. Pick &ldquo;Change my answer&rdquo; if you entered it by mistake.
+      </p>
+    </div>
+
+    <div class="page-footer-nav" style="flex-direction:column; gap:14px; margin-top:40px;">
+      <button type="button" class="btn secondary" id="scope-back">&larr; Change my answer</button>
+      <p style="font-size:13px; color:var(--ink-soft); margin:0;">
+        Your health journey is unique. We're building tools that respect where you're at, whether that's prevention, active care, or recovery.
+      </p>
+    </div>
+  </section>
+</main>
+
+<main id="profile-main">
   <form id="profile-form">
 
     <div class="note-block teal" style="margin-bottom:22px;">
@@ -35,7 +103,7 @@
       </div>
       <div class="field">
         <label class="intake-label" for="f-age">Age</label>
-        <input type="number" id="f-age" min="16" max="100" placeholder="years">
+        <input type="number" id="f-age" min="1" max="100" placeholder="years">
       </div>
     </div>
 
@@ -262,6 +330,73 @@ if (p.cuisine || (state.diet && state.diet.cuisine)) {
 }
 
 
+
+/* ---- in-page scope pause (adults only; not while pregnant) ----
+   Same messaging as not-ready.html, shown right here instead of navigating away.
+   Nothing is saved while the pause is showing. */
+const SCOPE_TEXT = {
+  minor:     { icon: '🧒', title: 'Let\'s Pause', sub: 'KYH is for adults. Your health needs a different kind of care right now.' },
+  pregnancy: { icon: '🤰', title: 'Congratulations!', sub: 'Your pregnancy deserves specialized care. We\'re gearing up for it.' }
+};
+let scopeReturnFocus = null;
+function showScopePause(reason, returnEl) {
+  const t = SCOPE_TEXT[reason];
+  if (!t) return;
+  scopeReturnFocus = returnEl || null;
+  document.getElementById('scope-icon').textContent = t.icon;
+  document.getElementById('scope-title').textContent = t.title;
+  document.getElementById('scope-subtitle').textContent = t.sub;
+  document.getElementById('scope-minor').style.display = reason === 'minor' ? 'block' : 'none';
+  document.getElementById('scope-pregnancy').style.display = reason === 'pregnancy' ? 'block' : 'none';
+  document.getElementById('profile-main').style.display = 'none';
+  document.getElementById('scope-main').style.display = 'block';
+  window.scrollTo(0, 0);
+  document.getElementById('scope-title').focus();
+}
+function hideScopePause(clearField) {
+  if (clearField === 'age') document.getElementById('f-age').value = '';
+  if (clearField === 'repro') document.getElementById('f-repro-status').value = '';
+  document.getElementById('scope-main').style.display = 'none';
+  document.getElementById('profile-main').style.display = '';
+  const el = scopeReturnFocus || document.getElementById('f-age');
+  if (el && el.focus) el.focus();
+}
+let scopeField = null;
+document.getElementById('scope-back').addEventListener('click', () => hideScopePause(scopeField));
+function checkAgeScope() {
+  const age = parseFloat(document.getElementById('f-age').value);
+  if (!isNaN(age) && age > 0 && age < 18) {
+    scopeField = 'age';
+    // Make sure no earlier saved copy of this person's answers lingers.
+    clearSavedProfile();
+    showScopePause('minor', document.getElementById('f-age'));
+    return true;
+  }
+  return false;
+}
+function checkPregnancyScope() {
+  const sex = document.getElementById('f-sex').value;
+  if (sex === 'Female' && document.getElementById('f-repro-status').value === 'Currently pregnant') {
+    scopeField = 'repro';
+    clearSavedProfile();
+    showScopePause('pregnancy', document.getElementById('f-repro-status'));
+    return true;
+  }
+  return false;
+}
+function clearSavedProfile() {
+  try {
+    const st = JSON.parse(sessionStorage.getItem(STATE_KEY) || '{}');
+    if (st.profile) { delete st.profile; sessionStorage.setItem(STATE_KEY, JSON.stringify(st)); }
+  } catch (e) {}
+  try { if (isRememberEnabled()) { const st = JSON.parse(localStorage.getItem(STATE_KEY) || '{}'); if (st.profile) { delete st.profile; localStorage.setItem(STATE_KEY, JSON.stringify(st)); } } } catch (e) {}
+}
+document.getElementById('f-age').addEventListener('change', checkAgeScope);
+document.getElementById('f-repro-status').addEventListener('change', checkPregnancyScope);
+document.getElementById('f-sex').addEventListener('change', checkPregnancyScope);
+// A saved profile or link that already falls outside scope shows the pause straight away.
+if (!checkAgeScope()) checkPregnancyScope();
+
 /* ---- reproductive health section only applies to females ---- */
 function updateReproVisibility() {
   const show = document.getElementById('f-sex').value === 'Female';
@@ -407,6 +542,8 @@ document.getElementById('profile-form').addEventListener('submit', (e) => {
   
   const msg = document.getElementById('validation-msg');
 
+  if (checkAgeScope() || checkPregnancyScope()) return;
+
   if (!sex || isNaN(age) || age <= 0 || isNaN(heightCm) || heightCm <= 0 || isNaN(weightKg) || weightKg <= 0 || isNaN(waistCm) || waistCm <= 0 || !smoking || !alcohol) {
     msg.textContent = 'Please fill in every field above before continuing.';
     return;
@@ -418,7 +555,7 @@ document.getElementById('profile-form').addEventListener('submit', (e) => {
   // catches this too. We check again here in JS so this page doesn't rely
   // on that alone — the same bounds are enforced explicitly regardless of
   // which unit (cm/ft-in, kg/lb) was used to enter the value.
-  const AGE_MIN = 16, AGE_MAX = 100;
+  const AGE_MIN = 1, AGE_MAX = 100;
   const HEIGHT_CM_MIN = 120, HEIGHT_CM_MAX = 230;
   const WEIGHT_KG_MIN = 30, WEIGHT_KG_MAX = 250;
   const WAIST_CM_MIN = 50, WAIST_CM_MAX = 200;
