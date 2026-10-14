@@ -680,3 +680,22 @@ function nutrientTargetLabel(nutrientName, profile, estimatedCalories) {
   // micros / limit nutrients: no chip
   return null;
 }
+
+/* ---- In-place video player for Learning resources ----
+   Clicking a card's play button swaps its thumbnail for a youtube-nocookie embed
+   (the same approach the Exercises page uses). The embed is only created on click. */
+document.addEventListener('click', function (e) {
+  const btn = e.target.closest && e.target.closest('.video-play');
+  if (!btn) return;
+  const id = btn.getAttribute('data-vid') || '';
+  if (!/^[A-Za-z0-9_-]{11}$/.test(id)) return;          // never embed an unexpected id
+  const wrap = btn.parentElement;
+  const iframe = document.createElement('iframe');
+  iframe.src = 'https://www.youtube-nocookie.com/embed/' + id + '?autoplay=1&rel=0';
+  iframe.title = btn.getAttribute('aria-label') || 'Video';
+  iframe.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture');
+  iframe.setAttribute('allowfullscreen', '');
+  iframe.setAttribute('referrerpolicy', 'strict-origin-when-cross-origin');
+  iframe.setAttribute('loading', 'lazy');
+  wrap.replaceChildren(iframe);
+});

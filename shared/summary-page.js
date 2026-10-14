@@ -155,10 +155,13 @@ function pickTopVideos(list, sT, cT, n) {
 function fmtDur(sec) { if(!sec&&sec!==0) return ''; const m=Math.floor(sec/60),s=String(sec%60).padStart(2,'0'); return m+':'+s; }
 function videoCardHtml(v) {
   const th = (v._matched&&v._matched.length) ? v._matched.slice(0,3).map(t=>'<span class="tag ok">'+esc(t)+'</span>').join('') : '<span class="tag">Popular</span>';
-  return '<a class="video-card" href="'+esc(v.url)+'" target="_blank" rel="noopener">'
-    + '<div class="video-thumb-wrap"><img src="'+esc(v.thumbnail)+'" alt="'+esc(v.title)+'" loading="lazy" onerror="this.onerror=null;this.src=\'https://i.ytimg.com/vi/'+esc(v.id)+'/hqdefault.jpg\';">'
-    + '<span class="video-duration">'+fmtDur(v.duration)+'</span></div>'
-    + '<div class="video-title">'+esc(v.title)+'</div><div class="video-tags">'+th+'</div></a>';
+  return '<div class="video-card">'
+    + '<div class="video-thumb-wrap"><button type="button" class="video-play" data-vid="'+esc(v.id)+'" aria-label="Play video: '+esc(v.title)+'">'
+    + '<img src="'+esc(v.thumbnail)+'" alt="" loading="lazy" onerror="this.onerror=null;this.src=\'https://i.ytimg.com/vi/'+esc(v.id)+'/hqdefault.jpg\';">'
+    + '<span class="video-playicon" aria-hidden="true">&#9654;</span>'
+    + '<span class="video-duration">'+fmtDur(v.duration)+'</span></button></div>'
+    + '<div class="video-title">'+esc(v.title)+'</div><div class="video-tags">'+th+'</div>'
+    + '<a class="video-ext" href="'+esc(v.url)+'" target="_blank" rel="noopener">Open on YouTube &#8599;</a></div>';
 }
 function videoSourceBlockHtml(title, vids, pfx) {
   if (!vids.length) return '';
