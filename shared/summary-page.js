@@ -156,7 +156,7 @@ function fmtDur(sec) { if(!sec&&sec!==0) return ''; const m=Math.floor(sec/60),s
 function videoCardHtml(v) {
   const th = (v._matched&&v._matched.length) ? v._matched.slice(0,3).map(t=>'<span class="tag ok">'+esc(t)+'</span>').join('') : '<span class="tag">Popular</span>';
   return '<a class="video-card" href="'+esc(v.url)+'" target="_blank" rel="noopener">'
-    + '<div class="video-thumb-wrap"><img src="'+esc(v.thumbnail)+'" alt="'+esc(v.title)+'" loading="lazy" onerror="this.onerror=null;this.src=\'https://i.ytimg.com/vi/'+esc(v.id)+'/hqdefault.jpg\';">'
+    + '<div class="video-thumb-wrap"><span class="video-ph" aria-hidden="true" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;background:linear-gradient(135deg,var(--teal-light,#e0f7f4),var(--line));color:var(--teal);font-size:12px;"><svg width="34" height="34" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg><span>Opens on YouTube</span></span>'
     + '<span class="video-duration">'+fmtDur(v.duration)+'</span></div>'
     + '<div class="video-title">'+esc(v.title)+'</div><div class="video-tags">'+th+'</div></a>';
 }
@@ -383,7 +383,7 @@ function render() {
   main.innerHTML =
     '<div class="summary-hero no-print">'
     + '<h1>You took the first step toward <em>great</em>.</h1>'
-    + '<p class="sub">Your private health picture is ready. Nothing left this browser.</p></div>'
+    + '<p class="sub">Your private health picture is ready. Your answers stayed in this browser.</p></div>'
     + (execSummary
       ? '<div class="note-block teal exec-summary no-print" style="margin-bottom:28px;">'+esc(execSummary)+'</div>'
       : '<p class="lede no-print" style="margin-bottom:28px;">Choose how you want to use what you built.</p>')
