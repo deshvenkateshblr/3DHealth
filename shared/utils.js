@@ -541,7 +541,7 @@ function renderFooter() {
   const target = document.querySelector('footer') || document.getElementById('app-footer');
   if (!target) return;
   target.innerHTML = `
-    <span>KYH &mdash; Know Your Health. Own Your Path. Your answers stay in your browser. Videos load from YouTube only when you open them.</span>
+    <span>KYH &mdash; Know Your Health. Own Your Path. Runs entirely in your browser. Nothing is sent to a server.</span>
     <span>Not a substitute for professional medical advice.</span>
   `;
 }
