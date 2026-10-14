@@ -548,7 +548,7 @@ function renderFooter() {
   const target = document.querySelector('footer') || document.getElementById('app-footer');
   if (!target) return;
   target.innerHTML = `
-    <span>KYH &mdash; Know Your Health. Own Your Path. Runs entirely in your browser. Nothing is sent to a server.</span>
+    <span>KYH &mdash; Know Your Health. Own Your Path. Your answers stay in your browser and are never sent to KYH. Video pictures and playback come from YouTube.</span>
     <span>Not a substitute for professional medical advice. <a href="#" id="kyh-start-over">Start over</a></span>
   `;
   const so = document.getElementById('kyh-start-over');

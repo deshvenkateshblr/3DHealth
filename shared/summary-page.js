@@ -120,7 +120,7 @@ function videoCardHtml(v) {
   const th = (v._matched&&v._matched.length) ? v._matched.slice(0,3).map(t=>'<span class="tag ok">'+esc(t)+'</span>').join('') : '<span class="tag">Popular</span>';
   return '<div class="video-card">'
     + '<div class="video-thumb-wrap"><button type="button" class="video-play" data-vid="'+esc(v.id)+'" aria-label="Play video: '+esc(v.title)+'">'
-    + '<img src="'+esc(v.thumbnail)+'" alt="" loading="lazy" onerror="this.onerror=null;this.src=\'https://i.ytimg.com/vi/'+esc(v.id)+'/hqdefault.jpg\';">'
+    + '<img src="'+esc(v.thumbnail)+'" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src=\'https://i.ytimg.com/vi/'+esc(v.id)+'/hqdefault.jpg\';">'
     + '<span class="video-playicon" aria-hidden="true">&#9654;</span>'
     + '<span class="video-duration">'+fmtDur(v.duration)+'</span></button></div>'
     + '<div class="video-title">'+esc(v.title)+'</div><div class="video-tags">'+th+'</div>'
@@ -328,7 +328,7 @@ function render() {
 
   const learnPanel = pickedSources.some(s => s.vids.length)
     ? '<p style="font-size:14px;margin:0 0 4px;">Ranked by relevance to your symptoms and risk profile.</p>'
-      + '<p style="font-size:12.5px;color:var(--muted);margin:0 0 14px;">These are third-party videos from independent creators, shown for general education. They are not made or endorsed by KYH and are not a substitute for your doctor\'s advice.</p>'
+      + '<p style="font-size:12.5px;color:var(--muted);margin:0 0 14px;">These are third-party videos from independent creators, shown for general education. They are not made or endorsed by KYH and are not a substitute for your doctor\'s advice. Video pictures are loaded from YouTube, so YouTube can see which videos are shown here; KYH itself does not.</p>'
       + pickedSources.map(s => videoSourceBlockHtml(s.label, s.vids, s.pfx)).join('')
     : '<p class="lede" style="color:var(--muted);">No videos in our library match your answers yet.</p>';
 
