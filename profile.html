@@ -114,14 +114,14 @@
         <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:6px;">
           <div id="label-height" class="intake-label" style="margin-bottom:0;">Height</div>
           <div class="unit-toggle small" id="height-unit-toggle">
-            <button type="button" data-unit="cm" aria-pressed="false">cm</button>
-            <button type="button" data-unit="ftin" class="active" aria-pressed="true">ft/in</button>
+            <button type="button" data-unit="cm" class="active" aria-pressed="true">cm</button>
+            <button type="button" data-unit="ftin" aria-pressed="false">ft/in</button>
           </div>
         </div>
-        <div id="height-cm-wrap" style="display:none;">
+        <div id="height-cm-wrap">
           <input type="number" id="f-height-cm" min="120" max="230" placeholder="cm" step="any" aria-label="Height in centimeters">
         </div>
-        <div id="height-ftin-wrap" class="unit-pair">
+        <div id="height-ftin-wrap" class="unit-pair" style="display:none;">
           <input type="number" id="f-height-ft" min="3" max="7" placeholder="ft" step="any" aria-label="Feet">
           <input type="number" id="f-height-in" min="0" max="11.9" step="0.1" placeholder="in" aria-label="Inches">
         </div>
@@ -149,14 +149,14 @@
         <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:6px;">
           <div id="label-waist" class="intake-label" style="margin-bottom:0;">Waist</div>
           <div class="unit-toggle small" id="waist-unit-toggle">
-            <button type="button" data-unit="cm" aria-pressed="false">cm</button>
-            <button type="button" data-unit="in" class="active" aria-pressed="true">in</button>
+            <button type="button" data-unit="cm" class="active" aria-pressed="true">cm</button>
+            <button type="button" data-unit="in" aria-pressed="false">in</button>
           </div>
         </div>
-        <div id="waist-cm-wrap" style="display:none;">
+        <div id="waist-cm-wrap">
           <input type="number" id="f-waist-cm" min="50" max="200" placeholder="cm" step="any" aria-label="Waist in centimeters">
         </div>
-        <div id="waist-in-wrap">
+        <div id="waist-in-wrap" style="display:none;">
           <input type="number" id="f-waist-in" min="20" max="80" placeholder="in" step="any" aria-label="Waist in inches">
         </div>
       </div>
@@ -407,7 +407,7 @@ document.getElementById('f-sex').addEventListener('change', updateReproVisibilit
 updateReproVisibility();
 
 /* ---- per-field unit toggles ---- */
-let heightUnit = 'ftin', weightUnit = 'kg', waistUnit = 'in';
+let heightUnit = 'cm', weightUnit = 'kg', waistUnit = 'cm';
 
 function wireUnitToggle(toggleId, onChange) {
   document.getElementById(toggleId).addEventListener('click', (e) => {
@@ -489,6 +489,26 @@ wireUnitToggle('waist-unit-toggle', (target) => {
   }
   refreshMetrics();
 });
+
+/* Remember the unit choice (a harmless display preference) and re-apply it next visit. */
+const UNITS_KEY = 'kyh_units_v1';
+function saveUnits() {
+  try { localStorage.setItem(UNITS_KEY, JSON.stringify({ h: heightUnit, w: weightUnit, a: waistUnit })); } catch (e) {}
+}
+['height-unit-toggle', 'weight-unit-toggle', 'waist-unit-toggle'].forEach(id =>
+  document.getElementById(id).addEventListener('click', () => setTimeout(saveUnits, 0)));
+(function applySavedUnits() {
+  let u = null;
+  try { u = JSON.parse(localStorage.getItem(UNITS_KEY) || 'null'); } catch (e) {}
+  if (!u) return;
+  const click = (toggleId, unit) => {
+    const b = document.querySelector('#' + toggleId + ' [data-unit="' + unit + '"]');
+    if (b) b.click();
+  };
+  if (u.h && u.h !== heightUnit) click('height-unit-toggle', u.h);
+  if (u.w && u.w !== weightUnit) click('weight-unit-toggle', u.w);
+  if (u.a && u.a !== waistUnit) click('waist-unit-toggle', u.a);
+})();
 
 function refreshMetrics() {
   const heightCm = getHeightCm(), weightKg = getWeightKg(), waistCm = getWaistCm();

@@ -68,7 +68,7 @@ function insightsByStep(insights) {
 
 function formatAllFindingsText() {
   const p = profile;
-  let t = KYH_REPORT_HEADER + (p.sex||'') + ' \u00b7 age ' + (p.age||'\u2014') + '\nGenerated ' + new Date().toLocaleString() + '\n\n';
+  let t = KYH_REPORT_HEADER + (p.sex||'') + ' \u00b7 age ' + (p.age||'\u2014') + '\nGenerated ' + (new Date().toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}) + ', ' + new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})) + '\n\n';
   insightsByStep(cachedInsights).forEach(({step,items}) => {
     t += '=== ' + step.title.toUpperCase() + ' ===\n';
     if (!items.length) { t += '(No insights)\n\n'; return; }
@@ -88,7 +88,7 @@ function fillPrintDocument() {
   const insEl = document.getElementById('insights');
   if (!el) return;
   let html = '<h1 style="font-family:Georgia,serif;font-weight:400;">KYH \u2014 Health findings</h1>'
-    + '<p style="color:#555;font-size:13px;">' + esc(profile.sex||'') + ' \u00b7 age ' + esc(String(profile.age||'\u2014')) + '<br>' + esc(new Date().toLocaleString()) + '<br>Self-assessment \u2014 not a medical diagnosis</p>';
+    + '<p style="color:#555;font-size:13px;">' + esc(profile.sex||'') + ' \u00b7 age ' + esc(String(profile.age||'\u2014')) + '<br>' + esc((new Date().toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}) + ', ' + new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}))) + '<br>Self-assessment \u2014 not a medical diagnosis</p>';
   insightsByStep(cachedInsights).forEach(({step,items}) => {
     html += '<h2>' + esc(step.title) + '</h2>';
     if (!items.length) { html += '<p style="color:#666;">No insights from this step.</p>'; return; }
@@ -373,6 +373,7 @@ function render() {
 
   const learnPanel = pickedSources.some(s => s.vids.length)
     ? '<p style="font-size:14px;margin:0 0 4px;">Ranked by relevance to your symptoms and risk profile.</p>'
+      + '<p style="font-size:12.5px;color:var(--muted);margin:0 0 14px;">These are third-party videos from independent creators, shown for general education. They are not made or endorsed by KYH and are not a substitute for your doctor\'s advice.</p>'
       + pickedSources.map(s => videoSourceBlockHtml(s.label, s.vids, s.pfx)).join('')
     : '<p class="lede" style="color:var(--muted);">Video library not loaded.</p>';
 

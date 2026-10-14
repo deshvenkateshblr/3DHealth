@@ -1220,7 +1220,8 @@ const KYH_BRAND_BLURB =
   };
 
   function shortLabel(i) {
-    return SHORT_LABEL[i.id] || (i.title || '').toLowerCase();
+    // Drop qualifiers like " · India" so labels read as plain phrases.
+    return SHORT_LABEL[i.id] || (i.title || '').replace(/\s*[\u00b7\u2022]\s*[^\u00b7\u2022]*$/, '').toLowerCase();
   }
 
   function joinNatural(items) {
@@ -1264,7 +1265,7 @@ const KYH_BRAND_BLURB =
 
     // 1. Basics
     const basics = domainStatusSentence(
-      body, 'Your basics look', 'solid —', 'mostly steady, with a few things worth a look:'
+      body, 'Your basics look', 'solid —', 'mostly steady, with a few things to note:'
     );
     if (basics) parts.push(basics);
 
@@ -1279,7 +1280,7 @@ const KYH_BRAND_BLURB =
         const entry = DIAG.find(d => d.test === top.test);
         let sentence = `Worth reviewing: ${symNames} connect${symptoms.length === 1 ? 's' : ''} to a few tests that could add useful context — not because anything here is flagged as urgent, just information worth having on hand.`;
         if (entry && entry.extended_info) {
-          sentence += ` One example: a ${top.test}. ${entry.extended_info}`;
+          sentence += ` One example is the ${top.test}. ${entry.extended_info}`;
         }
         parts.push(sentence);
       } else {
@@ -1294,10 +1295,10 @@ const KYH_BRAND_BLURB =
     // as summarizeSection does, so it doesn't turn into a broken sentence.
     const routineSentence = (routine.length === 1 && /-none$/.test(routine[0].id))
       ? routine[0].detail
-      : domainStatusSentence(routine, 'Your routine looks', 'steady across', 'worth a look on');
+      : domainStatusSentence(routine, 'Your routine looks', 'steady across', 'has room to improve on');
     const dietSentence = (diet.length === 1 && /-none$/.test(diet[0].id))
       ? diet[0].detail
-      : domainStatusSentence(diet, 'Your diet looks', 'well-aligned on', 'worth a look on');
+      : domainStatusSentence(diet, 'Your diet looks', 'well-aligned on', 'has a few gaps in');
     const combined = [routineSentence, dietSentence].filter(Boolean).join(' ');
     if (combined) parts.push(combined);
 
@@ -1344,7 +1345,7 @@ const KYH_BRAND_BLURB =
 
     const parts = [];
     const basics = domainStatusSentence(
-      body, 'Your basics look', 'solid —', 'mostly steady, with a few things worth a look:'
+      body, 'Your basics look', 'solid —', 'mostly steady, with a few things to note:'
     );
     if (basics) parts.push(basics);
 
