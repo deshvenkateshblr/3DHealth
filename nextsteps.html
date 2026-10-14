@@ -5,7 +5,7 @@
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <meta name="description" content="Prepare for your doctor's visit with a clinical summary, explore curated educational videos, and generate custom AI prompts tailored to your health.">
           <title>Next Steps — KYH</title>
-          <link rel="stylesheet" href="shared/styles.css?v=20261014-c8d66ed">
+          <link rel="stylesheet" href="shared/styles.css?v=20261014-b1f8e76">
             <style>
               .prompt-box {
               background: var(--panel);
@@ -81,14 +81,14 @@
               #doctor, #ai, #learn { scroll-margin-top: 20px; }
             </style>
           <!-- share:start -->
-<link rel="icon" href="shared/assets/kyh_logo_final.png?v=20261014-c8d66ed">
+<link rel="icon" href="shared/assets/kyh_logo_final.png?v=20261014-b1f8e76">
 <meta name="theme-color" content="#1f7a6d">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="KYH — Know Your Health">
 <meta property="og:title" content="Next Steps — KYH">
 <meta property="og:description" content="Prepare for your doctor&#x27;s visit with a clinical summary, explore curated educational videos, and generate custom AI prompts tailored to your health.">
 <meta property="og:url" content="https://vividnova.com/3DHealth/nextsteps.html">
-<meta property="og:image" content="https://vividnova.com/3DHealth/shared/assets/og-image.png?v=20261014-c8d66ed">
+<meta property="og:image" content="https://vividnova.com/3DHealth/shared/assets/og-image.png?v=20261014-b1f8e76">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
@@ -115,11 +115,16 @@
       <span>Not a substitute for professional medical advice.</span>
     </footer>
 
-    <script src="shared/data.videos.sb.js?v=20261014-c8d66ed"></script>
-    <script src="shared/data.videos.nbs.js?v=20261014-c8d66ed"></script>
-    <script src="shared/data.activities.js?v=20261014-c8d66ed"></script>
-    <script src="shared/utils.js?v=20261014-c8d66ed"></script>
-    <script src="shared/insights.js?v=20261014-c8d66ed"></script>
+    <script src="shared/data.videos.sb.js?v=20261014-b1f8e76"></script>
+    <script src="shared/data.videos.nbs.js?v=20261014-b1f8e76"></script>
+    <script src="shared/drsk_video_data.js?v=20261014-b1f8e76"></script>
+    <script src="shared/ayushyp_video_data.js?v=20261014-b1f8e76"></script>
+    <script src="shared/curated_routine_video_data.js?v=20261014-b1f8e76"></script>
+    <script src="shared/data.videotopics.js?v=20261014-b1f8e76"></script>
+    <script src="shared/data.activities.js?v=20261014-b1f8e76"></script>
+    <script src="shared/utils.js?v=20261014-b1f8e76"></script>
+    <script src="shared/insights.js?v=20261014-b1f8e76"></script>
+    <script src="shared/videomatch.js?v=20261014-b1f8e76"></script>
     <script>
       const state = loadState() || {};
       const profile = state.profile || {};
@@ -128,82 +133,7 @@
       renderHeader('great', 'KYH — Next Steps');
       const main = document.getElementById('main-content');
 
-      /* ---------- Video matching ---------- */
-      function deriveInterestTags(state) {
-      const p = state.profile || {};
-      const symptomTags = [...(p.symptoms || [])];
-      const contextTags = new Set();
-
-      if (p.reproStatus === 'Perimenopausal' || p.reproStatus === 'Post-menopausal') contextTags.add('Menopause');
-      if (p.pcos) contextTags.add('PCOS');
-      const kind = bmiClass(p.bmi, p);
-      if (kind === 'over' || kind === 'obese') contextTags.add('Weight Loss');
-      if ((p.whtr || 0) >= 0.5) contextTags.add('Belly Fat');
-      if (p.famMetabolic) { contextTags.add('Blood Sugar'); contextTags.add('Insulin Resistance'); }
-
-      const freq = (state.diet && state.diet.frequency) || {};
-      if (freq.sugary_drinks === 'Daily' || freq.sugary_drinks === '3-5x/Wk') contextTags.add('Sugar');
-      if (freq.fried_ultraprocessed === 'Daily' || freq.fried_ultraprocessed === '3-5x/Wk') contextTags.add('Ultra-Processed Foods');
-      if (freq.leafy_greens === 'Rarely' || freq.fruits === 'Rarely') contextTags.add('Healthy Eating');
-
-      // Only derive sleep/exercise context tags if the Routine step was
-      // actually completed -- an empty activities array means no data, not
-      // "0 hours of exercise" as a real answer.
-      if (state.routine && Array.isArray(state.routine.activities) && state.routine.activities.length) {
-      const activityById = {};
-      (window.ACTIVITIES || []).forEach(a => { activityById[a.id] = a; });
-      const toHrs = a => (Number(a.hours) || 0) + (Number(a.mins) || 0) / 60;
-
-      const sleepAct = state.routine.activities.find(a => a.id === 'act_011');
-      const sleepHrs = sleepAct ? toHrs(sleepAct) : 0;
-      if (sleepHrs < 6.5) contextTags.add('Sleep');
-
-    // "Exercise" = time logged in intentional-movement categories, not
-    // baseline rest/chores.
-    const EXERCISE_CATEGORIES = new Set(['Sports & Agility', 'Gym & Vigorous', 'Walking & Mobility', 'Mind & Body']);
-    const exerciseHrs = state.routine.activities.reduce((sum, a) => {
-      const def = activityById[a.id];
-      return (def && EXERCISE_CATEGORIES.has(def.category)) ? sum + toHrs(a) : sum;
-      }, 0);
-      if (exerciseHrs < 0.5) contextTags.add('Beginner Workout');
-  }
-  return { symptomTags, contextTags: [...contextTags] };
-}
-
-function scoreVideo(video, symptomTags, contextTags) {
-  const titleL = (video.title || '').toLowerCase();
-  const descL  = (video.description_short || '').toLowerCase();
-  const tagsL  = (video.tags || []).map(t => t.toLowerCase());
-
-  function strength(tl) {
-    if (titleL.includes(tl)) return 3;
-    if (tagsL.some(vt => vt.includes(tl) || tl.includes(vt))) return 2;
-    if (descL.includes(tl)) return 1;
-    return 0;
-  }
-
-  let score = 0;
-  const matched = [];
-  symptomTags.forEach(t => {
-    const s = strength(t.toLowerCase());
-    if (s > 0) { score += s * 3; matched.push(t); }
-  });
-  contextTags.forEach(t => {
-    const s = strength(t.toLowerCase());
-    if (s > 0) { score += s; if (!matched.includes(t)) matched.push(t); }
-  });
-  return { score, matched };
-}
-
-function pickTopVideos(list, symptomTags, contextTags, n) {
-  return (list || [])
-    .map(v => {
-      const { score, matched } = scoreVideo(v, symptomTags, contextTags);
-      return Object.assign({}, v, { _score: score, _matched: matched });
-    })
-    .sort((a, b) => b._score - a._score || (b.view_count || 0) - (a.view_count || 0))
-    .slice(0, n);
-}
+      /* ---------- Video matching: shared/videomatch.js ---------- */
 
 function fmtDuration(sec) {
   if (!sec && sec !== 0) return '';
@@ -250,7 +180,7 @@ function fmtDuration(sec) {
       }
 
       function wireVideoShowMore() {
-      ['sb', 'nbs'].forEach(idPrefix => {
+      VIDEO_SOURCES.forEach(src => { const idPrefix = src.pfx;
       const btn = document.getElementById(idPrefix + '-more-btn');
       if (!btn) return;
       btn.addEventListener('click', () => {
@@ -281,8 +211,8 @@ function fmtDuration(sec) {
       : [];
 
       const { symptomTags, contextTags } = deriveInterestTags(state);
-      const sbAll  = pickTopVideos(window.SB_VIDEOS,  symptomTags, contextTags, 12);
-      const nbsAll = pickTopVideos(window.NBS_VIDEOS, symptomTags, contextTags, 12);
+      const pickedSources = VIDEO_SOURCES.map(src => ({ ...src, vids: pickTopVideos(window[src.globalVar], symptomTags, contextTags, 12) }));
+      const anyVideos = pickedSources.some(src => src.vids.length);
 
       main.innerHTML = `
       <p class="lede" style="margin-bottom:28px;">
@@ -318,10 +248,9 @@ function fmtDuration(sec) {
         Ranked by relevance to your symptoms and risk profile.
       </p>
       <p style="font-size:12.5px; color:var(--muted); margin:0 0 14px;">These are third-party videos from independent creators, shown for general education. They are not made or endorsed by KYH and are not a substitute for your doctor's advice.</p>
-      ${videoSourceBlockHtml('Saurabh Bothra · Habuild Yoga', sbAll, 'sb')}
-      ${videoSourceBlockHtml('Nourished by Science · Mario Kratz, PhD', nbsAll, 'nbs')}
-      ${!sbAll.length && !nbsAll.length ? `
-      <p class="lede" style="color:var(--muted);">Video library not loaded.</p>
+      ${pickedSources.map(src => videoSourceBlockHtml(src.label, src.vids, src.pfx)).join('')}
+      ${!anyVideos ? `
+      <p class="lede" style="color:var(--muted);">No videos in our library match your answers yet.</p>
       ` : ''}
 
       <div class="page-footer-nav" style="margin-top:48px;">

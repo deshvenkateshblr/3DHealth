@@ -114,44 +114,7 @@ function downloadText(filename, text) {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
-/* --- Video helpers --- */
-function deriveInterestTags(st) {
-  const p = st.profile || {};
-  const symptomTags = [...(p.symptoms||[])];
-  const ctx = new Set();
-  if (p.reproStatus==='Perimenopausal'||p.reproStatus==='Post-menopausal') ctx.add('Menopause');
-  if (p.pcos) ctx.add('PCOS');
-  const kind = bmiClass(p.bmi, p);
-  if (kind==='over'||kind==='obese') ctx.add('Weight Loss');
-  if ((p.whtr||0)>=0.5) ctx.add('Belly Fat');
-  if (p.famMetabolic) { ctx.add('Blood Sugar'); ctx.add('Insulin Resistance'); }
-  const freq = (st.diet&&st.diet.frequency)||{};
-  if (freq.sugary_drinks==='Daily'||freq.sugary_drinks==='3-5x/Wk') ctx.add('Sugar');
-  if (freq.fried_ultraprocessed==='Daily'||freq.fried_ultraprocessed==='3-5x/Wk') ctx.add('Ultra-Processed Foods');
-  if (freq.leafy_greens==='Rarely'||freq.fruits==='Rarely') ctx.add('Healthy Eating');
-  if (st.routine&&st.routine.activitiesConfirmed!==false&&Array.isArray(st.routine.activities)&&st.routine.activities.length) {
-    const aid = {}; (window.ACTIVITIES||[]).forEach(a => { aid[a.id]=a; });
-    const toHrs = a => (Number(a.hours)||0)+(Number(a.mins)||0)/60;
-    const sl = st.routine.activities.find(a => a.id==='act_011');
-    if (sl && toHrs(sl)<6.5) ctx.add('Sleep');
-    const ECATS = new Set(['Sports & Agility','Gym & Vigorous','Walking & Mobility','Mind & Body']);
-    const eh = st.routine.activities.reduce((s,a) => { const d=aid[a.id]; return (d&&ECATS.has(d.category))?s+toHrs(a):s; }, 0);
-    if (eh<0.5) ctx.add('Beginner Workout');
-  }
-  return { symptomTags, contextTags: [...ctx] };
-}
-function scoreVideo(v, symptomTags, contextTags) {
-  const tl=(v.title||'').toLowerCase(), dl=(v.description_short||'').toLowerCase(), vl=(v.tags||[]).map(t=>t.toLowerCase());
-  function str(t) { if(tl.includes(t)) return 3; if(vl.some(vt=>vt.includes(t)||t.includes(vt))) return 2; if(dl.includes(t)) return 1; return 0; }
-  let score=0; const matched=[];
-  symptomTags.forEach(t => { const s=str(t.toLowerCase()); if(s>0){score+=s*3;matched.push(t);} });
-  contextTags.forEach(t => { const s=str(t.toLowerCase()); if(s>0){score+=s;if(!matched.includes(t))matched.push(t);} });
-  return {score, matched};
-}
-function pickTopVideos(list, sT, cT, n) {
-  return (list||[]).map(v => { const {score,matched}=scoreVideo(v,sT,cT); return Object.assign({},v,{_score:score,_matched:matched}); })
-    .sort((a,b) => b._score-a._score||(b.view_count||0)-(a.view_count||0)).slice(0,n);
-}
+/* --- Video helpers: matching lives in shared/videomatch.js --- */
 function fmtDur(sec) { if(!sec&&sec!==0) return ''; const m=Math.floor(sec/60),s=String(sec%60).padStart(2,'0'); return m+':'+s; }
 function videoCardHtml(v) {
   const th = (v._matched&&v._matched.length) ? v._matched.slice(0,3).map(t=>'<span class="tag ok">'+esc(t)+'</span>').join('') : '<span class="tag">Popular</span>';
@@ -331,20 +294,9 @@ function render() {
 
   const aiPrompt = typeof buildInsightAIPrompt==='function' ? buildInsightAIPrompt(state,cachedInsights) : {full:'',header:'',sections:[]};
   const {symptomTags,contextTags} = deriveInterestTags(state);
-  // ─── Video source registry ────────────────────────────────────────────────
-  // To add a new source (e.g. AYUSH_VIDEOS), append one object here:
-  //   { globalVar: 'AYUSH_VIDEOS', label: 'Ayush Channel Name', pfx: 'ayush-sum' }
-  // No other code changes are needed.
-  const VIDEO_SOURCES = [
-    { globalVar: 'SB_VIDEOS',       label: 'Saurabh Bothra \u00b7 Habuild Yoga',          pfx: 'sb-sum'      },
-    { globalVar: 'NBS_VIDEOS',      label: 'Nourished by Science \u00b7 Mario Kratz, PhD', pfx: 'nbs-sum'     },
-    { globalVar: 'DRSUMIT_VIDEOS',  label: 'Dr Sumit Kapadia',                          pfx: 'drsk-sum'    },
-    { globalVar: 'AYUSH_VIDEOS',    label: 'National Institute of Yoga',         pfx: 'ayush-sum'   },
-    { globalVar: 'CURATED_VIDEOS',  label: 'Curated \u00b7 KYH Picks',                      pfx: 'curated-sum' },
-  ];
-
   const pickedSources = VIDEO_SOURCES.map(src => ({
     ...src,
+    pfx: src.pfx + '-sum',
     vids: pickTopVideos(window[src.globalVar], symptomTags, contextTags, 9),
   }));
 
@@ -378,7 +330,7 @@ function render() {
     ? '<p style="font-size:14px;margin:0 0 4px;">Ranked by relevance to your symptoms and risk profile.</p>'
       + '<p style="font-size:12.5px;color:var(--muted);margin:0 0 14px;">These are third-party videos from independent creators, shown for general education. They are not made or endorsed by KYH and are not a substitute for your doctor\'s advice.</p>'
       + pickedSources.map(s => videoSourceBlockHtml(s.label, s.vids, s.pfx)).join('')
-    : '<p class="lede" style="color:var(--muted);">Video library not loaded.</p>';
+    : '<p class="lede" style="color:var(--muted);">No videos in our library match your answers yet.</p>';
 
   const insightsPanel = runningSummaryHtml(cachedInsights) + aiGuideHtml()
     + '<div class="detail-divider">Full detail by step</div>'
