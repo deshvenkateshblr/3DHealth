@@ -5,16 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <meta name="description" content="Tell KYH about a typical day: sleep, work, movement and exercise. Your estimated daily energy use is worked out as you go.">
       <title>Daily Routine — KYH</title>
-     <link rel="stylesheet" href="shared/styles.css?v=20261015-6d03bc1">
+     <link rel="stylesheet" href="shared/styles.css?v=20261015-37a4427">
 <!-- share:start -->
-<link rel="icon" href="shared/assets/kyh_logo_final.png?v=20261015-6d03bc1">
+<link rel="icon" href="shared/assets/kyh_logo_final.png?v=20261015-37a4427">
 <meta name="theme-color" content="#1f7a6d">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="KYH — Know Your Health">
 <meta property="og:title" content="Daily Routine — KYH">
 <meta property="og:description" content="Tell KYH about a typical day: sleep, work, movement and exercise. Your estimated daily energy use is worked out as you go.">
 <meta property="og:url" content="https://vividnova.com/3DHealth/routine.html">
-<meta property="og:image" content="https://vividnova.com/3DHealth/shared/assets/og-image.png?v=20261015-6d03bc1">
+<meta property="og:image" content="https://vividnova.com/3DHealth/shared/assets/og-image.png?v=20261015-37a4427">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
@@ -30,8 +30,8 @@
 
     <footer id="app-footer"></footer>
 
-    <script src="shared/data.activities.js?v=20261015-6d03bc1"></script>
-    <script src="shared/utils.js?v=20261015-6d03bc1"></script>
+    <script src="shared/data.activities.js?v=20261015-37a4427"></script>
+    <script src="shared/utils.js?v=20261015-37a4427"></script>
     <script>
       const state = loadState();
       const profile = state.profile;
@@ -52,7 +52,7 @@
         { key: 'home',   title: 'At home and free time', q: 'Which of these do you do on most days?', mode: 'daily', ids: ['act_002', 'act_016', 'act_004', 'act_005', 'act_012', 'act_017', 'act_018', 'act_212'] },
         { key: 'travel', title: 'Getting around', q: 'Do you spend time travelling on a normal day?', hint: 'If you walk to work or school, add it under Walking below.', mode: 'daily', ids: ['act_014', 'act_013'] },
         { key: 'walk',   title: 'Walking and moving about', q: 'Do you walk or stay on your feet outside work?', mode: 'daily', ids: ['act_101', 'act_102', 'act_103', 'act_025', 'act_026', 'act_022', 'act_501'] },
-        { key: 'mind',   title: 'Mind and body', q: 'Do you practise any of these?', mode: 'weekly', ids: ['act_211', 'act_203', 'act_208', 'act_210', 'act_209'] },
+        { key: 'mind',   title: 'Mind and body', q: 'Do you practise any of these on most days?', mode: 'daily', ids: ['act_211', 'act_203', 'act_208', 'act_210', 'act_209'] },
         { key: 'gym',    title: 'Gym and fitness', q: 'Do you do any of these?', mode: 'weekly', ids: catIds('Gym & Vigorous') },
         { key: 'sport',  title: 'Sports', q: 'Do you play any of these?', mode: 'weekly', ids: catIds('Sports & Agility'),
           }
@@ -166,7 +166,7 @@
       function nudgeHtml(L) {
         const rest = restingKcalPerDay(profile);
         const kcalOf = (met, h) => rest > 0 ? rest / 24 * met * h : met * weightKg * h * MET_KCAL_FACTOR;
-        const groups = [['Sleep', null], ['Work and daytime', 'main'], ['At home and free time', 'home'], ['Getting around', 'travel'], ['Walking and moving about', 'walk']];
+        const groups = [['Sleep', null], ['Work and daytime', 'main'], ['At home and free time', 'home'], ['Getting around', 'travel'], ['Walking and moving about', 'walk'], ['Mind and body', 'mind']];
         const rows = groups.map(([label, key]) => {
           let h = 0, k = 0;
           if (key === null) { h = sleepH || 0; k = kcalOf(0.9, h); }
