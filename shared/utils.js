@@ -611,14 +611,30 @@ function estimateTdeeFromActivities(activities, weightKg, defs, profile) {
   return Math.round(rest > 0 ? rest / 24 * metHours : flatKcal);
 }
 
+/* ---------- Daily-burn bands: what the cut-offs are, and are not ----------
+   BURN_LOW_KCAL / BURN_HIGH_KCAL split estimated daily energy use into lower than average,
+   typical and higher than average. Used for: the wording and ranking of the burn insight,
+   the Doctor Brief label, a small water bump, and a small protein bump.
+   BASIS: rule-of-thumb figures around the usual reference adult (about 2,000-2,200 kcal), +/-20%.
+   There is NO published source for these exact numbers; they were set against the earlier,
+   flat 1.05 kcal/kg/h burn method and have not been re-tuned for the current method, which
+   runs about 15% lower. They ignore body size: a small adult with an ordinary day can read
+   as "lower than average". They do NOT set the diet target (that is burn x intake factor, below).
+   NEEDS PHYSICIAN REVIEW. The nearest published reference is the FAO/WHO/UNU "Human energy
+   requirements" (2001/2004) physical activity level table (PAL = daily energy / resting energy:
+   sedentary or light 1.40-1.69, active or moderately active 1.70-1.99, vigorous 2.00-2.40),
+   which is size-neutral; moving to a ratio like that would be the better long-term basis. */
+const BURN_LOW_KCAL = 1800;
+const BURN_HIGH_KCAL = 2400;
+
 /** Daily fluid target (litres) from weight; small bump if burn is higher. */
 function estimateWaterLiters(profile, estimatedCalories) {
   const kg = Number(profile && profile.weightKg) || 70;
   let liters = kg * 0.033; // ~33 mL/kg
 
   const burn = Number(estimatedCalories) || 0;
-  if (burn > 2400) liters += 0.4;
-  else if (burn > 1800) liters += 0.2;
+  if (burn > BURN_HIGH_KCAL) liters += 0.4;      // cut-offs: see note at BURN_LOW_KCAL
+  else if (burn > BURN_LOW_KCAL) liters += 0.2;
 
   liters = Math.max(1.5, Math.min(4.0, liters));
   return Math.round(liters * 10) / 10;
@@ -664,14 +680,25 @@ function resolveDailyBurn(routine, profile) {
   return { burn: Math.round(bmr * 1.4 / 10) * 10, assumed: true };
 }
 
+/* Intake floor. Unsupervised eating plans are generally advised not to go below 1,200 kcal a day
+   for women or 1,500 for men (Harvard Health, "Calorie counting made easy"; same figures are in
+   common NHS/NIH-style guidance). The floor never pushes the target above the person's estimated
+   burn: if their burn is itself under the floor, the target is maintenance and the page asks them
+   to talk to a doctor. Using one flat 1,200 for everyone is the alternative; change MIN_INTAKE_KCAL.
+   NEEDS PHYSICIAN REVIEW. */
+const MIN_INTAKE_KCAL = { Female: 1200, Male: 1500 };
+
 function estimateTargetCalories(estimatedCalories, profile) {
   const burn = Number(estimatedCalories) || 2200;
   const factor = intakeFactorFromBody(profile);
-  return {
-    cal: Math.round(burn * factor),
-    factor,
-    burn: Math.round(burn)
-  };
+  let cal = Math.round(burn * factor);
+  const floorKcal = (profile && profile.sex === 'Female') ? MIN_INTAKE_KCAL.Female : MIN_INTAKE_KCAL.Male;
+  let floored = false, lowBurn = false;
+  if (cal < floorKcal) {
+    if (burn < floorKcal) { cal = Math.round(burn); lowBurn = true; }   // maintenance, flag for a doctor
+    else { cal = floorKcal; floored = true; }
+  }
+  return { cal, factor, burn: Math.round(burn), floored, lowBurn, floorKcal };
 }
 
 function proteinTargetGrams(profile, estimatedCalories) {
@@ -683,7 +710,7 @@ function proteinTargetGrams(profile, estimatedCalories) {
     if (kind === 'under' || kind === 'over' || kind === 'obese') perKg = 1.5;
   }
   const burn = Number(estimatedCalories) || 0;
-  if (burn > 2400) perKg = Math.min(perKg + 0.1, 1.6);
+  if (burn > BURN_HIGH_KCAL) perKg = Math.min(perKg + 0.1, 1.6);   // cut-off: see note at BURN_LOW_KCAL
   const mid = Math.round(kg * perKg);
   return {
     min: Math.round(mid * 0.9),

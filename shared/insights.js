@@ -42,16 +42,18 @@ const KYH_BRAND_BLURB =
     return 0;
   }
   /**
-   * Activity band used on diet.html when choosing DIET rows:
-   *   estimatedCalories > 2400 → Active
-   *   estimatedCalories < 1800 → Sedentary
-   *   else → Moderate
+   * Burn band: lower than average / typical / higher than average.
+   * Cut-offs and their (limited) basis are documented at BURN_LOW_KCAL in shared/utils.js.
+   * The band shapes insight wording, the Doctor Brief label, and small water/protein bumps.
+   * It does not choose diet rows and does not set the diet target.
    */
   function activityBandFromBurn(kcal) {
     if (kcal == null || isNaN(kcal)) return null;
-    if (kcal > 2400) return { id: 'Active', label: 'higher than average (Active)', lo: 2401, hi: null };
-    if (kcal < 1800) return { id: 'Sedentary', label: 'lower than average (Sedentary)', lo: null, hi: 1799 };
-    return { id: 'Moderate', label: 'in a typical daily range (Moderate)', lo: 1800, hi: 2400 };
+    const hi = typeof BURN_HIGH_KCAL !== 'undefined' ? BURN_HIGH_KCAL : 2400;
+    const lo = typeof BURN_LOW_KCAL !== 'undefined' ? BURN_LOW_KCAL : 1800;
+    if (kcal > hi) return { id: 'Active', label: 'higher than average (Active)', lo: hi + 1, hi: null };
+    if (kcal < lo) return { id: 'Sedentary', label: 'lower than average (Sedentary)', lo: null, hi: lo - 1 };
+    return { id: 'Moderate', label: 'in a typical daily range (Moderate)', lo, hi };
   }
 
   function insight(partial) {
@@ -572,6 +574,8 @@ const KYH_BRAND_BLURB =
     // ----- 1) Calorie burn -----
     const burn = estimateDailyBurn(routine, profile && profile.weightKg, profile);
     const band = burn ? activityBandFromBurn(burn) : null;
+    const BAND_LO = typeof BURN_LOW_KCAL !== 'undefined' ? BURN_LOW_KCAL : 1800;
+    const BAND_HI = typeof BURN_HIGH_KCAL !== 'undefined' ? BURN_HIGH_KCAL : 2400;
 
     if (burn && band && !assumedWeek) {
       let tone = 'good';
@@ -591,8 +595,9 @@ const KYH_BRAND_BLURB =
         priority: band.id === 'Sedentary' ? 10 : 16,
         title,
         detail:
-          `From your activity log and body weight: ~${burn.toLocaleString()} kcal/day. ` +
-          `Maps to the ${band.id} band used for diet targets (<1800 sedentary, 1800–2400 moderate, >2400 active).`,
+          `From your activity log, age and body size: ~${burn.toLocaleString()} kcal/day. ` +
+          `In this summary, under ${BAND_LO.toLocaleString()} kcal reads as lower than average, ${BAND_LO.toLocaleString()}\u2013${BAND_HI.toLocaleString()} as typical, and above that as higher than average. ` +
+          `These are rule-of-thumb figures for an average adult, not a personal target.`,
         next,
         sources: ['routine.estimatedCalories', 'routine.activities', 'weightKg']
       }));
