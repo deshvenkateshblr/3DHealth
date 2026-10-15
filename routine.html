@@ -5,16 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <meta name="description" content="Tell KYH about a typical day: sleep, work, movement and exercise. Your estimated daily energy use is worked out as you go.">
       <title>Daily Routine — KYH</title>
-     <link rel="stylesheet" href="shared/styles.css?v=20261015-1585175">
+     <link rel="stylesheet" href="shared/styles.css?v=20261015-68c3377">
 <!-- share:start -->
-<link rel="icon" href="shared/assets/kyh_logo_final.png?v=20261015-1585175">
+<link rel="icon" href="shared/assets/kyh_logo_final.png?v=20261015-68c3377">
 <meta name="theme-color" content="#1f7a6d">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="KYH — Know Your Health">
 <meta property="og:title" content="Daily Routine — KYH">
 <meta property="og:description" content="Tell KYH about a typical day: sleep, work, movement and exercise. Your estimated daily energy use is worked out as you go.">
 <meta property="og:url" content="https://vividnova.com/3DHealth/routine.html">
-<meta property="og:image" content="https://vividnova.com/3DHealth/shared/assets/og-image.png?v=20261015-1585175">
+<meta property="og:image" content="https://vividnova.com/3DHealth/shared/assets/og-image.png?v=20261015-68c3377">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
@@ -30,8 +30,8 @@
 
     <footer id="app-footer"></footer>
 
-    <script src="shared/data.activities.js?v=20261015-1585175"></script>
-    <script src="shared/utils.js?v=20261015-1585175"></script>
+    <script src="shared/data.activities.js?v=20261015-68c3377"></script>
+    <script src="shared/utils.js?v=20261015-68c3377"></script>
     <script>
       const state = loadState();
       const profile = state.profile;
@@ -62,7 +62,7 @@
       const DAILY_OPTS = [[15,'15 min'],[30,'30 min'],[45,'45 min'],[60,'1 h'],[90,'1.5 h'],[120,'2 h'],[180,'3 h']];
       const WORK_OPTS  = [[120,'2 h'],[240,'4 h'],[360,'6 h'],[480,'8 h'],[600,'10 h'],[720,'12 h']];
       const CARE_OPTS  = [[60,'1 h'],[120,'2 h'],[180,'3 h'],[240,'4 h'],[360,'6 h'],[480,'8 h']];
-      const WORK_DEFAULT = { act_015: 480, act_027: 480, act_028: 480, act_023: 120 };
+      const WORK_DEFAULT = { act_015: 1, act_027: 1, act_028: 1, act_023: 1 };   // marks work-style activities (longer hour choices); no default hours
       const EACH_OPTS  = [[15,'15 min'],[30,'30 min'],[45,'45 min'],[60,'1 h'],[90,'1.5 h'],[120,'2 h']];
       const DAYS_OPTS  = [1,2,3,4,5,6,7].map(n => [n, String(n)]);
       const SLEEP_OPTS = [4,5,6,7,8,9,10];
@@ -88,8 +88,8 @@
           if (a.id === 'act_011') { sleepH = m / 60 || null; return; }
           const sec = SEC_OF[a.id];
           if (!sec) return;
-          if (sec.mode === 'weekly') items.push({ id: a.id, freq: 'weekly', mins: m || 30, perWeek: a.freq === 'weekly' ? (Number(a.perWeek) || 3) : 7 });
-          else items.push({ id: a.id, freq: 'daily', mins: m });
+          if (sec.mode === 'weekly') items.push({ id: a.id, freq: 'weekly', mins: m || null, perWeek: a.freq === 'weekly' ? (Number(a.perWeek) || null) : 7 });
+          else items.push({ id: a.id, freq: 'daily', mins: m || null });
         });
       }
 
@@ -97,8 +97,8 @@
         const daily = items.filter(a => a.freq === 'daily');
         const acts = [];
         if (sleepH) acts.push({ id: 'act_011', freq: 'daily', hours: Math.floor(sleepH), mins: 0 });
-        daily.forEach(a => acts.push(Object.assign({ id: a.id, freq: 'daily' }, hhmm(a.mins))));
-        const logged = (sleepH || 0) + daily.reduce((s, a) => s + a.mins / 60, 0);
+        daily.filter(a => a.mins > 0).forEach(a => acts.push(Object.assign({ id: a.id, freq: 'daily' }, hhmm(a.mins))));
+        const logged = (sleepH || 0) + daily.reduce((s, a) => s + (a.mins || 0) / 60, 0);
         return { logged, rest: Math.max(0, 24 - logged), acts, burn: acts.length ? estimateTdeeFromActivities(acts, weightKg, undefined, profile) : 0 };
       }
 
@@ -110,7 +110,7 @@
 
       function buildRoutine() {
         const L = ledger();
-        const weekly = items.filter(a => a.freq === 'weekly').map(a => Object.assign({ id: a.id, freq: 'weekly', perWeek: a.perWeek || 3 }, hhmm(a.mins)));
+        const weekly = items.filter(a => a.freq === 'weekly' && a.mins > 0 && a.perWeek).map(a => Object.assign({ id: a.id, freq: 'weekly', perWeek: a.perWeek }, hhmm(a.mins)));
         return Object.assign({}, state.routine || {}, {
           activities: L.acts.concat(weekly), activitiesConfirmed: true,
           estimatedCalories: L.burn, unloggedHours: Math.round(L.rest * 4) / 4, habits: readHabits()
@@ -128,10 +128,13 @@
       }
       function detailCard(a, sec) {
         const d = defOf(a.id), mk = a.id.replace(/\W/g, '');
-        if (sec && sec.mode === 'weekly') return `<div class="test-card"><div class="name">${esc(nameOf(a.id))}</div><div class="symptom">${d.met.toFixed(1)} METs</div>
-          ${radios('pw-' + mk, 'Days a week', DAYS_OPTS, a.perWeek || 3)}${radios('ln-' + mk, 'Each time', EACH_OPTS, a.mins)}</div>`;
+        const need = t => `<div class="symptom" style="color:var(--amber-text);">${t}</div>`;
+        if (sec && sec.mode === 'weekly') return `<div class="test-card" data-need="${a.perWeek && a.mins ? '' : '1'}"><div class="name">${esc(nameOf(a.id))}</div><div class="symptom">${d.met.toFixed(1)} METs</div>
+          ${a.perWeek && a.mins ? '' : need('Choose days a week and how long each time.')}
+          ${radios('pw-' + mk, 'Days a week', DAYS_OPTS, a.perWeek)}${radios('ln-' + mk, 'Each time', EACH_OPTS, a.mins)}</div>`;
         const opts = a.id === 'act_023' ? CARE_OPTS : WORK_DEFAULT[a.id] ? WORK_OPTS : DAILY_OPTS;
-        return `<div class="test-card"><div class="name">${esc(nameOf(a.id))}</div><div class="symptom">${d.met.toFixed(1)} METs</div>
+        return `<div class="test-card" data-need="${a.mins ? '' : '1'}"><div class="name">${esc(nameOf(a.id))}</div><div class="symptom">${d.met.toFixed(1)} METs</div>
+          ${a.mins ? '' : need('Choose how long. It is not counted until you do.')}
           ${radios('hd-' + mk, WORK_DEFAULT[a.id] ? 'Hours a day' : 'How long a day?', opts, a.mins)}</div>`;
       }
 
@@ -192,7 +195,7 @@
         else {
           const i = items.findIndex(a => a.id === id);
           if (i >= 0) items.splice(i, 1);
-          else items.push(SEC_OF[id].mode === 'weekly' ? { id, freq: 'weekly', mins: 30, perWeek: 3 } : { id, freq: 'daily', mins: WORK_DEFAULT[id] || 60 });
+          else items.push(SEC_OF[id].mode === 'weekly' ? { id, freq: 'weekly', mins: null, perWeek: null } : { id, freq: 'daily', mins: null });
         }
         renderSections('[data-kind="' + kind + '"][data-id="' + CSS.escape(id) + '"]');
       }
@@ -201,7 +204,7 @@
         const m = inp.name.match(/^(pw|ln|hd)-(.+)$/); if (!m) return;
         const a = items.find(x => x.id.replace(/\W/g, '') === m[2]); if (!a) return;
         if (m[1] === 'pw') a.perWeek = Number(inp.value); else a.mins = Number(inp.value);
-        updateSummary();
+        renderSections('#' + CSS.escape(inp.id));
       }
 
       function init() {
@@ -260,6 +263,8 @@
           }
           if (sleepH == null) return fail('Please choose how long you usually sleep.', document.querySelector('[data-kind="sleep"]'));
           if (!items.length) return fail('Please add at least one thing you do on a normal day, such as work, cooking or a walk.', document.querySelector('#rt-secs .browse-chip:not([data-kind=sleep])'));
+          const missing = items.filter(a => a.freq === 'weekly' ? !(a.perWeek && a.mins) : !a.mins);
+          if (missing.length) return fail('Please choose how long for: ' + missing.map(a => nameOf(a.id)).join(', ') + '.', document.querySelector('[data-need="1"] input'));
           const L = ledger();
           if (L.logged > 24.1) return fail(`You have described ${L.logged.toFixed(1)} hours in a day. Please shorten something so it fits in 24.`);
           msg.textContent = '';
