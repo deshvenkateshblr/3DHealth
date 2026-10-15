@@ -5,16 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <meta name="description" content="Tell KYH about a typical day: sleep, work, movement and exercise. Your estimated daily energy use is worked out as you go.">
       <title>Daily Routine — KYH</title>
-     <link rel="stylesheet" href="shared/styles.css?v=20261015-88da95c">
+     <link rel="stylesheet" href="shared/styles.css?v=20261015-df8d4da">
 <!-- share:start -->
-<link rel="icon" href="shared/assets/kyh_logo_final.png?v=20261015-88da95c">
+<link rel="icon" href="shared/assets/kyh_logo_final.png?v=20261015-df8d4da">
 <meta name="theme-color" content="#1f7a6d">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="KYH — Know Your Health">
 <meta property="og:title" content="Daily Routine — KYH">
 <meta property="og:description" content="Tell KYH about a typical day: sleep, work, movement and exercise. Your estimated daily energy use is worked out as you go.">
 <meta property="og:url" content="https://vividnova.com/3DHealth/routine.html">
-<meta property="og:image" content="https://vividnova.com/3DHealth/shared/assets/og-image.png?v=20261015-88da95c">
+<meta property="og:image" content="https://vividnova.com/3DHealth/shared/assets/og-image.png?v=20261015-df8d4da">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
@@ -30,8 +30,8 @@
 
     <footer id="app-footer"></footer>
 
-    <script src="shared/data.activities.js?v=20261015-88da95c"></script>
-    <script src="shared/utils.js?v=20261015-88da95c"></script>
+    <script src="shared/data.activities.js?v=20261015-df8d4da"></script>
+    <script src="shared/utils.js?v=20261015-df8d4da"></script>
     <script>
       const state = loadState();
       const profile = state.profile;
@@ -155,9 +155,15 @@
         document.getElementById('rt-sum').innerHTML = `
           <div class="stat-card hero"><div class="k">Est. Daily Energy Use</div><div class="v">~${L.burn.toLocaleString()}</div><div class="u">kcal / day</div></div>
           <div class="stat-card"><div class="k">Hours Described</div><div class="v"${over ? ' style="color:var(--rose)"' : ''}>${L.logged.toFixed(1)}</div><div class="u">out of 24 hrs</div></div>`;
-        const p = document.getElementById('rt-pill');
-        p.textContent = `${L.logged.toFixed(1)} / 24 hrs · ~${L.burn.toLocaleString()} kcal`;
-        p.classList.toggle('over', over);
+        const t = document.getElementById('rt-tally');
+        if (t) {
+          t.textContent = `${L.logged.toFixed(1)} / 24 hrs \u00b7 ~${L.burn.toLocaleString()} kcal`;
+          t.classList.toggle('over', over);
+        }
+        const nd = document.getElementById('rt-nudge');
+        if (nd) nd.textContent = L.logged > 0
+          ? `You have described ${L.logged.toFixed(1)} of 24 hours. Take a moment to check whether you would like to adjust any hours so they describe your typical day.`
+          : '';
         document.getElementById('rt-over').textContent = over ? `That adds up to more than 24 hours. Shorten something so the day fits.` : '';
         const tm = document.getElementById('time-msg'); if (tm && !over) tm.textContent = '';
       }
@@ -200,14 +206,15 @@
               <input type="number" id="hab-dinner" min="0" max="8" step="0.5" placeholder="hours"></div>
           </div>
           <div class="check-field" style="margin-bottom:12px;"><input type="checkbox" id="hab-post-meal"><label for="hab-post-meal">I usually walk 10+ minutes after my largest meal</label></div>
-          <div class="note-block teal" style="margin-bottom:28px;"><span class="k">Why these three</span> Steps, daylight, and meal timing affect recovery and glucose in ways an activity list does not capture.</div>
+          <div class="note-block teal" style="margin-bottom:28px;"><span class="k">Why these three</span> Steps, daylight, and meal timing affect recovery and glucose in ways an activity list does not capture.
+            <p id="rt-nudge" style="margin:10px 0 0;" aria-live="polite"></p></div>
 
           <div class="validation-msg alert-banner" id="time-msg" aria-live="polite"></div>
+          <div class="rt-tally-row"><span id="rt-tally"></span></div>
           <div class="page-footer-nav">
             <a href="#" id="back-btn" class="btn secondary">&larr; Back</a>
             <button type="button" class="btn" id="continue-btn">Get Movement Plan &rarr;</button>
           </div>`;
-        const pill = document.createElement('div'); pill.id = 'rt-pill'; pill.setAttribute('aria-hidden', 'true'); document.body.appendChild(pill);
         if (habits.steps != null) document.getElementById('hab-steps').value = habits.steps;
         if (habits.sun != null) document.getElementById('hab-sun').value = habits.sun;
         if (habits.dinner != null) document.getElementById('hab-dinner').value = habits.dinner;
