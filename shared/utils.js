@@ -577,19 +577,38 @@ function activityDailyKcal(activity, met, weightKg) {
   return activitySessionKcal(met, weightKg, activity && activity.hours, activity && activity.mins);
 }
 
-function estimateTdeeFromActivities(activities, weightKg, defs) {
+/** Resting energy per day (Mifflin-St Jeor), or 0 if the profile is incomplete. */
+function restingKcalPerDay(profile) {
+  const p = profile || {};
+  const kg = Number(p.weightKg) || 0, cm = Number(p.heightCm) || 0, age = Number(p.age) || 0;
+  if (!kg || !cm || !age) return 0;
+  return 10 * kg + 6.25 * cm - 5 * age + (p.sex === 'Female' ? -161 : 5);
+}
+
+/* Daily energy use from the day's activities.
+   Each activity's MET is a multiple of resting energy, so with a complete profile the
+   day is priced from the person's own resting energy: kcal = MET-hours x resting / 24.
+   (The flat 1.05 kcal/kg/h per MET assumes everyone rests at 3.5 ml/kg/min, which runs
+   about 15% high for a typical adult.) Without a full profile it falls back to that flat rate.
+   Time not described counts as light activity (REST_OF_DAY_MET). */
+function estimateTdeeFromActivities(activities, weightKg, defs, profile) {
   defs = defs || (typeof window !== 'undefined' && window.ACTIVITIES) || [];
-  let daily = 0, loggedH = 0;
-  (activities || []).forEach(sa => {
+  const list = activities || [];
+  let metHours = 0, loggedH = 0, flatKcal = 0;
+  list.forEach(sa => {
+    if (sa.freq && sa.freq !== 'daily') return;      // weekly extras are not in the daily figure
     const def = defs.find(a => a.id === sa.id);
     const met = def ? Number(def.met) : 1.5;
-    daily += activityDailyKcal(sa, met, weightKg);
-    if (!sa.freq || sa.freq === 'daily') loggedH += (Number(sa.hours) || 0) + (Number(sa.mins) || 0) / 60;
+    const h = (Number(sa.hours) || 0) + (Number(sa.mins) || 0) / 60;
+    metHours += met * h; loggedH += h;
+    flatKcal += activitySessionKcal(met, weightKg, sa.hours, sa.mins);
   });
-  // Time not described is counted as light activity (REST_OF_DAY_MET), so a day
-  // does not have to be accounted for hour by hour.
-  if ((activities || []).length && loggedH < 24) daily += activitySessionKcal(REST_OF_DAY_MET, weightKg, 24 - loggedH, 0);
-  return Math.round(daily);
+  if (list.length && loggedH < 24) {
+    metHours += REST_OF_DAY_MET * (24 - loggedH);
+    flatKcal += activitySessionKcal(REST_OF_DAY_MET, weightKg, 24 - loggedH, 0);
+  }
+  const rest = restingKcalPerDay(profile);
+  return Math.round(rest > 0 ? rest / 24 * metHours : flatKcal);
 }
 
 /** Daily fluid target (litres) from weight; small bump if burn is higher. */

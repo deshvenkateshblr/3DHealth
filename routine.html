@@ -5,16 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <meta name="description" content="Tell KYH about a typical day: sleep, work, movement and exercise. Your estimated daily energy use is worked out as you go.">
       <title>Daily Routine — KYH</title>
-     <link rel="stylesheet" href="shared/styles.css?v=20261015-df8d4da">
+     <link rel="stylesheet" href="shared/styles.css?v=20261015-cd0817c">
 <!-- share:start -->
-<link rel="icon" href="shared/assets/kyh_logo_final.png?v=20261015-df8d4da">
+<link rel="icon" href="shared/assets/kyh_logo_final.png?v=20261015-cd0817c">
 <meta name="theme-color" content="#1f7a6d">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="KYH — Know Your Health">
 <meta property="og:title" content="Daily Routine — KYH">
 <meta property="og:description" content="Tell KYH about a typical day: sleep, work, movement and exercise. Your estimated daily energy use is worked out as you go.">
 <meta property="og:url" content="https://vividnova.com/3DHealth/routine.html">
-<meta property="og:image" content="https://vividnova.com/3DHealth/shared/assets/og-image.png?v=20261015-df8d4da">
+<meta property="og:image" content="https://vividnova.com/3DHealth/shared/assets/og-image.png?v=20261015-cd0817c">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
@@ -30,8 +30,8 @@
 
     <footer id="app-footer"></footer>
 
-    <script src="shared/data.activities.js?v=20261015-df8d4da"></script>
-    <script src="shared/utils.js?v=20261015-df8d4da"></script>
+    <script src="shared/data.activities.js?v=20261015-cd0817c"></script>
+    <script src="shared/utils.js?v=20261015-cd0817c"></script>
     <script>
       const state = loadState();
       const profile = state.profile;
@@ -99,7 +99,7 @@
         if (sleepH) acts.push({ id: 'act_011', freq: 'daily', hours: Math.floor(sleepH), mins: 0 });
         daily.forEach(a => acts.push(Object.assign({ id: a.id, freq: 'daily' }, hhmm(a.mins))));
         const logged = (sleepH || 0) + daily.reduce((s, a) => s + a.mins / 60, 0);
-        return { logged, rest: Math.max(0, 24 - logged), acts, burn: acts.length ? estimateTdeeFromActivities(acts, weightKg) : 0 };
+        return { logged, rest: Math.max(0, 24 - logged), acts, burn: acts.length ? estimateTdeeFromActivities(acts, weightKg, undefined, profile) : 0 };
       }
 
       function readHabits() {
@@ -192,6 +192,7 @@
           <div class="section-head"><h2>Your typical day</h2></div>
           <p class="lede">Answer a few quick questions about a normal day. You do not need to add up to 24 hours: anything we do not ask about is counted as light time, like sitting, standing and moving about (about 1.5 METs).</p>
           <div class="stat-strip" id="rt-sum"></div>
+          <p class="rt-hint">Worked out from your age, height, weight and sex, scaled by how active each part of your day is. It is an estimate, not a measurement.</p>
           <p class="rt-hint" id="rt-over" style="color:var(--rose);" aria-live="polite"></p>
           <div id="rt-secs"></div>
 
@@ -206,7 +207,7 @@
               <input type="number" id="hab-dinner" min="0" max="8" step="0.5" placeholder="hours"></div>
           </div>
           <div class="check-field" style="margin-bottom:12px;"><input type="checkbox" id="hab-post-meal"><label for="hab-post-meal">I usually walk 10+ minutes after my largest meal</label></div>
-          <div class="note-block teal" style="margin-bottom:28px;"><span class="k">Why these three</span> Steps, daylight, and meal timing affect recovery and glucose in ways an activity list does not capture.
+          <div class="note-block teal" style="margin-bottom:28px;">Steps, daylight, and meal timing affect recovery and glucose in ways an activity list does not capture.
             <p id="rt-nudge" style="margin:10px 0 0;" aria-live="polite"></p></div>
 
           <div class="validation-msg alert-banner" id="time-msg" aria-live="polite"></div>

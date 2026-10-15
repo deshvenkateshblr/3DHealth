@@ -5,9 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="description" content="Review your personalized nutrition synthesis: macro and micronutrient targets, daily caloric balance, and food recommendations tailored to your routine.">
 <title>Synthesis — KYH</title>
-<link rel="stylesheet" href="shared/styles.css?v=20261015-df8d4da">
-<script src="shared/utils.js?v=20261015-df8d4da"></script>
-<script src="shared/data.diet.js?v=20261015-df8d4da"></script>
+<link rel="stylesheet" href="shared/styles.css?v=20261015-cd0817c">
+<script src="shared/utils.js?v=20261015-cd0817c"></script>
+<script src="shared/data.diet.js?v=20261015-cd0817c"></script>
 <style>
   /* Clean Accordion UI for Macros */
   details.macro-accordion {
@@ -89,14 +89,14 @@
   .balance-status.surplus { background: var(--rose-soft); color: var(--rose); }
 </style>
 <!-- share:start -->
-<link rel="icon" href="shared/assets/kyh_logo_final.png?v=20261015-df8d4da">
+<link rel="icon" href="shared/assets/kyh_logo_final.png?v=20261015-cd0817c">
 <meta name="theme-color" content="#1f7a6d">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="KYH — Know Your Health">
 <meta property="og:title" content="Synthesis — KYH">
 <meta property="og:description" content="Review your personalized nutrition synthesis: macro and micronutrient targets, daily caloric balance, and food recommendations tailored to your routine.">
 <meta property="og:url" content="https://vividnova.com/3DHealth/diet-synthesis.html">
-<meta property="og:image" content="https://vividnova.com/3DHealth/shared/assets/og-image.png?v=20261015-df8d4da">
+<meta property="og:image" content="https://vividnova.com/3DHealth/shared/assets/og-image.png?v=20261015-cd0817c">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
@@ -304,7 +304,7 @@ function factorLabel(f) {
     <div class="note-block" style="margin-bottom:24px; font-size:13px;">
         <span class="k">How intake is calculated</span>
         <p style="margin:8px 0 0 0; line-height:1.6;">
-            ${burnAssumed ? 'You have not confirmed your daily routine, so burn is assumed from your age, sex, height and weight for a lightly active day. Confirm your routine to make this personal.' : 'Estimated burn from your routine (METs × weight × time).'}
+            ${burnAssumed ? 'You have not confirmed your daily routine, so burn is assumed from your age, sex, height and weight for a lightly active day. Confirm your routine to make this personal.' : 'Estimated burn from your routine (your resting energy scaled by how active each part of your day is).'}
             Intake target = burn × <strong>${factor}</strong>
             (${factorLabel(factor)}), using BMI${(Number(profile.whtr) >= 0.5) ? ' and waist-to-height ratio' : ''}.
         </p>

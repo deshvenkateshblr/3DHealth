@@ -29,12 +29,12 @@ const KYH_BRAND_BLURB =
   };
 
   /** Prefer recomputing from the 24-hour ledger; else stored TDEE. Weekly extras are ignored here. */
-  function estimateDailyBurn(routine, weightKg) {
+  function estimateDailyBurn(routine, weightKg, profile) {
     if (!routine) return 0;
 
     const list = routine.activities || [];
     if (list.length && typeof estimateTdeeFromActivities === 'function') {
-      return estimateTdeeFromActivities(list, weightKg || 70);
+      return estimateTdeeFromActivities(list, weightKg || 70, undefined, profile);
     }
 
     const stored = Number(routine.estimatedCalories);
@@ -570,7 +570,7 @@ const KYH_BRAND_BLURB =
     };
 
     // ----- 1) Calorie burn -----
-    const burn = estimateDailyBurn(routine, profile && profile.weightKg);
+    const burn = estimateDailyBurn(routine, profile && profile.weightKg, profile);
     const band = burn ? activityBandFromBurn(burn) : null;
 
     if (burn && band && !assumedWeek) {
