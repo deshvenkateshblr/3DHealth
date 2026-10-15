@@ -5,16 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <meta name="description" content="Tell KYH about a typical day: sleep, work, movement and exercise. Your estimated daily energy use is worked out as you go.">
       <title>Daily Routine — KYH</title>
-     <link rel="stylesheet" href="shared/styles.css?v=20261015-370d515">
+     <link rel="stylesheet" href="shared/styles.css?v=20261015-1585175">
 <!-- share:start -->
-<link rel="icon" href="shared/assets/kyh_logo_final.png?v=20261015-370d515">
+<link rel="icon" href="shared/assets/kyh_logo_final.png?v=20261015-1585175">
 <meta name="theme-color" content="#1f7a6d">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="KYH — Know Your Health">
 <meta property="og:title" content="Daily Routine — KYH">
 <meta property="og:description" content="Tell KYH about a typical day: sleep, work, movement and exercise. Your estimated daily energy use is worked out as you go.">
 <meta property="og:url" content="https://vividnova.com/3DHealth/routine.html">
-<meta property="og:image" content="https://vividnova.com/3DHealth/shared/assets/og-image.png?v=20261015-370d515">
+<meta property="og:image" content="https://vividnova.com/3DHealth/shared/assets/og-image.png?v=20261015-1585175">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
@@ -30,8 +30,8 @@
 
     <footer id="app-footer"></footer>
 
-    <script src="shared/data.activities.js?v=20261015-370d515"></script>
-    <script src="shared/utils.js?v=20261015-370d515"></script>
+    <script src="shared/data.activities.js?v=20261015-1585175"></script>
+    <script src="shared/utils.js?v=20261015-1585175"></script>
     <script>
       const state = loadState();
       const profile = state.profile;
@@ -150,6 +150,26 @@
         updateSummary();
       }
 
+
+      /* Hours and kcal per part of the day, priced the same way as the total. */
+      function nudgeHtml(L) {
+        const rest = restingKcalPerDay(profile);
+        const kcalOf = (met, h) => rest > 0 ? rest / 24 * met * h : met * weightKg * h * MET_KCAL_FACTOR;
+        const groups = [['Sleep', null], ['Work and daytime', 'main'], ['At home and free time', 'home'], ['Getting around', 'travel'], ['Walking and moving about', 'walk']];
+        const rows = groups.map(([label, key]) => {
+          let h = 0, k = 0;
+          if (key === null) { h = sleepH || 0; k = kcalOf(0.9, h); }
+          else items.filter(a => a.freq === 'daily' && SEC_OF[a.id] && SEC_OF[a.id].key === key).forEach(a => { const hh = a.mins / 60; h += hh; k += kcalOf(defOf(a.id).met, hh); });
+          return { label, h, k: Math.round(k) };
+        }).filter(r => r.h > 0);
+        if (L.rest > 0.05) rows.push({ label: 'Not described (light activity)', h: L.rest, k: L.burn - rows.reduce((t, r) => t + r.k, 0) });
+        const fix = v => v.toFixed(1);
+        return `<span>You have described <strong>${fix(L.logged)} of 24 hours</strong>, which gives an estimated <strong>${L.burn.toLocaleString()} kcal</strong> a day. Take a moment to check whether you would like to adjust any hours so they describe your typical day.</span>
+          <table class="rt-table"><thead><tr><th scope="col">Part of your day</th><th scope="col">Hours</th><th scope="col">kcal</th></tr></thead><tbody>
+          ${rows.map(r => `<tr><td>${esc(r.label)}</td><td>${fix(r.h)}</td><td>${r.k.toLocaleString()}</td></tr>`).join('')}
+          <tr class="tot"><td>Total</td><td>${fix(Math.min(24, L.logged + L.rest))}</td><td>${L.burn.toLocaleString()}</td></tr></tbody></table>`;
+      }
+
       function updateSummary() {
         const L = ledger(), over = L.logged > 24.1;
         document.getElementById('rt-sum').innerHTML = `
@@ -161,10 +181,7 @@
           t.classList.toggle('over', over);
         }
         const nd = document.getElementById('rt-nudge');
-        if (nd) nd.textContent = L.logged > 0
-          ? `You have described ${L.logged.toFixed(1)} of 24 hours.` + (L.rest > 0.05 ? ` The other ${L.rest.toFixed(1)} hours are counted as light activity.` : '') +
-            ` Your estimated daily energy use is about ${L.burn.toLocaleString()} kcal. Take a moment to check whether you would like to adjust any hours so they describe your typical day.`
-          : '';
+        if (nd) nd.innerHTML = L.logged > 0 ? nudgeHtml(L) : '';
         document.getElementById('rt-over').textContent = over ? `That adds up to more than 24 hours. Shorten something so the day fits.` : '';
         const tm = document.getElementById('time-msg'); if (tm && !over) tm.textContent = '';
       }
