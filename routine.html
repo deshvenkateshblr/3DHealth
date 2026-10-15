@@ -5,16 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <meta name="description" content="Tell KYH about a typical day: sleep, work, movement and exercise. Your estimated daily energy use is worked out as you go.">
       <title>Daily Routine — KYH</title>
-     <link rel="stylesheet" href="shared/styles.css?v=20261015-1b0bfa6">
+     <link rel="stylesheet" href="shared/styles.css?v=20261015-88da95c">
 <!-- share:start -->
-<link rel="icon" href="shared/assets/kyh_logo_final.png?v=20261015-1b0bfa6">
+<link rel="icon" href="shared/assets/kyh_logo_final.png?v=20261015-88da95c">
 <meta name="theme-color" content="#1f7a6d">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="KYH — Know Your Health">
 <meta property="og:title" content="Daily Routine — KYH">
 <meta property="og:description" content="Tell KYH about a typical day: sleep, work, movement and exercise. Your estimated daily energy use is worked out as you go.">
 <meta property="og:url" content="https://vividnova.com/3DHealth/routine.html">
-<meta property="og:image" content="https://vividnova.com/3DHealth/shared/assets/og-image.png?v=20261015-1b0bfa6">
+<meta property="og:image" content="https://vividnova.com/3DHealth/shared/assets/og-image.png?v=20261015-88da95c">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
@@ -30,8 +30,8 @@
 
     <footer id="app-footer"></footer>
 
-    <script src="shared/data.activities.js?v=20261015-1b0bfa6"></script>
-    <script src="shared/utils.js?v=20261015-1b0bfa6"></script>
+    <script src="shared/data.activities.js?v=20261015-88da95c"></script>
+    <script src="shared/utils.js?v=20261015-88da95c"></script>
     <script>
       const state = loadState();
       const profile = state.profile;
@@ -45,17 +45,12 @@
 
       /* Each question groups activities of a similar kind and effort. "daily" sections ask
          how long a day; "weekly" sections ask days a week and how long each time. */
-      const MAIN = [
-        { k: 'desk',   t: 'Desk, computer or study',                          id: 'act_015' },
-        { k: 'feet',   t: 'On my feet: teaching, retail, nursing, kitchen',   id: 'act_027' },
-        { k: 'manual', t: 'Physical work: construction, farming, delivery',   id: 'act_028' },
-        { k: 'home',   t: 'Looking after home or family',                     id: 'act_023' },
-        { k: 'none',   t: 'Not working right now',                            id: null }
-      ];
-      const LABEL = { act_013: 'Bus, train or passenger', act_014: 'Driving', act_022: 'Standing (at a desk or on the move)', act_012: 'Watching TV or lying down', act_017: 'Sitting and relaxing', act_501: 'Wheelchair (manual)' };
+      const WORK_IDS = ['act_015', 'act_027', 'act_028', 'act_023'];
+      const LABEL = { act_015: 'Desk, computer or study', act_027: 'On my feet: teaching, retail, nursing, kitchen', act_028: 'Physical work: construction, farming, delivery', act_023: 'Looking after children or family', act_013: 'Bus, train or passenger', act_014: 'Driving', act_022: 'Standing (at a desk or on the move)', act_012: 'Watching TV or lying down', act_017: 'Sitting and relaxing', act_501: 'Wheelchair (manual)' };
       const SECTIONS = [
-        { key: 'travel', title: 'Getting around', q: 'Do you spend time travelling on a normal day?', hint: 'If you walk to work or school, add it under Walking below.', mode: 'daily', ids: ['act_014', 'act_013'] },
+        { key: 'main',   title: 'Your work and daytime', q: 'What takes up your day? Choose all that apply.', mode: 'daily', ids: WORK_IDS },
         { key: 'home',   title: 'At home and free time', q: 'Which of these do you do on most days?', mode: 'daily', ids: ['act_002', 'act_016', 'act_004', 'act_005', 'act_012', 'act_017', 'act_018', 'act_212'] },
+        { key: 'travel', title: 'Getting around', q: 'Do you spend time travelling on a normal day?', hint: 'If you walk to work or school, add it under Walking below.', mode: 'daily', ids: ['act_014', 'act_013'] },
         { key: 'walk',   title: 'Walking and moving about', q: 'Do you walk or stay on your feet outside work?', mode: 'daily', ids: ['act_101', 'act_102', 'act_103', 'act_025', 'act_026', 'act_022', 'act_501'] },
         { key: 'mind',   title: 'Mind and body', q: 'Do you practise any of these?', mode: 'weekly', ids: ['act_211', 'act_203', 'act_208', 'act_210', 'act_209'] },
         { key: 'gym',    title: 'Gym and fitness', q: 'Do you do any of these?', mode: 'weekly', ids: catIds('Gym & Vigorous') },
@@ -63,17 +58,17 @@
           note: 'Practice, gym and sport are counted per week and shown to your doctor. They are not part of the daily energy figure above.' }
       ];
       const SEC_OF = {}; SECTIONS.forEach(s => s.ids.forEach(id => SEC_OF[id] = s));
-      const MAIN_OF = {}; MAIN.forEach(m => { if (m.id) MAIN_OF[m.id] = m; });
 
       const DAILY_OPTS = [[15,'15 min'],[30,'30 min'],[45,'45 min'],[60,'1 h'],[90,'1.5 h'],[120,'2 h'],[180,'3 h']];
       const WORK_OPTS  = [[120,'2 h'],[240,'4 h'],[360,'6 h'],[480,'8 h'],[600,'10 h'],[720,'12 h']];
+      const CARE_OPTS  = [[60,'1 h'],[120,'2 h'],[180,'3 h'],[240,'4 h'],[360,'6 h'],[480,'8 h']];
+      const WORK_DEFAULT = { act_015: 480, act_027: 480, act_028: 480, act_023: 120 };
       const EACH_OPTS  = [[15,'15 min'],[30,'30 min'],[45,'45 min'],[60,'1 h'],[90,'1.5 h'],[120,'2 h']];
       const DAYS_OPTS  = [1,2,3,4,5,6,7].map(n => [n, String(n)]);
       const SLEEP_OPTS = [4,5,6,7,8,9,10];
 
       // Nothing is pre-filled: only what the person chooses.
       let sleepH = null;
-      let mainKey = null;
       let items = [];            // { id, freq, mins (per day or per session), perWeek? }
       let habits = {};
 
@@ -92,12 +87,10 @@
           const m = (Number(a.hours) || 0) * 60 + (Number(a.mins) || 0);
           if (a.id === 'act_011') { sleepH = m / 60 || null; return; }
           const sec = SEC_OF[a.id];
-          if (MAIN_OF[a.id]) { items.push({ id: a.id, freq: 'daily', mins: m }); return; }
           if (!sec) return;
           if (sec.mode === 'weekly') items.push({ id: a.id, freq: 'weekly', mins: m || 30, perWeek: a.freq === 'weekly' ? (Number(a.perWeek) || 3) : 7 });
           else items.push({ id: a.id, freq: 'daily', mins: m });
         });
-        mainKey = r.mainDay || (items.find(a => MAIN_OF[a.id]) ? MAIN_OF[items.find(a => MAIN_OF[a.id]).id].k : (r.activities.length ? 'none' : null));
       }
 
       function ledger() {
@@ -119,7 +112,7 @@
         const L = ledger();
         const weekly = items.filter(a => a.freq === 'weekly').map(a => Object.assign({ id: a.id, freq: 'weekly', perWeek: a.perWeek || 3 }, hhmm(a.mins)));
         return Object.assign({}, state.routine || {}, {
-          activities: L.acts.concat(weekly), activitiesConfirmed: true, mainDay: mainKey,
+          activities: L.acts.concat(weekly), activitiesConfirmed: true,
           estimatedCalories: L.burn, unloggedHours: Math.round(L.rest * 4) / 4, habits: readHabits()
         });
       }
@@ -137,26 +130,22 @@
         const d = defOf(a.id), mk = a.id.replace(/\W/g, '');
         if (sec && sec.mode === 'weekly') return `<div class="test-card"><div class="name">${esc(nameOf(a.id))}</div><div class="symptom">${d.met.toFixed(1)} METs</div>
           ${radios('pw-' + mk, 'Days a week', DAYS_OPTS, a.perWeek || 3)}${radios('ln-' + mk, 'Each time', EACH_OPTS, a.mins)}</div>`;
-        const opts = MAIN_OF[a.id] ? WORK_OPTS : DAILY_OPTS;
+        const opts = a.id === 'act_023' ? CARE_OPTS : WORK_DEFAULT[a.id] ? WORK_OPTS : DAILY_OPTS;
         return `<div class="test-card"><div class="name">${esc(nameOf(a.id))}</div><div class="symptom">${d.met.toFixed(1)} METs</div>
-          ${radios('hd-' + mk, MAIN_OF[a.id] ? 'Hours a day' : 'How long a day?', opts, a.mins)}</div>`;
+          ${radios('hd-' + mk, WORK_DEFAULT[a.id] ? 'Hours a day' : 'How long a day?', opts, a.mins)}</div>`;
       }
 
       function renderSections(focusSel) {
         const sleep = `<div class="cat-title">Sleep</div>
           <p class="lede" style="font-size:15px;margin-bottom:12px;">How many hours do you usually sleep?</p>
           <div class="browse-grid" role="group" aria-label="Hours of sleep">${SLEEP_OPTS.map(h => chip('sleep-' + h, h + ' h', sleepH === h, 'sleep')).join('')}</div>`;
-        const mainHtml = `<div class="cat-title">Your main work or daytime</div>
-          <p class="lede" style="font-size:15px;margin-bottom:12px;">Which fits most of your day best?</p>
-          <div class="browse-grid" role="group" aria-label="Main work or daytime">${MAIN.map(m => chip('main-' + m.k, m.t, mainKey === m.k, 'main')).join('')}</div>
-          ${MAIN.map(m => (m.id && mainKey === m.k && find(m.id)) ? detailCard(find(m.id), null) : '').join('')}`;
         const secs = SECTIONS.map(sec => `<div class="cat-title">${esc(sec.title)}</div>
           <p class="lede" style="font-size:15px;margin-bottom:12px;">${esc(sec.q)}</p>
           ${sec.hint ? `<p class="rt-hint" style="margin-top:-6px;margin-bottom:12px;">${esc(sec.hint)}</p>` : ''}
           <div class="browse-grid" role="group" aria-label="${esc(sec.title)}">${sec.ids.map(id => chip(id, nameOf(id), !!find(id), 'act')).join('')}</div>
           ${items.filter(a => SEC_OF[a.id] === sec).map(a => detailCard(a, sec)).join('')}
           ${sec.note && items.some(a => a.freq === 'weekly') ? `<p class="rt-hint">${esc(sec.note)}</p>` : ''}`).join('');
-        document.getElementById('rt-secs').innerHTML = sleep + mainHtml + secs;
+        document.getElementById('rt-secs').innerHTML = sleep + secs;
         if (focusSel) { const el = document.querySelector(focusSel); if (el) el.focus(); }
         updateSummary();
       }
@@ -176,16 +165,10 @@
       function onChip(btn) {
         const kind = btn.dataset.kind, id = btn.dataset.id;
         if (kind === 'sleep') sleepH = sleepH === Number(id.slice(6)) ? null : Number(id.slice(6));
-        else if (kind === 'main') {
-          const k = id.slice(5);
-          items = items.filter(a => !MAIN_OF[a.id]);
-          mainKey = mainKey === k ? null : k;
-          const m = MAIN.find(x => x.k === mainKey);
-          if (m && m.id) items.unshift({ id: m.id, freq: 'daily', mins: 480 });
-        } else {
+        else {
           const i = items.findIndex(a => a.id === id);
           if (i >= 0) items.splice(i, 1);
-          else items.push(SEC_OF[id].mode === 'weekly' ? { id, freq: 'weekly', mins: 30, perWeek: 3 } : { id, freq: 'daily', mins: 60 });
+          else items.push(SEC_OF[id].mode === 'weekly' ? { id, freq: 'weekly', mins: 30, perWeek: 3 } : { id, freq: 'daily', mins: WORK_DEFAULT[id] || 60 });
         }
         renderSections('[data-kind="' + kind + '"][data-id="' + CSS.escape(id) + '"]');
       }
@@ -250,7 +233,7 @@
             if (isNaN(v) || v < min || v > max) return fail(`${label} looks out of range. Please enter a value between ${min} and ${max}.`, el);
           }
           if (sleepH == null) return fail('Please choose how long you usually sleep.', document.querySelector('[data-kind="sleep"]'));
-          if (mainKey == null) return fail('Please choose what fits most of your day, or "Not working right now".', document.querySelector('[data-kind="main"]'));
+          if (!items.length) return fail('Please add at least one thing you do on a normal day, such as work, cooking or a walk.', document.querySelector('#rt-secs .browse-chip:not([data-kind=sleep])'));
           const L = ledger();
           if (L.logged > 24.1) return fail(`You have described ${L.logged.toFixed(1)} hours in a day. Please shorten something so it fits in 24.`);
           msg.textContent = '';
