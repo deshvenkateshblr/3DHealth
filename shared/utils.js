@@ -628,6 +628,18 @@ function intakeFactorFromBody(profile) {
   return factor;
 }
 
+/* Daily burn to use for diet targets. If the person has not confirmed their routine
+   (placeholder data, or no routine at all) the number comes from age, sex, height and
+   weight (Mifflin-St Jeor x 1.4, a light-activity day) and is flagged as assumed. */
+function resolveDailyBurn(routine, profile) {
+  const r = routine || {}, p = profile || {};
+  const saved = Number(r.estimatedCalories) || 0;
+  if (saved > 0 && r.activitiesConfirmed !== false) return { burn: Math.round(saved), assumed: false };
+  const kg = Number(p.weightKg) || 70, cm = Number(p.heightCm) || 168, age = Number(p.age) || 35;
+  const bmr = 10 * kg + 6.25 * cm - 5 * age + (p.sex === 'Female' ? -161 : 5);
+  return { burn: Math.round(bmr * 1.4 / 10) * 10, assumed: true };
+}
+
 function estimateTargetCalories(estimatedCalories, profile) {
   const burn = Number(estimatedCalories) || 2200;
   const factor = intakeFactorFromBody(profile);

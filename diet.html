@@ -5,16 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Audit your nutrient intake and food frequency based on your diet style, cuisine, and symptoms to uncover dietary gaps and priorities in KYH.">
   <title>Diet — KYH</title>
-  <link rel="stylesheet" href="shared/styles.css?v=20261014-43bef03">
+  <link rel="stylesheet" href="shared/styles.css?v=20261015-7198c45">
 <!-- share:start -->
-<link rel="icon" href="shared/assets/kyh_logo_final.png?v=20261014-43bef03">
+<link rel="icon" href="shared/assets/kyh_logo_final.png?v=20261015-7198c45">
 <meta name="theme-color" content="#1f7a6d">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="KYH — Know Your Health">
 <meta property="og:title" content="Diet — KYH">
 <meta property="og:description" content="Audit your nutrient intake and food frequency based on your diet style, cuisine, and symptoms to uncover dietary gaps and priorities in KYH.">
 <meta property="og:url" content="https://vividnova.com/3DHealth/diet.html">
-<meta property="og:image" content="https://vividnova.com/3DHealth/shared/assets/og-image.png?v=20261014-43bef03">
+<meta property="og:image" content="https://vividnova.com/3DHealth/shared/assets/og-image.png?v=20261015-7198c45">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
@@ -30,8 +30,8 @@
 
 <footer id="app-footer"></footer>
 
-<script src="shared/utils.js?v=20261014-43bef03"></script>
-<script src="shared/data.diet.js?v=20261014-43bef03"></script>
+<script src="shared/utils.js?v=20261015-7198c45"></script>
+<script src="shared/data.diet.js?v=20261015-7198c45"></script>
 <script>
 const state   = loadState() || {};
 const profile = state.profile || {};
@@ -197,14 +197,16 @@ function renderPage() {
   updateCounter();
 
   function proceedToNext() {
-    const estBurn = Number(routine.estimatedCalories) || 2200;
+    const rb = resolveDailyBurn(routine, profile);
+    const estBurn = rb.burn;
     const { cal: targetCal, factor } = estimateTargetCalories(estBurn, profile);
     const waterL = estimateWaterLiters(profile, estBurn);
     dietState.target = {
       cal: targetCal,
       waterL: waterL,
       factor: factor,
-      note: `Burn ~${estBurn.toLocaleString()} kcal \u00d7 ${factor} (body-composition adjusted)`
+      note: `Burn ~${estBurn.toLocaleString()} kcal${rb.assumed ? ' (assumed, routine not confirmed)' : ''} \u00d7 ${factor} (body-composition adjusted)`,
+      burnAssumed: rb.assumed
     };
     dietState.priorities = (window.NUTRIENTS || [])
       .map(n => ({ ...n, ...scoreNutrient(n) }))
@@ -319,7 +321,7 @@ function renderNutrients() {
   const list = document.getElementById("nutrient-list");
   if (!list) return;
 
-  const estBurn = Number(routine.estimatedCalories) || 0;
+  const estBurn = resolveDailyBurn(routine, profile).burn;
 
   const ranked = (window.NUTRIENTS || [])
     .map(n => ({ ...n, ...scoreNutrient(n) }))

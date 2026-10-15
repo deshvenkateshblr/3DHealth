@@ -222,7 +222,7 @@
 
     const t = diet.target || {};
     const cal = t.cal != null ? parseInt(t.cal, 10) : null;
-    const burn = Number(routine.estimatedCalories) || 0;
+    const burn = routine.activitiesConfirmed === false ? 0 : (Number(routine.estimatedCalories) || 0);
 
     const type = diet.type || profile.dietType || '';
     const cuisine = diet.cuisine || profile.cuisine || '';
