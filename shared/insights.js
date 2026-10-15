@@ -573,32 +573,16 @@ const KYH_BRAND_BLURB =
 
     // ----- 1) Calorie burn -----
     const burn = estimateDailyBurn(routine, profile && profile.weightKg, profile);
-    const band = burn ? activityBandFromBurn(burn) : null;
-    const BAND_LO = typeof BURN_LOW_KCAL !== 'undefined' ? BURN_LOW_KCAL : 1800;
-    const BAND_HI = typeof BURN_HIGH_KCAL !== 'undefined' ? BURN_HIGH_KCAL : 2400;
 
-    if (burn && band && !assumedWeek) {
-      let tone = 'good';
-      let title = 'Estimated daily burn is in a typical adult range';
-      let next = 'Match food intake to hunger and your diet targets rather than chasing burn precisely.';
-      if (band.id === 'Sedentary') {
-        tone = 'watch';
-        title = 'Estimated daily burn is on the low side';
-        next = 'Add walking and light strength — small daily movement raises burn more sustainably than rare hard sessions.';
-      } else if (band.id === 'Active') {
-        tone = 'good';
-        title = 'Estimated daily burn is higher than average';
-        next = 'Fuel active days adequately; still limit sugary drinks if waist or metabolic risk is a concern.';
-      }
+    // Neutral, informational only: no band judgement, no thresholds, no nudge.
+    // Movement advice comes from the hours-based sleep/sitting/movement insights below.
+    if (burn && !assumedWeek) {
       out.push(insight({
-        id: 'calorie-burn', domain: 'routine', tone,
-        priority: band.id === 'Sedentary' ? 10 : 16,
-        title,
-        detail:
-          `From your activity log, age and body size: ~${burn.toLocaleString()} kcal/day. ` +
-          `In this summary, under ${BAND_LO.toLocaleString()} kcal reads as lower than average, ${BAND_LO.toLocaleString()}\u2013${BAND_HI.toLocaleString()} as typical, and above that as higher than average. ` +
-          `These are rule-of-thumb figures for an average adult, not a personal target.`,
-        next,
+        id: 'calorie-burn', domain: 'routine', tone: 'good',
+        priority: 16,
+        title: 'Your estimated daily energy use',
+        detail: `Roughly ~${burn.toLocaleString()} kcal a day, based on your routine, age and body size. This is an estimate, not a target.`,
+        next: '',
         sources: ['routine.estimatedCalories', 'routine.activities', 'weightKg']
       }));
     }
