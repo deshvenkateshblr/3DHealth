@@ -5,7 +5,7 @@ KYH is a browser-only, privacy-first self-assessment app. Users move through a g
 ## User flow
 
 ```
-index → about → profile → symptoms → diagnostics → routine → routine-config → routine-plan → diet → diet-synthesis → summary → nextsteps
+index → about → profile → symptoms → diagnostics → routine → routine-plan → diet → diet-synthesis → summary → nextsteps
                    └──(pregnancy / special-care)──→ not-ready
 ```
 
@@ -19,8 +19,8 @@ index → about → profile → symptoms → diagnostics → routine → routine
 | 4 | `not-ready.html` | Safety exit | Shown for pregnancy or other special-care status. Pauses the flow and points to a clinician. Link back to profile. |
 | 5 | `symptoms.html` | Fine | Searchable, categorised symptom and known-condition picker, plus optional vitals (fasting glucose, resting heart rate). Shapes every later recommendation. |
 | 6 | `diagnostics.html` | Diagnostics | Ranked **top 10 lab tests** for the person's age, sex, risk profile and symptoms. Per-test last-done recency and optional self-reported result (within range / flagged / not sure). |
-| 7 | `routine.html` | Routine (1/2) | Select the activities done in a typical week from a MET-based activity database, pre-filled with a baseline. |
-| 8 | `routine-config.html` | Routine (2/2) | Set frequency and duration per activity (24-hour ledger), steps per day, daylight outdoors, dinner-to-sleep gap, post-meal walk. Estimates daily energy use (TDEE). |
+| 7 | `routine.html` | Routine | One-page day builder: sleep first, then add activities through an overlay picker (search and categories), with steppers, a 24-hour bar and an assumed light-activity remainder. Exercise is captured as days a week × minutes. Also steps, daylight, dinner-to-sleep gap, post-meal walk. Estimates daily energy use (TDEE). Nothing is pre-filled. |
+| – | `routine-config.html` | (redirect) | Old second step; forwards to `routine.html` so existing links still work. |
 | 9 | `routine-plan.html` | Routine | Ranked **top 10 exercises** tailored to symptoms, body profile and schedule, with safety tips. |
 | 10 | `diet.html` | Diet | Food-quality frequency matrix and nutrient-by-nutrient questions. Ranks nutrient priorities, with a soft gate for unanswered items. |
 | 11 | `diet-synthesis.html` | Diet | Synthesises answers into diet priorities, target calories, protein, fibre and water. |

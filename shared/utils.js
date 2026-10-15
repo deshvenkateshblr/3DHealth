@@ -564,6 +564,7 @@ function renderFooter() {
 /* Compendium of Physical Activities:
    kcal = MET × 3.5 × kg × min / 200  ≡  MET × kg × hours × 1.05 */
 const MET_KCAL_FACTOR = 1.05;
+const REST_OF_DAY_MET = 1.5; // assumed for any time of the day the person did not describe
 
 function activitySessionKcal(met, weightKg, hours, mins) {
   const durationHours = (Number(hours) || 0) + ((Number(mins) || 0) / 60);
@@ -578,12 +579,16 @@ function activityDailyKcal(activity, met, weightKg) {
 
 function estimateTdeeFromActivities(activities, weightKg, defs) {
   defs = defs || (typeof window !== 'undefined' && window.ACTIVITIES) || [];
-  let daily = 0;
+  let daily = 0, loggedH = 0;
   (activities || []).forEach(sa => {
     const def = defs.find(a => a.id === sa.id);
     const met = def ? Number(def.met) : 1.5;
     daily += activityDailyKcal(sa, met, weightKg);
+    if (!sa.freq || sa.freq === 'daily') loggedH += (Number(sa.hours) || 0) + (Number(sa.mins) || 0) / 60;
   });
+  // Time not described is counted as light activity (REST_OF_DAY_MET), so a day
+  // does not have to be accounted for hour by hour.
+  if ((activities || []).length && loggedH < 24) daily += activitySessionKcal(REST_OF_DAY_MET, weightKg, 24 - loggedH, 0);
   return Math.round(daily);
 }
 

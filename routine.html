@@ -3,18 +3,18 @@
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <meta name="description" content="Select and track your typical daily and weekly activities to calculate true energy expenditure and build a personalized routine in KYH.">
-      <title>Routine Selection — KYH</title>
-     <link rel="stylesheet" href="shared/styles.css?v=20261015-7076242">
+      <meta name="description" content="Tell KYH about a typical day: sleep, work, movement and exercise. Your estimated daily energy use is worked out as you go.">
+      <title>Daily Routine — KYH</title>
+     <link rel="stylesheet" href="shared/styles.css?v=20261015-2c58100">
 <!-- share:start -->
-<link rel="icon" href="shared/assets/kyh_logo_final.png?v=20261015-7076242">
+<link rel="icon" href="shared/assets/kyh_logo_final.png?v=20261015-2c58100">
 <meta name="theme-color" content="#1f7a6d">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="KYH — Know Your Health">
-<meta property="og:title" content="Routine Selection — KYH">
-<meta property="og:description" content="Select and track your typical daily and weekly activities to calculate true energy expenditure and build a personalized routine in KYH.">
+<meta property="og:title" content="Daily Routine — KYH">
+<meta property="og:description" content="Tell KYH about a typical day: sleep, work, movement and exercise. Your estimated daily energy use is worked out as you go.">
 <meta property="og:url" content="https://vividnova.com/3DHealth/routine.html">
-<meta property="og:image" content="https://vividnova.com/3DHealth/shared/assets/og-image.png?v=20261015-7076242">
+<meta property="og:image" content="https://vividnova.com/3DHealth/shared/assets/og-image.png?v=20261015-2c58100">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
@@ -30,331 +30,292 @@
 
     <footer id="app-footer"></footer>
 
-    <script src="shared/data.activities.js?v=20261015-7076242"></script>
-    <script src="shared/utils.js?v=20261015-7076242"></script>
+    <dialog id="rt-picker" class="rt-sheet" aria-labelledby="rt-picker-title">
+      <div class="rt-sheet-head">
+        <h2 id="rt-picker-title">Add activities</h2>
+        <button type="button" class="rt-x" id="rt-picker-close" aria-label="Close">&times;</button>
+      </div>
+      <div class="rt-sheet-tools">
+        <input type="text" id="rt-search" class="field" placeholder="Search, e.g. walking, yoga, cricket" autocomplete="off" aria-label="Search activities">
+        <div class="rt-tabs" id="rt-tabs" role="group" aria-label="Activity categories"></div>
+      </div>
+      <div class="rt-sheet-list" id="rt-list"></div>
+      <div class="rt-sheet-foot">
+        <span id="rt-count" aria-live="polite"></span>
+        <button type="button" class="btn" id="rt-done">Done</button>
+      </div>
+    </dialog>
+
+    <script src="shared/data.activities.js?v=20261015-2c58100"></script>
+    <script src="shared/utils.js?v=20261015-2c58100"></script>
     <script>
       const state = loadState();
       const profile = state.profile;
       const main = document.getElementById('main-content');
-
       renderHeader('routine', 'KYH-Daily Routine');
-      renderFooter()
+      renderFooter();
 
-      const categories = [...new Set(window.ACTIVITIES.map(a => a.category))];
-      let searchQuery = '';
-      let selectedActivities = [];
-      // False while the list is still the pre-filled placeholder week.
-      let confirmedByUser = false;
+      const weightKg = Number(profile && profile.weightKg) || 70;
+      const EXERCISE_CATS = ['Sports & Agility', 'Gym & Vigorous'];
+      const COMMON_IDS = ['act_015','act_022','act_014','act_002','act_016','act_012','act_017','act_018','act_102','act_103','act_208','act_307'];
+      const CATS = [...new Set(window.ACTIVITIES.map(a => a.category))];
+      const defOf = id => window.ACTIVITIES.find(a => a.id === id);
+      const isExercise = id => { const d = defOf(id); return !!d && EXERCISE_CATS.includes(d.category); };
 
+      // Nothing is pre-filled: the person's own entries only.
+      let sleepH = null;            // hours, or null until chosen
+      let items = [];               // { id, freq:'daily'|'weekly', hours, mins, perWeek? }
+      let habits = {};
+
+      const hrsOf = a => (Number(a.hours) || 0) + (Number(a.mins) || 0) / 60;
+      function setHrs(a, h) { h = Math.round(h * 4) / 4; a.hours = Math.floor(h); a.mins = Math.round((h - Math.floor(h)) * 60); }
+      function fmtH(h) {
+        const t = Math.round(h * 60), hh = Math.floor(t / 60), mm = t % 60;
+        return hh && mm ? hh + ' h ' + mm + ' m' : hh ? hh + ' h' : mm + ' m';
+      }
+
+      function restore() {
+        const r = state.routine;
+        habits = (r && r.habits) || {};
+        // An old pre-filled placeholder week is not the person's data: start empty.
+        if (!r || !Array.isArray(r.activities) || r.activitiesConfirmed === false) return;
+        r.activities.forEach(a => {
+          if (!defOf(a.id)) return;
+          if (a.id === 'act_011') { sleepH = hrsOf(a) || null; return; }
+          const weekly = a.freq === 'weekly' || isExercise(a.id);
+          const it = { id: a.id, freq: weekly ? 'weekly' : 'daily', hours: a.hours || 0, mins: a.mins || 0 };
+          if (weekly) { it.perWeek = Number(a.perWeek) || 3; if (!hrsOf(it)) setHrs(it, 0.5); }
+          items.push(it);
+        });
+      }
+
+      /* Everything counted for the day: sleep + daily activities. The rest is assumed light. */
+      function ledger() {
+        const daily = items.filter(a => a.freq === 'daily');
+        const logged = (sleepH || 0) + daily.reduce((s, a) => s + hrsOf(a), 0);
+        const acts = [];
+        if (sleepH) acts.push({ id: 'act_011', freq: 'daily', hours: Math.floor(sleepH), mins: Math.round((sleepH % 1) * 60) });
+        daily.forEach(a => acts.push({ id: a.id, freq: 'daily', hours: a.hours, mins: a.mins }));
+        return { logged, rest: Math.max(0, 24 - logged), acts, burn: estimateTdeeFromActivities(acts, weightKg) };
+      }
+
+      function buildRoutine() {
+        const L = ledger();
+        const weekly = items.filter(a => a.freq === 'weekly').map(a => ({ id: a.id, freq: 'weekly', hours: a.hours, mins: a.mins, perWeek: a.perWeek || 3 }));
+        const prev = state.routine || {};
+        return Object.assign({}, prev, {
+          activities: L.acts.concat(weekly),
+          activitiesConfirmed: true,
+          estimatedCalories: L.burn,
+          unloggedHours: Math.round(L.rest * 4) / 4,
+          habits: readHabits()
+        });
+      }
+
+      function readHabits() {
+        const num = id => { const el = document.getElementById(id); const v = el ? parseFloat(el.value) : NaN; return isNaN(v) ? null : v; };
+        const pm = document.getElementById('hab-post-meal');
+        return pm ? { steps: num('hab-steps'), sun: num('hab-sun'), dinner: num('hab-dinner'), postMealWalk: pm.checked === true } : habits;
+      }
+
+      function stepper(key, label, valueText, canDec, canInc) {
+        return `<div class="rt-step" role="group" aria-label="${esc(label)}">
+          <button type="button" class="rt-btn" data-act="dec" data-key="${esc(key)}-dec" data-k="${esc(key)}" aria-label="Less ${esc(label)}"${canDec ? '' : ' disabled'}>&minus;</button>
+          <output class="rt-val" aria-live="polite">${esc(valueText)}</output>
+          <button type="button" class="rt-btn" data-act="inc" data-key="${esc(key)}-inc" data-k="${esc(key)}" aria-label="More ${esc(label)}"${canInc ? '' : ' disabled'}>+</button>
+        </div>`;
+      }
+
+      function sleepHtml() {
+        if (sleepH == null) {
+          return `<div class="rt-row"><div class="rt-name">How long do you usually sleep?</div>
+            <div class="rt-chips" role="group" aria-label="Hours of sleep">${[5,6,7,8,9].map(h => `<button type="button" class="rt-chip" data-act="sleep" data-h="${h}">${h} h</button>`).join('')}</div></div>`;
+        }
+        return `<div class="rt-row"><div class="rt-name">Sleep</div>${stepper('sleep', 'sleep', fmtH(sleepH), sleepH > 0.25, sleepH < 14)}</div>`;
+      }
+
+      function dailyRowsHtml() {
+        const rows = items.filter(a => a.freq === 'daily');
+        if (!rows.length) return `<p class="rt-empty">Nothing added yet. Add what you do on a normal day, such as work, travel, cooking or a walk.</p>`;
+        return rows.map(a => { const d = defOf(a.id), h = hrsOf(a);
+          return `<div class="rt-row"><div><div class="rt-name">${esc(d.name)}</div><div class="rt-sub">${esc(d.category)}</div></div>
+            ${stepper(a.id, d.name, fmtH(h), h > 0.25, h < 24)}
+            <button type="button" class="rt-rm" data-act="rm" data-id="${esc(a.id)}" aria-label="Remove ${esc(d.name)}">Remove</button></div>`; }).join('');
+      }
+
+      function weeklyRowsHtml() {
+        const rows = items.filter(a => a.freq === 'weekly');
+        if (!rows.length) return `<p class="rt-empty">No exercise or sport added. Add anything you do regularly, even once a week.</p>`;
+        return rows.map(a => { const d = defOf(a.id), h = hrsOf(a);
+          return `<div class="rt-row rt-row-wk"><div><div class="rt-name">${esc(d.name)}</div><div class="rt-sub">${a.perWeek || 3} &times; ${esc(fmtH(h))} a week</div></div>
+            <div class="rt-pair"><span class="rt-lbl">Days a week</span>${stepper(a.id + ':pw', d.name + ' days a week', String(a.perWeek || 3), (a.perWeek || 3) > 1, (a.perWeek || 3) < 7)}</div>
+            <div class="rt-pair"><span class="rt-lbl">Each time</span>${stepper(a.id + ':len', d.name + ' minutes each time', fmtH(h), h > 0.25, h < 4)}</div>
+            <button type="button" class="rt-rm" data-act="rm" data-id="${esc(a.id)}" aria-label="Remove ${esc(d.name)}">Remove</button></div>`; }).join('');
+      }
+
+      function barHtml(L) {
+        const other = Math.max(0, L.logged - (sleepH || 0));
+        const pct = h => Math.min(100, Math.max(0, h / 24 * 100)).toFixed(2) + '%';
+        const over = L.logged > 24.1;
+        return `<div class="rt-bar${over ? ' over' : ''}" role="img" aria-label="${fmtH(sleepH || 0)} sleep, ${fmtH(other)} other activities, ${fmtH(L.rest)} counted as light activity">
+          <span class="seg sleep" style="width:${pct(sleepH || 0)}"></span><span class="seg act" style="width:${pct(other)}"></span><span class="seg rest" style="width:${pct(L.rest)}"></span></div>
+          <div class="rt-legend"><span><i class="seg sleep"></i>Sleep</span><span><i class="seg act"></i>Your activities</span><span><i class="seg rest"></i>Everything else</span></div>`;
+      }
+
+      function render(focusKey) {
+        const tm = document.getElementById('time-msg'); if (tm) tm.textContent = '';
+        const L = ledger();
+        const over = L.logged > 24.1;
+        document.getElementById('rt-dyn').innerHTML = `
+          <div class="stat-strip">
+            <div class="stat-card hero"><div class="k">Est. daily energy use</div><div class="v">~${L.burn.toLocaleString()}</div><div class="u">kcal / day</div></div>
+            <div class="stat-card"><div class="k">Time you've described</div><div class="v"${over ? ' style="color:var(--rose)"' : ''}>${L.logged.toFixed(1)}</div><div class="u">of 24 hrs</div></div>
+          </div>
+          ${barHtml(L)}
+          <p class="rt-hint" aria-live="polite">${over ? `<span style="color:var(--rose)">That is over 24 hours. Shorten something so the day fits.</span>` : sleepH == null ? 'Start with sleep.' : `The other ${fmtH(L.rest)} is counted as light activity (standing, moving about). Add more to be more precise; you do not need to fill all 24 hours.`}</p>
+          <div class="cat-title">Sleep</div>${sleepHtml()}
+          <div class="cat-title">Your day</div>${dailyRowsHtml()}
+          <div class="rt-row rt-assumed"><div><div class="rt-name">Everything else <span class="rt-tag">assumed</span></div><div class="rt-sub">Light activity, about 1.5 METs</div></div><div class="rt-val-static">${fmtH(L.rest)}</div></div>
+          <div class="rt-addrow"><button type="button" class="btn secondary" data-act="open" data-mode="daily">+ Add activity</button></div>
+          <div class="cat-title">Exercise and sport</div>${weeklyRowsHtml()}
+          <div class="rt-addrow"><button type="button" class="btn secondary" data-act="open" data-mode="exercise">+ Add exercise</button></div>
+          <p class="rt-hint">Exercise is counted per week and is shown for your doctor; it is not added to the daily energy figure above.</p>`;
+        if (focusKey) { const el = document.querySelector('[data-key="' + CSS.escape(focusKey) + '"]'); if (el && !el.disabled) el.focus(); }
+      }
+
+      function findItem(key) { return items.find(a => a.id === key); }
+      function stepKey(k, dir) {
+        if (k === 'sleep') { sleepH = Math.min(14, Math.max(0.25, (sleepH || 7) + dir * 0.25)); return; }
+        const m = k.match(/^(.+?):(pw|len)$/);
+        if (m) {
+          const a = findItem(m[1]); if (!a) return;
+          if (m[2] === 'pw') a.perWeek = Math.min(7, Math.max(1, (a.perWeek || 3) + dir));
+          else setHrs(a, Math.min(4, Math.max(0.25, hrsOf(a) + dir * 0.25)));
+          return;
+        }
+        const a = findItem(k); if (a) setHrs(a, Math.min(24, Math.max(0.25, hrsOf(a) + dir * 0.25)));
+      }
+
+      /* ---------- add-activity picker (overlay, never a separate page) ---------- */
+      const dlg = document.getElementById('rt-picker');
+      let pickTab = 'Common', pickMode = 'daily';
+      function intensity(met) { return met < 3 ? 'light' : met <= 6 ? 'moderate' : 'vigorous'; }
+      function pool() {
+        const exOnly = pickMode === 'exercise';
+        return window.ACTIVITIES.filter(a => a.id !== 'act_011' && (exOnly ? EXERCISE_CATS.includes(a.category) : !EXERCISE_CATS.includes(a.category)));
+      }
+      function renderPicker() {
+        const q = document.getElementById('rt-search').value.trim().toLowerCase();
+        const exOnly = pickMode === 'exercise';
+        const tabs = exOnly ? EXERCISE_CATS : ['Common'].concat(CATS.filter(c => !EXERCISE_CATS.includes(c)));
+        if (!tabs.includes(pickTab)) pickTab = tabs[0];
+        document.getElementById('rt-tabs').innerHTML = tabs.map(t => `<button type="button" class="rt-tab${t === pickTab && !q ? ' on' : ''}" data-tab="${esc(t)}" aria-pressed="${t === pickTab && !q}">${esc(t)}</button>`).join('');
+        let list = pool();
+        if (q) list = list.filter(a => a.name.toLowerCase().includes(q) || a.category.toLowerCase().includes(q));
+        else if (pickTab === 'Common') list = COMMON_IDS.map(defOf).filter(Boolean);
+        else list = list.filter(a => a.category === pickTab);
+        const have = new Set(items.map(a => a.id));
+        document.getElementById('rt-list').innerHTML = list.length ? list.map(a =>
+          `<button type="button" class="rt-pick${have.has(a.id) ? ' on' : ''}" data-id="${esc(a.id)}" aria-pressed="${have.has(a.id)}"><span class="rt-pick-name">${esc(a.name)}</span><span class="rt-pick-meta">${intensity(a.met)}</span></button>`).join('')
+          : `<p class="rt-empty">No match. Try a different word, or browse a category.</p>`;
+        const n = items.length;
+        document.getElementById('rt-count').textContent = n ? n + ' added' : 'None added yet';
+      }
+      function openPicker(mode) {
+        pickMode = mode; pickTab = mode === 'exercise' ? EXERCISE_CATS[0] : 'Common';
+        document.getElementById('rt-search').value = '';
+        document.getElementById('rt-picker-title').textContent = mode === 'exercise' ? 'Add exercise or sport' : 'Add activities';
+        renderPicker();
+        if (typeof dlg.showModal === 'function') dlg.showModal(); else dlg.setAttribute('open', '');
+      }
+      function closePicker() { if (dlg.close) dlg.close(); else dlg.removeAttribute('open'); }
+      dlg.addEventListener('close', () => render());
+      document.getElementById('rt-picker-close').addEventListener('click', closePicker);
+      document.getElementById('rt-done').addEventListener('click', closePicker);
+      dlg.addEventListener('click', e => { if (e.target === dlg) closePicker(); });
+      document.getElementById('rt-search').addEventListener('input', renderPicker);
+      document.getElementById('rt-tabs').addEventListener('click', e => {
+        const b = e.target.closest('[data-tab]'); if (!b) return;
+        document.getElementById('rt-search').value = ''; pickTab = b.dataset.tab; renderPicker();
+      });
+      document.getElementById('rt-list').addEventListener('click', e => {
+        const b = e.target.closest('.rt-pick'); if (!b) return;
+        const id = b.dataset.id, i = items.findIndex(a => a.id === id);
+        if (i >= 0) items.splice(i, 1);
+        else if (isExercise(id)) items.push({ id, freq: 'weekly', hours: 0, mins: 30, perWeek: 3 });
+        else items.push({ id, freq: 'daily', hours: 1, mins: 0 });
+        renderPicker();
+      });
+
+      /* ---------- page ---------- */
       function init() {
-      // Pre-populate if empty
-      if (state.routine && state.routine.activities) {
-      selectedActivities = [...state.routine.activities];
-      // States saved before this flag existed count as confirmed.
-      confirmedByUser = state.routine.activitiesConfirmed === undefined || state.routine.activitiesConfirmed === true;
-      } else {
-      selectedActivities = [
-      { id: "act_011", freq: "daily", hours: 8, mins: 0 },
-      { id: "act_015", freq: "daily", hours: 8, mins: 0 },
-      { id: "act_017", freq: "daily", hours: 2, mins: 0 },
-      { id: "act_016", freq: "daily", hours: 1, mins: 0 },
-      { id: "act_002", freq: "daily", hours: 2, mins: 0 },
-      { id: "act_012", freq: "daily", hours: 2, mins: 0 },
-      { id: "act_102", freq: "daily", hours: 1, mins: 0 }
-      ];
-      }
+        restore();
+        main.innerHTML = `
+          <div class="section-head"><h2>Your typical day</h2></div>
+          <p class="lede">Start with sleep, then add what fills the rest of a normal day. You do not need to account for all 24 hours: anything you leave out is counted as light activity.</p>
+          <div id="rt-dyn"></div>
 
-      main.innerHTML = `
-      <div class="section-head">
-        <h2>1. Select Your Activities</h2>
-      </div>
-      <p class="lede">Search and tap all the activities you do in a typical week. We've pre-filled a standard baseline to get you started.</p>
-      <div class="note-block" id="placeholder-note" style="margin:0 0 16px 0;border-left:4px solid var(--amber);${confirmedByUser ? 'display:none;' : ''}">
-        <span class="k">Placeholder week</span>
-        <p style="margin:6px 0 8px 0;font-size:13px;line-height:1.5;">These activities are a generic example, not your answers. Tap to add or remove activities so it matches your week &mdash; until then your results will not use it.</p>
-        <label style="font-size:13px;display:flex;gap:8px;align-items:center;"><input type="checkbox" id="confirm-week"${confirmedByUser ? ' checked' : ''}> This matches my typical week</label>
-      </div>
+          <div class="cat-title">Daily signals</div>
+          <p class="lede" style="font-size:14px; margin-bottom:16px;">Optional. These fine-tune your insights beyond the activity list.</p>
+          <div class="field-row" style="margin-bottom:18px;">
+            <div class="field"><label class="intake-label" for="hab-steps">Steps per day</label>
+              <input type="number" id="hab-steps" min="0" max="40000" step="500" placeholder="e.g. 6000"></div>
+            <div class="field"><label class="intake-label" for="hab-sun">Daylight outdoors</label>
+              <input type="number" id="hab-sun" min="0" max="300" step="5" placeholder="minutes / day"></div>
+            <div class="field"><label class="intake-label" for="hab-dinner">Dinner &rarr; sleep gap</label>
+              <input type="number" id="hab-dinner" min="0" max="8" step="0.5" placeholder="hours"></div>
+          </div>
+          <div class="check-field" style="margin-bottom:12px;"><input type="checkbox" id="hab-post-meal"><label for="hab-post-meal">I usually walk 10+ minutes after my largest meal</label></div>
+          <div class="note-block teal" style="margin-bottom:28px;"><span class="k">Why these three</span> Steps, daylight, and meal timing affect recovery and glucose in ways an activity list does not capture.</div>
 
-      <div class="symptom-search-full" style="position:sticky; top:0; background:var(--paper); padding:16px 0; z-index:10; border-bottom:1px solid var(--line);">
-        <input type="text" id="act-input" class="field" placeholder="Search activities, sports, chores&hellip;" autocomplete="off">
-  </div>
+          <div class="validation-msg alert-banner" id="time-msg" aria-live="polite"></div>
+          <div class="page-footer-nav">
+            <a href="#" id="back-btn" class="btn secondary">&larr; Back</a>
+            <button type="button" class="btn" id="continue-btn">Get Movement Plan &rarr;</button>
+          </div>`;
+        if (habits.steps != null) document.getElementById('hab-steps').value = habits.steps;
+        if (habits.sun != null) document.getElementById('hab-sun').value = habits.sun;
+        if (habits.dinner != null) document.getElementById('hab-dinner').value = habits.dinner;
+        if (habits.postMealWalk) document.getElementById('hab-post-meal').checked = true;
+        render();
 
-      <div id="browse-wrapper" style="margin-bottom: 36px;"></div>
-
-      <div class="page-footer-nav">
-        <a href="#" id="back-btn" class="btn secondary">&larr; Back</a>
-        <button type="button" class="btn" id="continue-btn">Configure Schedule &rarr;</button>
-      </div>
-      `;
-
-      const input = document.getElementById('act-input');
-      const browseWrapper = document.getElementById('browse-wrapper');
-
-      document.getElementById('back-btn').addEventListener('click', (e) => {
-      e.preventDefault();
-      goTo('diagnostics.html', state);
-      });
-
-      // Helper: Check if activity is sports/gym (vigorous)
-      function isSportsOrGym(activityId) {
-        const activity = window.ACTIVITIES.find(a => a.id === activityId);
-        if (!activity) return false;
-        return activity.category === 'Sports & Agility' || activity.category === 'Gym & Vigorous';
-      }
-
-      // Helper: Get minimum required hours for an activity
-      function getMinimumHours(activityId) {
-        const activity = window.ACTIVITIES.find(a => a.id === activityId);
-        if (!activity) return 0;
-
-        // Define minimum hours based on activity type/name
-        const name = activity.name.toLowerCase();
-        const category = activity.category;
-
-        // Critical baseline activities - must stay at 8 hours
-        if (category === 'Rest & Passive') {
-          if (name.includes('sleeping')) return 8;
-        }
-
-        // Office work and professional activities - respect 8-hour work day
-        if (category === 'Routine & Chores') {
-          if (name.includes('office work') || name.includes('desk')) return 8;
-        }
-
-        return 0; // Other activities have no minimum
-      }
-
-      // Helper: Round hours to nearest 30-minute interval (0.5 hours)
-      function roundTo30Minutes(hours) {
-        return Math.round(hours * 2) / 2;
-      }
-
-      // Helper: Intelligently redistribute hours
-      function intelligentlyDistributeHours(activities) {
-        if (!activities || activities.length === 0) return activities;
-
-        // Separate daily from weekly activities
-        const dailyActivities = [];
-        const weeklyActivities = [];
-
-        activities.forEach(act => {
-          if (act.freq === 'weekly' || isSportsOrGym(act.id)) {
-            // Respect user-set weekly freq OR auto-mark sports/gym as weekly
-            weeklyActivities.push(Object.assign({}, act, { freq: 'weekly' }));
-          } else {
-            dailyActivities.push(Object.assign({}, act));
-          }
+        document.getElementById('rt-dyn').addEventListener('click', e => {
+          const b = e.target.closest('[data-act]'); if (!b || b.disabled) return;
+          const act = b.dataset.act;
+          if (act === 'sleep') { sleepH = Number(b.dataset.h); render('sleep-inc'); }
+          else if (act === 'inc' || act === 'dec') { stepKey(b.dataset.k, act === 'inc' ? 1 : -1); render(b.dataset.key); }
+          else if (act === 'rm') { items = items.filter(a => a.id !== b.dataset.id); render(); }
+          else if (act === 'open') openPicker(b.dataset.mode);
         });
 
-        // If all activities are sports/gym, return weekly only
-        if (dailyActivities.length === 0) {
-          return weeklyActivities.length > 0 ? weeklyActivities : activities;
-        }
-
-        // First pass: Allocate minimum required hours
-        let allocatedHours = 0;
-        const minimumAllocation = {};
-
-        dailyActivities.forEach(act => {
-          const minHours = getMinimumHours(act.id);
-          minimumAllocation[act.id] = minHours;
-          allocatedHours += minHours;
+        document.getElementById('back-btn').addEventListener('click', e => {
+          e.preventDefault();
+          goTo('diagnostics.html', Object.assign({}, state, { routine: buildRoutine() }));
         });
 
-        // Calculate remaining hours to distribute
-        const remainingHours = 24 - allocatedHours;
-
-        if (remainingHours < 0) {
-          // Edge case: minimum requirements exceed 24 hours
-          const scaleFactor = 24 / allocatedHours;
-          dailyActivities.forEach(act => {
-            const scaledHours = minimumAllocation[act.id] * scaleFactor;
-            const rounded = roundTo30Minutes(scaledHours);
-            act.hours = Math.floor(rounded);
-            act.mins = (rounded % 1) * 60;
-          });
-        } else {
-          // Second pass: Distribute remaining hours proportionally among flexible activities
-          const flexibleActivities = dailyActivities.filter(act => getMinimumHours(act.id) === 0);
-
-          if (flexibleActivities.length === 0) {
-            // All activities have minimums - distribute remaining to all proportionally
-            const hoursPerActivity = remainingHours / dailyActivities.length;
-            dailyActivities.forEach(act => {
-              const minHours = minimumAllocation[act.id];
-              const totalHours = minHours + hoursPerActivity;
-              const rounded = roundTo30Minutes(totalHours);
-              act.hours = Math.floor(rounded);
-              act.mins = (rounded % 1) * 60;
-            });
-          } else {
-            // Calculate current hours allocated to flexible activities
-            const currentFlexibleTotal = flexibleActivities.reduce((sum, act) => {
-              return sum + (Number(act.hours) || 0) + ((Number(act.mins) || 0) / 60);
-            }, 0);
-
-            // Scale flexible activities proportionally
-            const scaleFactor = currentFlexibleTotal > 0.1 ? remainingHours / currentFlexibleTotal : remainingHours / flexibleActivities.length;
-
-            // Calculate all scaled values first
-            const scaledFlexible = [];
-            flexibleActivities.forEach(act => {
-              const currentTotal = (Number(act.hours) || 0) + ((Number(act.mins) || 0) / 60);
-              const scaledHours = currentTotal * scaleFactor;
-              const rounded = roundTo30Minutes(scaledHours);
-              scaledFlexible.push({ act, rounded });
-            });
-
-            // Apply scaled hours to flexible activities
-            scaledFlexible.forEach(({ act, rounded }) => {
-              act.hours = Math.floor(rounded);
-              act.mins = (rounded % 1) * 60;
-            });
-
-            // Apply minimums to protected activities
-            dailyActivities.forEach(act => {
-              if (getMinimumHours(act.id) > 0) {
-                act.hours = getMinimumHours(act.id);
-                act.mins = 0;
-              }
-            });
-
-            // Adjust for rounding errors to ensure exactly 24 hours (ITERATIVE)
-            let adjustmentCount = 0;
-            const maxAdjustments = 48; // Safety limit to prevent infinite loops
-
-            while (adjustmentCount < maxAdjustments) {
-              let totalHours = dailyActivities.reduce((sum, act) => {
-                return sum + (Number(act.hours) || 0) + ((Number(act.mins) || 0) / 60);
-              }, 0);
-
-              const difference = 24 - totalHours;
-
-              // If we're within 1 minute (0.0167 hours), consider it exact
-              if (Math.abs(difference) < 0.0167) {
-                break;
-              }
-
-              // For larger errors, adjust by 0.5 hours at a time
-              if (Math.abs(difference) >= 0.25) {
-                // Find flexible activity with most 30-min blocks to adjust
-                let bestIdx = -1;
-                let maxAdjustable = -1;
-
-                flexibleActivities.forEach((act, idx) => {
-                  const hours = Number(act.hours) || 0;
-                  // Prefer to adjust activities that have hours to remove or can take more
-                  const adjustable = difference > 0 ? hours : (24 - (totalHours - hours));
-                  if (adjustable > maxAdjustable) {
-                    maxAdjustable = adjustable;
-                    bestIdx = idx;
-                  }
-                });
-
-                if (bestIdx >= 0) {
-                  const adjustment = difference > 0 ? 0.5 : -0.5;
-                  const act = flexibleActivities[bestIdx];
-                  const currentTotal = (Number(act.hours) || 0) + ((Number(act.mins) || 0) / 60);
-                  const newTotal = currentTotal + adjustment;
-
-                  // Ensure we don't go negative
-                  if (newTotal >= 0) {
-                    act.hours = Math.floor(newTotal);
-                    act.mins = (newTotal % 1) * 60;
-                  }
-                }
-              } else {
-                // For small remaining differences, distribute among flexible activities
-                const perActivity = difference / flexibleActivities.length;
-                flexibleActivities.forEach(act => {
-                  if (perActivity !== 0) {
-                    const currentTotal = (Number(act.hours) || 0) + ((Number(act.mins) || 0) / 60);
-                    const newTotal = currentTotal + perActivity;
-
-                    if (newTotal >= 0) {
-                      const rounded = roundTo30Minutes(newTotal);
-                      act.hours = Math.floor(rounded);
-                      act.mins = (rounded % 1) * 60;
-                    }
-                  }
-                });
-                break; // Exit after small adjustment distribution
-              }
-
-              adjustmentCount++;
-            }
+        document.getElementById('continue-btn').addEventListener('click', () => {
+          const msg = document.getElementById('time-msg');
+          const fail = (t, el) => { msg.style.color = 'var(--rose)'; msg.textContent = t; (el || msg).scrollIntoView({ block: 'center' }); if (el) el.focus(); };
+          const CHECKS = [['hab-steps', 'Steps per day', 0, 40000], ['hab-sun', 'Daylight outdoors', 0, 300], ['hab-dinner', 'Dinner to sleep gap', 0, 8]];
+          for (const [id, label, min, max] of CHECKS) {
+            const el = document.getElementById(id);
+            if (!el || el.value === '') continue;
+            const v = parseFloat(el.value);
+            if (isNaN(v) || v < min || v > max) return fail(`${label} looks out of range. Please enter a value between ${min} and ${max}.`, el);
           }
-        }
-
-        // Combine and return
-        return [...dailyActivities, ...weeklyActivities];
+          const L = ledger();
+          if (sleepH == null) return fail('Please choose how long you usually sleep.');
+          if (!items.length) return fail('Please add at least one thing you do in a normal day, such as work, a walk or exercise.');
+          if (L.logged > 24.1) return fail(`You have described ${L.logged.toFixed(1)} hours in a day. Please shorten something so it fits in 24.`);
+          msg.textContent = '';
+          goTo('routine-plan.html', Object.assign({}, state, { routine: buildRoutine() }));
+        });
       }
 
-      document.getElementById('continue-btn').addEventListener('click', () => {
-      // Apply intelligent redistribution before proceeding
-      const redistributedActivities = intelligentlyDistributeHours(selectedActivities);
-      const cw = document.getElementById('confirm-week');
-      if (cw && cw.checked) confirmedByUser = true;
-      const routineState = Object.assign({}, state.routine || {}, { activities: redistributedActivities, activitiesConfirmed: confirmedByUser });
-      const next = Object.assign({}, state, { routine: routineState });
-      goTo('routine-config.html', next); // Move to step 2!
-      });
-
-      function chipsGridHtml(items) {
-      const q = searchQuery.trim().toLowerCase();
-      const filtered = q ? items.filter(a => a.name.toLowerCase().includes(q) || a.category.toLowerCase().includes(q)) : items;
-      if (!filtered.length) return '';
-      const selectedIds = new Set(selectedActivities.map(a => a.id));
-      return `<div class="browse-grid">
-        ${filtered.map(a =>
-        `<button type="button" class="browse-chip ${selectedIds.has(a.id) ? 'selected' : ''}" data-id="${a.id}">${esc(a.name)}</button>`
-        ).join('')}
-      </div>`;
-      }
-
-      function renderBrowseSections() {
-      let html = '';
-      categories.forEach(c => {
-      const items = window.ACTIVITIES.filter(a => a.category === c);
-      const grid = chipsGridHtml(items);
-      if (grid) html += `<div class="cat-section" style="margin-bottom:28px;">
-        <div class="cat-title">${esc(c)}</div>${grid}
-      </div>`;
-      });
-      browseWrapper.innerHTML = html || `<p class="symptom-empty-hint">No matches found.</p>`;
-      }
-
-      input.addEventListener('input', () => {
-      searchQuery = input.value;
-      renderBrowseSections();
-      });
-
-      browseWrapper.addEventListener('click', (e) => {
-      const btn = e.target.closest('.browse-chip');
-      if(!btn) return;
-      const id = btn.dataset.id;
-      const existingIdx = selectedActivities.findIndex(a => a.id === id);
-
-      if (existingIdx >= 0) {
-      selectedActivities.splice(existingIdx, 1);
-      confirmedByUser = true;
+      if (!profile) {
+        main.innerHTML = `<div class="empty-state">We need your profile first. <a href="profile.html">Go back to start &rarr;</a></div>`;
       } else {
-      confirmedByUser = true;
-      // Default to "daily" and 1 hour, as requested
-      selectedActivities.push({ id, freq: 'daily', hours: 1, mins: 0 });
-      }
-      renderBrowseSections();
-      });
-
-      renderBrowseSections();
-      }
-
-      if(!profile){
-      main.innerHTML = `<div class="empty-state">
-        We need your profile first. <a href="profile.html">Go back to start &rarr;</a>
-      </div>`;
-      } else {
-      init();
+        init();
       }
     </script>
   </body>
