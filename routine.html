@@ -5,16 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <meta name="description" content="Tell KYH about a typical day: sleep, work, movement and exercise. Your estimated daily energy use is worked out as you go.">
       <title>Daily Routine — KYH</title>
-     <link rel="stylesheet" href="shared/styles.css?v=20261015-2c58100">
+     <link rel="stylesheet" href="shared/styles.css?v=20261015-1b0bfa6">
 <!-- share:start -->
-<link rel="icon" href="shared/assets/kyh_logo_final.png?v=20261015-2c58100">
+<link rel="icon" href="shared/assets/kyh_logo_final.png?v=20261015-1b0bfa6">
 <meta name="theme-color" content="#1f7a6d">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="KYH — Know Your Health">
 <meta property="og:title" content="Daily Routine — KYH">
 <meta property="og:description" content="Tell KYH about a typical day: sleep, work, movement and exercise. Your estimated daily energy use is worked out as you go.">
 <meta property="og:url" content="https://vividnova.com/3DHealth/routine.html">
-<meta property="og:image" content="https://vividnova.com/3DHealth/shared/assets/og-image.png?v=20261015-2c58100">
+<meta property="og:image" content="https://vividnova.com/3DHealth/shared/assets/og-image.png?v=20261015-1b0bfa6">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
@@ -30,24 +30,8 @@
 
     <footer id="app-footer"></footer>
 
-    <dialog id="rt-picker" class="rt-sheet" aria-labelledby="rt-picker-title">
-      <div class="rt-sheet-head">
-        <h2 id="rt-picker-title">Add activities</h2>
-        <button type="button" class="rt-x" id="rt-picker-close" aria-label="Close">&times;</button>
-      </div>
-      <div class="rt-sheet-tools">
-        <input type="text" id="rt-search" class="field" placeholder="Search, e.g. walking, yoga, cricket" autocomplete="off" aria-label="Search activities">
-        <div class="rt-tabs" id="rt-tabs" role="group" aria-label="Activity categories"></div>
-      </div>
-      <div class="rt-sheet-list" id="rt-list"></div>
-      <div class="rt-sheet-foot">
-        <span id="rt-count" aria-live="polite"></span>
-        <button type="button" class="btn" id="rt-done">Done</button>
-      </div>
-    </dialog>
-
-    <script src="shared/data.activities.js?v=20261015-2c58100"></script>
-    <script src="shared/utils.js?v=20261015-2c58100"></script>
+    <script src="shared/data.activities.js?v=20261015-1b0bfa6"></script>
+    <script src="shared/utils.js?v=20261015-1b0bfa6"></script>
     <script>
       const state = loadState();
       const profile = state.profile;
@@ -56,60 +40,73 @@
       renderFooter();
 
       const weightKg = Number(profile && profile.weightKg) || 70;
-      const EXERCISE_CATS = ['Sports & Agility', 'Gym & Vigorous'];
-      const COMMON_IDS = ['act_015','act_022','act_014','act_002','act_016','act_012','act_017','act_018','act_102','act_103','act_208','act_307'];
-      const CATS = [...new Set(window.ACTIVITIES.map(a => a.category))];
       const defOf = id => window.ACTIVITIES.find(a => a.id === id);
-      const isExercise = id => { const d = defOf(id); return !!d && EXERCISE_CATS.includes(d.category); };
+      const catIds = c => window.ACTIVITIES.filter(a => a.category === c).map(a => a.id);
 
-      // Nothing is pre-filled: the person's own entries only.
-      let sleepH = null;            // hours, or null until chosen
-      let items = [];               // { id, freq:'daily'|'weekly', hours, mins, perWeek? }
+      /* Each question groups activities of a similar kind and effort. "daily" sections ask
+         how long a day; "weekly" sections ask days a week and how long each time. */
+      const MAIN = [
+        { k: 'desk',   t: 'Desk, computer or study',                          id: 'act_015' },
+        { k: 'feet',   t: 'On my feet: teaching, retail, nursing, kitchen',   id: 'act_027' },
+        { k: 'manual', t: 'Physical work: construction, farming, delivery',   id: 'act_028' },
+        { k: 'home',   t: 'Looking after home or family',                     id: 'act_023' },
+        { k: 'none',   t: 'Not working right now',                            id: null }
+      ];
+      const LABEL = { act_013: 'Bus, train or passenger', act_014: 'Driving', act_022: 'Standing (at a desk or on the move)', act_012: 'Watching TV or lying down', act_017: 'Sitting and relaxing', act_501: 'Wheelchair (manual)' };
+      const SECTIONS = [
+        { key: 'travel', title: 'Getting around', q: 'Do you spend time travelling on a normal day?', hint: 'If you walk to work or school, add it under Walking below.', mode: 'daily', ids: ['act_014', 'act_013'] },
+        { key: 'home',   title: 'At home and free time', q: 'Which of these do you do on most days?', mode: 'daily', ids: ['act_002', 'act_016', 'act_004', 'act_005', 'act_012', 'act_017', 'act_018', 'act_212'] },
+        { key: 'walk',   title: 'Walking and moving about', q: 'Do you walk or stay on your feet outside work?', mode: 'daily', ids: ['act_101', 'act_102', 'act_103', 'act_025', 'act_026', 'act_022', 'act_501'] },
+        { key: 'mind',   title: 'Mind and body', q: 'Do you practise any of these?', mode: 'weekly', ids: ['act_211', 'act_203', 'act_208', 'act_210', 'act_209'] },
+        { key: 'gym',    title: 'Gym and fitness', q: 'Do you do any of these?', mode: 'weekly', ids: catIds('Gym & Vigorous') },
+        { key: 'sport',  title: 'Sports', q: 'Do you play any of these?', mode: 'weekly', ids: catIds('Sports & Agility'),
+          note: 'Practice, gym and sport are counted per week and shown to your doctor. They are not part of the daily energy figure above.' }
+      ];
+      const SEC_OF = {}; SECTIONS.forEach(s => s.ids.forEach(id => SEC_OF[id] = s));
+      const MAIN_OF = {}; MAIN.forEach(m => { if (m.id) MAIN_OF[m.id] = m; });
+
+      const DAILY_OPTS = [[15,'15 min'],[30,'30 min'],[45,'45 min'],[60,'1 h'],[90,'1.5 h'],[120,'2 h'],[180,'3 h']];
+      const WORK_OPTS  = [[120,'2 h'],[240,'4 h'],[360,'6 h'],[480,'8 h'],[600,'10 h'],[720,'12 h']];
+      const EACH_OPTS  = [[15,'15 min'],[30,'30 min'],[45,'45 min'],[60,'1 h'],[90,'1.5 h'],[120,'2 h']];
+      const DAYS_OPTS  = [1,2,3,4,5,6,7].map(n => [n, String(n)]);
+      const SLEEP_OPTS = [4,5,6,7,8,9,10];
+
+      // Nothing is pre-filled: only what the person chooses.
+      let sleepH = null;
+      let mainKey = null;
+      let items = [];            // { id, freq, mins (per day or per session), perWeek? }
       let habits = {};
 
-      const hrsOf = a => (Number(a.hours) || 0) + (Number(a.mins) || 0) / 60;
-      function setHrs(a, h) { h = Math.round(h * 4) / 4; a.hours = Math.floor(h); a.mins = Math.round((h - Math.floor(h)) * 60); }
-      function fmtH(h) {
-        const t = Math.round(h * 60), hh = Math.floor(t / 60), mm = t % 60;
-        return hh && mm ? hh + ' h ' + mm + ' m' : hh ? hh + ' h' : mm + ' m';
-      }
+      const nameOf = id => LABEL[id] || (defOf(id) || {}).name || id;
+      const find = id => items.find(a => a.id === id);
+      const minsOf = a => Number(a.mins) || 0;
+      const hhmm = m => ({ hours: Math.floor(m / 60), mins: Math.round(m % 60) });
 
       function restore() {
         const r = state.routine;
         habits = (r && r.habits) || {};
-        // An old pre-filled placeholder week is not the person's data: start empty.
+        // A pre-filled placeholder week from an earlier version is not the person's data.
         if (!r || !Array.isArray(r.activities) || r.activitiesConfirmed === false) return;
         r.activities.forEach(a => {
           if (!defOf(a.id)) return;
-          if (a.id === 'act_011') { sleepH = hrsOf(a) || null; return; }
-          const weekly = a.freq === 'weekly' || isExercise(a.id);
-          const it = { id: a.id, freq: weekly ? 'weekly' : 'daily', hours: a.hours || 0, mins: a.mins || 0 };
-          if (weekly) { it.perWeek = Number(a.perWeek) || 3; if (!hrsOf(it)) setHrs(it, 0.5); }
-          items.push(it);
+          const m = (Number(a.hours) || 0) * 60 + (Number(a.mins) || 0);
+          if (a.id === 'act_011') { sleepH = m / 60 || null; return; }
+          const sec = SEC_OF[a.id];
+          if (MAIN_OF[a.id]) { items.push({ id: a.id, freq: 'daily', mins: m }); return; }
+          if (!sec) return;
+          if (sec.mode === 'weekly') items.push({ id: a.id, freq: 'weekly', mins: m || 30, perWeek: a.freq === 'weekly' ? (Number(a.perWeek) || 3) : 7 });
+          else items.push({ id: a.id, freq: 'daily', mins: m });
         });
+        mainKey = r.mainDay || (items.find(a => MAIN_OF[a.id]) ? MAIN_OF[items.find(a => MAIN_OF[a.id]).id].k : (r.activities.length ? 'none' : null));
       }
 
-      /* Everything counted for the day: sleep + daily activities. The rest is assumed light. */
       function ledger() {
         const daily = items.filter(a => a.freq === 'daily');
-        const logged = (sleepH || 0) + daily.reduce((s, a) => s + hrsOf(a), 0);
         const acts = [];
-        if (sleepH) acts.push({ id: 'act_011', freq: 'daily', hours: Math.floor(sleepH), mins: Math.round((sleepH % 1) * 60) });
-        daily.forEach(a => acts.push({ id: a.id, freq: 'daily', hours: a.hours, mins: a.mins }));
-        return { logged, rest: Math.max(0, 24 - logged), acts, burn: estimateTdeeFromActivities(acts, weightKg) };
-      }
-
-      function buildRoutine() {
-        const L = ledger();
-        const weekly = items.filter(a => a.freq === 'weekly').map(a => ({ id: a.id, freq: 'weekly', hours: a.hours, mins: a.mins, perWeek: a.perWeek || 3 }));
-        const prev = state.routine || {};
-        return Object.assign({}, prev, {
-          activities: L.acts.concat(weekly),
-          activitiesConfirmed: true,
-          estimatedCalories: L.burn,
-          unloggedHours: Math.round(L.rest * 4) / 4,
-          habits: readHabits()
-        });
+        if (sleepH) acts.push({ id: 'act_011', freq: 'daily', hours: Math.floor(sleepH), mins: 0 });
+        daily.forEach(a => acts.push(Object.assign({ id: a.id, freq: 'daily' }, hhmm(a.mins))));
+        const logged = (sleepH || 0) + daily.reduce((s, a) => s + a.mins / 60, 0);
+        return { logged, rest: Math.max(0, 24 - logged), acts, burn: acts.length ? estimateTdeeFromActivities(acts, weightKg) : 0 };
       }
 
       function readHabits() {
@@ -118,142 +115,96 @@
         return pm ? { steps: num('hab-steps'), sun: num('hab-sun'), dinner: num('hab-dinner'), postMealWalk: pm.checked === true } : habits;
       }
 
-      function stepper(key, label, valueText, canDec, canInc) {
-        return `<div class="rt-step" role="group" aria-label="${esc(label)}">
-          <button type="button" class="rt-btn" data-act="dec" data-key="${esc(key)}-dec" data-k="${esc(key)}" aria-label="Less ${esc(label)}"${canDec ? '' : ' disabled'}>&minus;</button>
-          <output class="rt-val" aria-live="polite">${esc(valueText)}</output>
-          <button type="button" class="rt-btn" data-act="inc" data-key="${esc(key)}-inc" data-k="${esc(key)}" aria-label="More ${esc(label)}"${canInc ? '' : ' disabled'}>+</button>
-        </div>`;
-      }
-
-      function sleepHtml() {
-        if (sleepH == null) {
-          return `<div class="rt-row"><div class="rt-name">How long do you usually sleep?</div>
-            <div class="rt-chips" role="group" aria-label="Hours of sleep">${[5,6,7,8,9].map(h => `<button type="button" class="rt-chip" data-act="sleep" data-h="${h}">${h} h</button>`).join('')}</div></div>`;
-        }
-        return `<div class="rt-row"><div class="rt-name">Sleep</div>${stepper('sleep', 'sleep', fmtH(sleepH), sleepH > 0.25, sleepH < 14)}</div>`;
-      }
-
-      function dailyRowsHtml() {
-        const rows = items.filter(a => a.freq === 'daily');
-        if (!rows.length) return `<p class="rt-empty">Nothing added yet. Add what you do on a normal day, such as work, travel, cooking or a walk.</p>`;
-        return rows.map(a => { const d = defOf(a.id), h = hrsOf(a);
-          return `<div class="rt-row"><div><div class="rt-name">${esc(d.name)}</div><div class="rt-sub">${esc(d.category)}</div></div>
-            ${stepper(a.id, d.name, fmtH(h), h > 0.25, h < 24)}
-            <button type="button" class="rt-rm" data-act="rm" data-id="${esc(a.id)}" aria-label="Remove ${esc(d.name)}">Remove</button></div>`; }).join('');
-      }
-
-      function weeklyRowsHtml() {
-        const rows = items.filter(a => a.freq === 'weekly');
-        if (!rows.length) return `<p class="rt-empty">No exercise or sport added. Add anything you do regularly, even once a week.</p>`;
-        return rows.map(a => { const d = defOf(a.id), h = hrsOf(a);
-          return `<div class="rt-row rt-row-wk"><div><div class="rt-name">${esc(d.name)}</div><div class="rt-sub">${a.perWeek || 3} &times; ${esc(fmtH(h))} a week</div></div>
-            <div class="rt-pair"><span class="rt-lbl">Days a week</span>${stepper(a.id + ':pw', d.name + ' days a week', String(a.perWeek || 3), (a.perWeek || 3) > 1, (a.perWeek || 3) < 7)}</div>
-            <div class="rt-pair"><span class="rt-lbl">Each time</span>${stepper(a.id + ':len', d.name + ' minutes each time', fmtH(h), h > 0.25, h < 4)}</div>
-            <button type="button" class="rt-rm" data-act="rm" data-id="${esc(a.id)}" aria-label="Remove ${esc(d.name)}">Remove</button></div>`; }).join('');
-      }
-
-      function barHtml(L) {
-        const other = Math.max(0, L.logged - (sleepH || 0));
-        const pct = h => Math.min(100, Math.max(0, h / 24 * 100)).toFixed(2) + '%';
-        const over = L.logged > 24.1;
-        return `<div class="rt-bar${over ? ' over' : ''}" role="img" aria-label="${fmtH(sleepH || 0)} sleep, ${fmtH(other)} other activities, ${fmtH(L.rest)} counted as light activity">
-          <span class="seg sleep" style="width:${pct(sleepH || 0)}"></span><span class="seg act" style="width:${pct(other)}"></span><span class="seg rest" style="width:${pct(L.rest)}"></span></div>
-          <div class="rt-legend"><span><i class="seg sleep"></i>Sleep</span><span><i class="seg act"></i>Your activities</span><span><i class="seg rest"></i>Everything else</span></div>`;
-      }
-
-      function render(focusKey) {
-        const tm = document.getElementById('time-msg'); if (tm) tm.textContent = '';
+      function buildRoutine() {
         const L = ledger();
-        const over = L.logged > 24.1;
-        document.getElementById('rt-dyn').innerHTML = `
-          <div class="stat-strip">
-            <div class="stat-card hero"><div class="k">Est. daily energy use</div><div class="v">~${L.burn.toLocaleString()}</div><div class="u">kcal / day</div></div>
-            <div class="stat-card"><div class="k">Time you've described</div><div class="v"${over ? ' style="color:var(--rose)"' : ''}>${L.logged.toFixed(1)}</div><div class="u">of 24 hrs</div></div>
-          </div>
-          ${barHtml(L)}
-          <p class="rt-hint" aria-live="polite">${over ? `<span style="color:var(--rose)">That is over 24 hours. Shorten something so the day fits.</span>` : sleepH == null ? 'Start with sleep.' : `The other ${fmtH(L.rest)} is counted as light activity (standing, moving about). Add more to be more precise; you do not need to fill all 24 hours.`}</p>
-          <div class="cat-title">Sleep</div>${sleepHtml()}
-          <div class="cat-title">Your day</div>${dailyRowsHtml()}
-          <div class="rt-row rt-assumed"><div><div class="rt-name">Everything else <span class="rt-tag">assumed</span></div><div class="rt-sub">Light activity, about 1.5 METs</div></div><div class="rt-val-static">${fmtH(L.rest)}</div></div>
-          <div class="rt-addrow"><button type="button" class="btn secondary" data-act="open" data-mode="daily">+ Add activity</button></div>
-          <div class="cat-title">Exercise and sport</div>${weeklyRowsHtml()}
-          <div class="rt-addrow"><button type="button" class="btn secondary" data-act="open" data-mode="exercise">+ Add exercise</button></div>
-          <p class="rt-hint">Exercise is counted per week and is shown for your doctor; it is not added to the daily energy figure above.</p>`;
-        if (focusKey) { const el = document.querySelector('[data-key="' + CSS.escape(focusKey) + '"]'); if (el && !el.disabled) el.focus(); }
+        const weekly = items.filter(a => a.freq === 'weekly').map(a => Object.assign({ id: a.id, freq: 'weekly', perWeek: a.perWeek || 3 }, hhmm(a.mins)));
+        return Object.assign({}, state.routine || {}, {
+          activities: L.acts.concat(weekly), activitiesConfirmed: true, mainDay: mainKey,
+          estimatedCalories: L.burn, unloggedHours: Math.round(L.rest * 4) / 4, habits: readHabits()
+        });
       }
 
-      function findItem(key) { return items.find(a => a.id === key); }
-      function stepKey(k, dir) {
-        if (k === 'sleep') { sleepH = Math.min(14, Math.max(0.25, (sleepH || 7) + dir * 0.25)); return; }
-        const m = k.match(/^(.+?):(pw|len)$/);
-        if (m) {
-          const a = findItem(m[1]); if (!a) return;
-          if (m[2] === 'pw') a.perWeek = Math.min(7, Math.max(1, (a.perWeek || 3) + dir));
-          else setHrs(a, Math.min(4, Math.max(0.25, hrsOf(a) + dir * 0.25)));
-          return;
+      /* ---------- markup, all from the app's own classes ---------- */
+      function radios(name, label, opts, cur) {
+        return `<div class="rt-q"><span class="intake-label" style="margin:0;" id="${name}-l">${esc(label)}</span>
+          <div class="radio-pair" role="radiogroup" aria-labelledby="${name}-l">${opts.map(([v, t]) =>
+            `<input type="radio" name="${name}" id="${name}-${v}" value="${v}"${Number(cur) === Number(v) ? ' checked' : ''}><label for="${name}-${v}">${esc(t)}</label>`).join('')}</div></div>`;
+      }
+      function chip(id, label, on, kind) {
+        return `<button type="button" class="browse-chip${on ? ' selected' : ''}" data-kind="${kind}" data-id="${esc(id)}" aria-pressed="${on}">${esc(label)}</button>`;
+      }
+      function detailCard(a, sec) {
+        const d = defOf(a.id), mk = a.id.replace(/\W/g, '');
+        if (sec && sec.mode === 'weekly') return `<div class="test-card"><div class="name">${esc(nameOf(a.id))}</div><div class="symptom">${d.met.toFixed(1)} METs</div>
+          ${radios('pw-' + mk, 'Days a week', DAYS_OPTS, a.perWeek || 3)}${radios('ln-' + mk, 'Each time', EACH_OPTS, a.mins)}</div>`;
+        const opts = MAIN_OF[a.id] ? WORK_OPTS : DAILY_OPTS;
+        return `<div class="test-card"><div class="name">${esc(nameOf(a.id))}</div><div class="symptom">${d.met.toFixed(1)} METs</div>
+          ${radios('hd-' + mk, MAIN_OF[a.id] ? 'Hours a day' : 'How long a day?', opts, a.mins)}</div>`;
+      }
+
+      function renderSections(focusSel) {
+        const sleep = `<div class="cat-title">Sleep</div>
+          <p class="lede" style="font-size:15px;margin-bottom:12px;">How many hours do you usually sleep?</p>
+          <div class="browse-grid" role="group" aria-label="Hours of sleep">${SLEEP_OPTS.map(h => chip('sleep-' + h, h + ' h', sleepH === h, 'sleep')).join('')}</div>`;
+        const mainHtml = `<div class="cat-title">Your main work or daytime</div>
+          <p class="lede" style="font-size:15px;margin-bottom:12px;">Which fits most of your day best?</p>
+          <div class="browse-grid" role="group" aria-label="Main work or daytime">${MAIN.map(m => chip('main-' + m.k, m.t, mainKey === m.k, 'main')).join('')}</div>
+          ${MAIN.map(m => (m.id && mainKey === m.k && find(m.id)) ? detailCard(find(m.id), null) : '').join('')}`;
+        const secs = SECTIONS.map(sec => `<div class="cat-title">${esc(sec.title)}</div>
+          <p class="lede" style="font-size:15px;margin-bottom:12px;">${esc(sec.q)}</p>
+          ${sec.hint ? `<p class="rt-hint" style="margin-top:-6px;margin-bottom:12px;">${esc(sec.hint)}</p>` : ''}
+          <div class="browse-grid" role="group" aria-label="${esc(sec.title)}">${sec.ids.map(id => chip(id, nameOf(id), !!find(id), 'act')).join('')}</div>
+          ${items.filter(a => SEC_OF[a.id] === sec).map(a => detailCard(a, sec)).join('')}
+          ${sec.note && items.some(a => a.freq === 'weekly') ? `<p class="rt-hint">${esc(sec.note)}</p>` : ''}`).join('');
+        document.getElementById('rt-secs').innerHTML = sleep + mainHtml + secs;
+        if (focusSel) { const el = document.querySelector(focusSel); if (el) el.focus(); }
+        updateSummary();
+      }
+
+      function updateSummary() {
+        const L = ledger(), over = L.logged > 24.1;
+        document.getElementById('rt-sum').innerHTML = `
+          <div class="stat-card hero"><div class="k">Est. Daily Energy Use</div><div class="v">~${L.burn.toLocaleString()}</div><div class="u">kcal / day</div></div>
+          <div class="stat-card"><div class="k">Hours Described</div><div class="v"${over ? ' style="color:var(--rose)"' : ''}>${L.logged.toFixed(1)}</div><div class="u">out of 24 hrs</div></div>`;
+        const p = document.getElementById('rt-pill');
+        p.textContent = `${L.logged.toFixed(1)} / 24 hrs · ~${L.burn.toLocaleString()} kcal`;
+        p.classList.toggle('over', over);
+        document.getElementById('rt-over').textContent = over ? `That adds up to more than 24 hours. Shorten something so the day fits.` : '';
+        const tm = document.getElementById('time-msg'); if (tm && !over) tm.textContent = '';
+      }
+
+      function onChip(btn) {
+        const kind = btn.dataset.kind, id = btn.dataset.id;
+        if (kind === 'sleep') sleepH = sleepH === Number(id.slice(6)) ? null : Number(id.slice(6));
+        else if (kind === 'main') {
+          const k = id.slice(5);
+          items = items.filter(a => !MAIN_OF[a.id]);
+          mainKey = mainKey === k ? null : k;
+          const m = MAIN.find(x => x.k === mainKey);
+          if (m && m.id) items.unshift({ id: m.id, freq: 'daily', mins: 480 });
+        } else {
+          const i = items.findIndex(a => a.id === id);
+          if (i >= 0) items.splice(i, 1);
+          else items.push(SEC_OF[id].mode === 'weekly' ? { id, freq: 'weekly', mins: 30, perWeek: 3 } : { id, freq: 'daily', mins: 60 });
         }
-        const a = findItem(k); if (a) setHrs(a, Math.min(24, Math.max(0.25, hrsOf(a) + dir * 0.25)));
+        renderSections('[data-kind="' + kind + '"][data-id="' + CSS.escape(id) + '"]');
       }
 
-      /* ---------- add-activity picker (overlay, never a separate page) ---------- */
-      const dlg = document.getElementById('rt-picker');
-      let pickTab = 'Common', pickMode = 'daily';
-      function intensity(met) { return met < 3 ? 'light' : met <= 6 ? 'moderate' : 'vigorous'; }
-      function pool() {
-        const exOnly = pickMode === 'exercise';
-        return window.ACTIVITIES.filter(a => a.id !== 'act_011' && (exOnly ? EXERCISE_CATS.includes(a.category) : !EXERCISE_CATS.includes(a.category)));
+      function onRadio(inp) {
+        const m = inp.name.match(/^(pw|ln|hd)-(.+)$/); if (!m) return;
+        const a = items.find(x => x.id.replace(/\W/g, '') === m[2]); if (!a) return;
+        if (m[1] === 'pw') a.perWeek = Number(inp.value); else a.mins = Number(inp.value);
+        updateSummary();
       }
-      function renderPicker() {
-        const q = document.getElementById('rt-search').value.trim().toLowerCase();
-        const exOnly = pickMode === 'exercise';
-        const tabs = exOnly ? EXERCISE_CATS : ['Common'].concat(CATS.filter(c => !EXERCISE_CATS.includes(c)));
-        if (!tabs.includes(pickTab)) pickTab = tabs[0];
-        document.getElementById('rt-tabs').innerHTML = tabs.map(t => `<button type="button" class="rt-tab${t === pickTab && !q ? ' on' : ''}" data-tab="${esc(t)}" aria-pressed="${t === pickTab && !q}">${esc(t)}</button>`).join('');
-        let list = pool();
-        if (q) list = list.filter(a => a.name.toLowerCase().includes(q) || a.category.toLowerCase().includes(q));
-        else if (pickTab === 'Common') list = COMMON_IDS.map(defOf).filter(Boolean);
-        else list = list.filter(a => a.category === pickTab);
-        const have = new Set(items.map(a => a.id));
-        document.getElementById('rt-list').innerHTML = list.length ? list.map(a =>
-          `<button type="button" class="rt-pick${have.has(a.id) ? ' on' : ''}" data-id="${esc(a.id)}" aria-pressed="${have.has(a.id)}"><span class="rt-pick-name">${esc(a.name)}</span><span class="rt-pick-meta">${intensity(a.met)}</span></button>`).join('')
-          : `<p class="rt-empty">No match. Try a different word, or browse a category.</p>`;
-        const n = items.length;
-        document.getElementById('rt-count').textContent = n ? n + ' added' : 'None added yet';
-      }
-      function openPicker(mode) {
-        pickMode = mode; pickTab = mode === 'exercise' ? EXERCISE_CATS[0] : 'Common';
-        document.getElementById('rt-search').value = '';
-        document.getElementById('rt-picker-title').textContent = mode === 'exercise' ? 'Add exercise or sport' : 'Add activities';
-        renderPicker();
-        if (typeof dlg.showModal === 'function') dlg.showModal(); else dlg.setAttribute('open', '');
-      }
-      function closePicker() { if (dlg.close) dlg.close(); else dlg.removeAttribute('open'); }
-      dlg.addEventListener('close', () => render());
-      document.getElementById('rt-picker-close').addEventListener('click', closePicker);
-      document.getElementById('rt-done').addEventListener('click', closePicker);
-      dlg.addEventListener('click', e => { if (e.target === dlg) closePicker(); });
-      document.getElementById('rt-search').addEventListener('input', renderPicker);
-      document.getElementById('rt-tabs').addEventListener('click', e => {
-        const b = e.target.closest('[data-tab]'); if (!b) return;
-        document.getElementById('rt-search').value = ''; pickTab = b.dataset.tab; renderPicker();
-      });
-      document.getElementById('rt-list').addEventListener('click', e => {
-        const b = e.target.closest('.rt-pick'); if (!b) return;
-        const id = b.dataset.id, i = items.findIndex(a => a.id === id);
-        if (i >= 0) items.splice(i, 1);
-        else if (isExercise(id)) items.push({ id, freq: 'weekly', hours: 0, mins: 30, perWeek: 3 });
-        else items.push({ id, freq: 'daily', hours: 1, mins: 0 });
-        renderPicker();
-      });
 
-      /* ---------- page ---------- */
       function init() {
         restore();
         main.innerHTML = `
           <div class="section-head"><h2>Your typical day</h2></div>
-          <p class="lede">Start with sleep, then add what fills the rest of a normal day. You do not need to account for all 24 hours: anything you leave out is counted as light activity.</p>
-          <div id="rt-dyn"></div>
+          <p class="lede">Answer a few quick questions about a normal day. You do not need to add up to 24 hours: anything we do not ask about is counted as light time, like sitting, standing and moving about (about 1.5 METs).</p>
+          <div class="stat-strip" id="rt-sum"></div>
+          <p class="rt-hint" id="rt-over" style="color:var(--rose);" aria-live="polite"></p>
+          <div id="rt-secs"></div>
 
           <div class="cat-title">Daily signals</div>
           <p class="lede" style="font-size:14px; margin-bottom:16px;">Optional. These fine-tune your insights beyond the activity list.</p>
@@ -273,29 +224,24 @@
             <a href="#" id="back-btn" class="btn secondary">&larr; Back</a>
             <button type="button" class="btn" id="continue-btn">Get Movement Plan &rarr;</button>
           </div>`;
+        const pill = document.createElement('div'); pill.id = 'rt-pill'; pill.setAttribute('aria-hidden', 'true'); document.body.appendChild(pill);
         if (habits.steps != null) document.getElementById('hab-steps').value = habits.steps;
         if (habits.sun != null) document.getElementById('hab-sun').value = habits.sun;
         if (habits.dinner != null) document.getElementById('hab-dinner').value = habits.dinner;
         if (habits.postMealWalk) document.getElementById('hab-post-meal').checked = true;
-        render();
+        renderSections();
 
-        document.getElementById('rt-dyn').addEventListener('click', e => {
-          const b = e.target.closest('[data-act]'); if (!b || b.disabled) return;
-          const act = b.dataset.act;
-          if (act === 'sleep') { sleepH = Number(b.dataset.h); render('sleep-inc'); }
-          else if (act === 'inc' || act === 'dec') { stepKey(b.dataset.k, act === 'inc' ? 1 : -1); render(b.dataset.key); }
-          else if (act === 'rm') { items = items.filter(a => a.id !== b.dataset.id); render(); }
-          else if (act === 'open') openPicker(b.dataset.mode);
-        });
+        const secs = document.getElementById('rt-secs');
+        secs.addEventListener('click', e => { const b = e.target.closest('.browse-chip'); if (b) onChip(b); });
+        secs.addEventListener('change', e => { if (e.target.type === 'radio') onRadio(e.target); });
 
         document.getElementById('back-btn').addEventListener('click', e => {
           e.preventDefault();
           goTo('diagnostics.html', Object.assign({}, state, { routine: buildRoutine() }));
         });
-
         document.getElementById('continue-btn').addEventListener('click', () => {
           const msg = document.getElementById('time-msg');
-          const fail = (t, el) => { msg.style.color = 'var(--rose)'; msg.textContent = t; (el || msg).scrollIntoView({ block: 'center' }); if (el) el.focus(); };
+          const fail = (t, el) => { msg.style.color = 'var(--rose)'; msg.textContent = t; (el || msg).scrollIntoView({ block: 'center' }); if (el && el.focus) el.focus(); };
           const CHECKS = [['hab-steps', 'Steps per day', 0, 40000], ['hab-sun', 'Daylight outdoors', 0, 300], ['hab-dinner', 'Dinner to sleep gap', 0, 8]];
           for (const [id, label, min, max] of CHECKS) {
             const el = document.getElementById(id);
@@ -303,9 +249,9 @@
             const v = parseFloat(el.value);
             if (isNaN(v) || v < min || v > max) return fail(`${label} looks out of range. Please enter a value between ${min} and ${max}.`, el);
           }
+          if (sleepH == null) return fail('Please choose how long you usually sleep.', document.querySelector('[data-kind="sleep"]'));
+          if (mainKey == null) return fail('Please choose what fits most of your day, or "Not working right now".', document.querySelector('[data-kind="main"]'));
           const L = ledger();
-          if (sleepH == null) return fail('Please choose how long you usually sleep.');
-          if (!items.length) return fail('Please add at least one thing you do in a normal day, such as work, a walk or exercise.');
           if (L.logged > 24.1) return fail(`You have described ${L.logged.toFixed(1)} hours in a day. Please shorten something so it fits in 24.`);
           msg.textContent = '';
           goTo('routine-plan.html', Object.assign({}, state, { routine: buildRoutine() }));

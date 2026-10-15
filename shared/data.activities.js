@@ -18,6 +18,8 @@ window.ACTIVITIES = [
   { id: "act_023", category: "Routine & Chores", name: "Childcare (Active)", met: 3.0 },
   { id: "act_005", category: "Routine & Chores", name: "Heavy Cleaning (Mopping)", met: 3.3 },
   { id: "act_016", category: "Routine & Chores", name: "Personal Care (Bathing, Dressing)", met: 2.0 },
+  { id: "act_027", category: "Routine & Chores", name: "On your feet at work (teaching, retail, nursing)", met: 2.5 },
+  { id: "act_028", category: "Routine & Chores", name: "Physical work (construction, farming, delivery)", met: 4.0 },
 
   // --- WALKING & MOBILITY ---
   { id: "act_101", category: "Walking & Mobility", name: "Strolling (Leisurely)", met: 2.0 },

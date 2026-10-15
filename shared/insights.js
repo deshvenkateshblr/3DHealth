@@ -474,6 +474,8 @@ const KYH_BRAND_BLURB =
     act_015: 'desk',           // Office Work
     act_018: 'desk',           // Reading / Studying
     act_022: 'standing',       // Standing desk
+    act_027: 'standing',       // On your feet at work
+    act_028: 'other',          // Physical work
     act_014: 'other',          // Driving
     act_002: 'other',          // Cooking
     act_004: 'other',
