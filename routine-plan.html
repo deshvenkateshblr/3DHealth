@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="description" content="Get personalized exercise recommendations tailored to your symptoms, fitness level, and schedule, with safety tips and contraindications in KYH.">
 <title>Exercises — KYH</title>
-<link rel="stylesheet" href="shared/styles.css?v=20261015-37a4427">
+<link rel="stylesheet" href="shared/styles.css?v=20261015-e27b61a">
 <style>
   /* Light extras that reuse the diagnostics card language */
   .test-card .meta-row {
@@ -40,14 +40,14 @@
   }
 </style>
 <!-- share:start -->
-<link rel="icon" href="shared/assets/kyh_logo_final.png?v=20261015-37a4427">
+<link rel="icon" href="shared/assets/kyh_logo_final.png?v=20261015-e27b61a">
 <meta name="theme-color" content="#1f7a6d">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="KYH — Know Your Health">
 <meta property="og:title" content="Exercises — KYH">
 <meta property="og:description" content="Get personalized exercise recommendations tailored to your symptoms, fitness level, and schedule, with safety tips and contraindications in KYH.">
 <meta property="og:url" content="https://vividnova.com/3DHealth/routine-plan.html">
-<meta property="og:image" content="https://vividnova.com/3DHealth/shared/assets/og-image.png?v=20261015-37a4427">
+<meta property="og:image" content="https://vividnova.com/3DHealth/shared/assets/og-image.png?v=20261015-e27b61a">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
@@ -63,8 +63,8 @@
 
 <footer id="app-footer"></footer>
 
-<script src="shared/data.exercises.js?v=20261015-37a4427"></script>
-<script src="shared/utils.js?v=20261015-37a4427"></script>
+<script src="shared/data.exercises.js?v=20261015-e27b61a"></script>
+<script src="shared/utils.js?v=20261015-e27b61a"></script>
 <script>
 const state = loadState();
 renderHeader('routine', 'KYH-Exercises');  // sits under the Routine step in the progress map
@@ -351,6 +351,13 @@ const intensityChip = `<span class="meta-chip">${esc(ex.intensity || '—')} int
     });
 
     const symptomDrivenCount = top10.filter(e => e.bySymptom).length;
+    // Symptoms with no exercise tagged anywhere in the library: say so rather than staying silent.
+    const taggedAnywhere = new Set();
+    (window.EXERCISES || []).forEach(e => (e.symptoms || []).forEach(t => taggedAnywhere.add(t)));
+    const noExercise = symptoms.filter(t => !taggedAnywhere.has(t));
+    const noExerciseNote = noExercise.length
+      ? `<p class="section-sub" style="display:block;margin-bottom:14px;">We do not suggest a specific exercise for ${noExercise.map(esc).join(', ')}. ${noExercise.length > 1 ? 'These usually need' : 'This usually needs'} a doctor&rsquo;s assessment first, so please raise ${noExercise.length > 1 ? 'them' : 'it'} at your visit.</p>`
+      : '';
     const symptomLine = symptoms.length
     ? `Based on: ${symptoms.map(esc).join(', ')} &middot; <a href="symptoms.html">adjust symptoms &rarr;</a>`
     : `No symptoms on file — showing a balanced movement baseline. <a href="symptoms.html">Add symptoms &rarr;</a>`;
@@ -366,6 +373,7 @@ const intensityChip = `<span class="meta-chip">${esc(ex.intensity || '—')} int
     the rest fill out a balanced movement panel.
     Contraindicated moves have been removed.
   </p>
+  ${noExerciseNote}
   <div id="soft-gate-banner" style="display:none; border:2px solid var(--amber); background:var(--amber-soft); padding:16px 18px; margin-bottom:28px; color:#5a3d1c;" role="status">
     <div style="font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--amber);margin-bottom:6px;">A few exercises unanswered</div>
     <div style="font-size:14px;line-height:1.6;">

@@ -1,5 +1,10 @@
 // shared/data.exercises.js
 
+// Symptom tag sources (P2-1): Fatty Liver -> moderate aerobic + resistance only (ACSM 2023 guidance: >=150 min/week moderate aerobic, 2 resistance days;
+// low-intensity activity is not expected to reduce liver fat). Memory Loss / Cognitive Decline -> WHO 2019 'Risk reduction of cognitive decline and dementia':
+// physical activity recommended for adults with normal cognition (strong, moderate evidence); wording must say risk reduction, not treatment.
+// Symptoms with no tagged exercise (chest pain, fever, etc.) are intentional; routine-plan.html tells the user to raise them with a doctor.
+// Clinician review pending for these mappings.
 window.EXERCISES = [
   // --- MUSCULOSKELETAL & POSTURE ---
   // 1
@@ -184,7 +189,7 @@ window.EXERCISES = [
     "extended_info": "A continuous, gentle walk where you can comfortably hold a conversation. It builds your aerobic endurance and helps your muscles absorb blood sugar without spiking your body's stress hormones (cortisol).",
     "video_url": "https://www.youtube.com/watch?v=Fds75EgxR_Y", 
     "video_search_term": "",
-    "symptoms": ["PCOS", "Diabetes", "Obesity", "Overweight", "Low Energy", "Depression", "High Blood Pressure"],
+    "symptoms": ["PCOS", "Diabetes", "Obesity", "Overweight", "Low Energy", "Depression", "High Blood Pressure", "Fatty Liver", "Memory Loss", "Cognitive Decline"],
     "contraindications": ["Plantar Fasciitis", "Knee Pain", "Recovery Fatigue"]
   },
   
@@ -203,7 +208,7 @@ window.EXERCISES = [
     "extended_info": "Inhaling through the nose and exhaling slowly through pursed lips (as if blowing out a candle). This creates a slight back-pressure in your lungs, keeping your airways open longer and making each breath much more efficient.",
     "video_url": "https://www.youtube.com/watch?v=7kpJ0QlRss4", 
     "video_search_term": "",
-    "symptoms": ["Shortness of Breath", "Asthma", "Bronchitis", "Anxiety", "Panic Attacks"],
+    "symptoms": ["Shortness of Breath", "Asthma", "Bronchitis", "Anxiety"],
     "contraindications": []
   },
 
@@ -221,7 +226,7 @@ window.EXERCISES = [
     "extended_info": "Simply practicing sitting down and standing back up from a chair. It builds the essential thigh and glute strength needed for daily independence, protecting your knees from taking unnecessary strain.",
     "video_url": "https://www.youtube.com/watch?v=UFNw116cpfk",  // Source: Saurabh Bothra
     "video_search_term": "",
-    "symptoms": ["Muscle Weakness", "Balance Issues", "Osteoporosis", "Obesity"],
+    "symptoms": ["Muscle Weakness", "Balance Issues", "Osteoporosis", "Obesity", "Fatty Liver"],
     "contraindications": ["Severe Knee Pain", "Arthritis"]
   },
   
@@ -486,7 +491,7 @@ window.EXERCISES = [
     "extended_info": "Using a small pedal machine while sitting in a chair. It allows people with bad knees or balance issues to get their heart rate up, burn calories, and manage their blood sugar safely.",
     "video_url": "https://www.youtube.com/watch?v=UkXW1tKJyqc", // Source: Saurabh Bothra (Seated Stationary Pedaling)
     "video_search_term": "",
-    "symptoms": ["Obesity", "Overweight", "High Cholesterol", "Diabetes", "Low Energy"],
+    "symptoms": ["Obesity", "Overweight", "High Cholesterol", "Diabetes", "Low Energy", "Fatty Liver"],
     "contraindications": ["Heart Palpitations", "Chest Pain", "Shortness of Breath"]
   },
  
@@ -541,7 +546,7 @@ window.EXERCISES = [
     "extended_info": "This focuses on slow, gentle, flowing movements that safely train the nervous system to handle weight shifts. It is highly effective for building joint resilience and is a clinically proven method for preventing falls in seniors.",
     "video_url": "",
     "video_search_term": "Tai chi weight shifting for seniors Bob and Brad",
-    "symptoms": ["Balance Issues", "Arthritis", "Joint Stiffness", "Stress", "High Blood Pressure"],
+    "symptoms": ["Balance Issues", "Arthritis", "Joint Stiffness", "Stress", "High Blood Pressure", "Memory Loss", "Cognitive Decline"],
     "contraindications": ["Vertigo", "Fainting / Passing Out"]
   },
   // 32
@@ -558,7 +563,7 @@ window.EXERCISES = [
     "extended_info": "The buoyancy of the water supports your body weight, making it the perfect environment to move vigorously and get your heart rate up without causing impact stress to painful knees, hips, or the lower back.",
     "video_url": "",
     "video_search_term": "Water aerobics exercises for bad knees",
-    "symptoms": ["Arthritis", "Knee Pain", "Hip Pain", "Obesity", "Overweight", "High Cholesterol", "Joint Stiffness"],
+    "symptoms": ["Arthritis", "Knee Pain", "Hip Pain", "Obesity", "Overweight", "High Cholesterol", "Joint Stiffness", "Fatty Liver", "Memory Loss", "Cognitive Decline"],
     "contraindications": ["Skin Rash", "Eczema"]
   },
   // 33
@@ -749,7 +754,7 @@ window.EXERCISES = [
     "extended_info": "Unstructured outdoor walking without tracking metrics. Being in green spaces and moving at a relaxed pace has been proven to significantly lower cortisol, reduce anxiety, and improve overall mood and circadian rhythm.",
     "video_url": "",
     "video_search_term": "Benefits of walking outside Bob and Brad",
-    "symptoms": ["Depression", "Burnout", "Stress", "Anxiety", "Insomnia", "Low Energy", "Emotional Eating"],
+    "symptoms": ["Depression", "Burnout", "Stress", "Anxiety", "Insomnia", "Low Energy", "Emotional Eating", "Memory Loss", "Cognitive Decline"],
     "contraindications": ["Plantar Fasciitis", "Severe Knee Pain", "Fever"]
   },
   
@@ -802,7 +807,7 @@ window.EXERCISES = [
     "extended_info": "Picking up heavy dumbbells or bags in each hand and walking with perfect posture. It is a highly functional movement that builds incredible grip strength, core stability, and cardiovascular endurance simultaneously.",
     "video_url": "https://www.youtube.com/watch?v=p5MNNosenJc",
     "video_search_term": "",
-    "symptoms": ["Muscle Weakness", "Weak Core", "Osteoporosis", "Poor Posture", "Obesity", "Insulin Resistance"],
+    "symptoms": ["Muscle Weakness", "Weak Core", "Osteoporosis", "Poor Posture", "Obesity", "Diabetes", "PCOS", "Fatty Liver"],
     "contraindications": ["Sciatica", "Recent Surgery / Injury", "Hernia", "High Blood Pressure"]
   },
   // 47
@@ -906,7 +911,7 @@ window.EXERCISES = [
     "extended_info": "Lying face down with your forehead resting on your stacked hands, focus on breathing so deeply that your belly pushes against the floor. The floor provides physical feedback, teaching you how to use your diaphragm properly instead of taking shallow chest breaths.",
     "video_url": "https://www.youtube.com/watch?v=hpPHP-y89Ok", 
     "video_search_term": "",
-    "symptoms": ["Weak Core", "Stress", "Anxiety", "Insomnia", "Back Pain", "Shallow Breathing"],
+    "symptoms": ["Weak Core", "Stress", "Anxiety", "Insomnia", "Back Pain"],
     "contraindications": ["Pregnancy Discomfort", "Acid Reflux", "Recent Surgery / Injury"]
   },
   // 53
@@ -976,7 +981,7 @@ window.EXERCISES = [
     "extended_info": "Throwing light punches in the air while seated or standing. Crossing your arms over your body's centerline forces the left and right hemispheres of your brain to communicate, elevating your heart rate while sharpening cognitive focus and clearing brain fog.",
     "video_url": "https://www.youtube.com/watch?v=SdjLqIKLaII",
     "video_search_term": "",
-    "symptoms": ["Brain Fog", "Low Energy", "Overweight", "High Cholesterol", "Poor Concentration"],
+    "symptoms": ["Brain Fog", "Low Energy", "Overweight", "High Cholesterol", "Poor Concentration", "Memory Loss", "Cognitive Decline"],
     "contraindications": ["High Blood Pressure", "Fainting / Passing Out", "Joint Stiffness", "Shoulder Pain"]
   },
   // 57
@@ -1189,7 +1194,7 @@ window.EXERCISES = [
     "extended_info": "Tapping one foot out to the side while raising your arms, alternating sides instead of jumping. It provides the exact same cardiovascular and metabolic benefits of a traditional jumping jack without the jarring, painful impact on your knees and ankles.",
     "video_url": "",
     "video_search_term": "Low impact step jacks cardio Bob and Brad",
-    "symptoms": ["Obesity", "Overweight", "High Cholesterol", "Low Energy", "Insulin Resistance", "Depression"],
+    "symptoms": ["Obesity", "Overweight", "High Cholesterol", "Low Energy", "Depression", "Diabetes", "PCOS", "Fatty Liver"],
     "contraindications": ["Knee Pain", "Plantar Fasciitis", "Arthritis", "Chest Pain"]
   },
   // 69

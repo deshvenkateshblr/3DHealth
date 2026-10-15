@@ -339,7 +339,9 @@ window.DIAG = [
       "Knee Pain",
       "Arthritis",
       "Joint Stiffness",
-      "Plantar Fasciitis"
+      "Plantar Fasciitis",
+      "Foot Pain",
+      "Toe Pain"
     ],
     "exclusions": [],
     "clinical_tier": 2,
@@ -806,7 +808,8 @@ window.DIAG = [
       "Leg Pain",
       "Poor Circulation",
       "Varicose Veins",
-      "Numbness or Tingling"
+      "Numbness or Tingling",
+      "Foot Pain"
     ],
     "exclusions": [],
     "clinical_tier": 2,
