@@ -5,16 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <meta name="description" content="Tell KYH about a typical day: sleep, work, movement and exercise. Your estimated daily energy use is worked out as you go.">
       <title>Daily Routine — KYH</title>
-     <link rel="stylesheet" href="shared/styles.css?v=20261015-990299e">
+     <link rel="stylesheet" href="shared/styles.css?v=20261015-6d03bc1">
 <!-- share:start -->
-<link rel="icon" href="shared/assets/kyh_logo_final.png?v=20261015-990299e">
+<link rel="icon" href="shared/assets/kyh_logo_final.png?v=20261015-6d03bc1">
 <meta name="theme-color" content="#1f7a6d">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="KYH — Know Your Health">
 <meta property="og:title" content="Daily Routine — KYH">
 <meta property="og:description" content="Tell KYH about a typical day: sleep, work, movement and exercise. Your estimated daily energy use is worked out as you go.">
 <meta property="og:url" content="https://vividnova.com/3DHealth/routine.html">
-<meta property="og:image" content="https://vividnova.com/3DHealth/shared/assets/og-image.png?v=20261015-990299e">
+<meta property="og:image" content="https://vividnova.com/3DHealth/shared/assets/og-image.png?v=20261015-6d03bc1">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
@@ -30,8 +30,8 @@
 
     <footer id="app-footer"></footer>
 
-    <script src="shared/data.activities.js?v=20261015-990299e"></script>
-    <script src="shared/utils.js?v=20261015-990299e"></script>
+    <script src="shared/data.activities.js?v=20261015-6d03bc1"></script>
+    <script src="shared/utils.js?v=20261015-6d03bc1"></script>
     <script>
       const state = loadState();
       const profile = state.profile;
@@ -55,7 +55,7 @@
         { key: 'mind',   title: 'Mind and body', q: 'Do you practise any of these?', mode: 'weekly', ids: ['act_211', 'act_203', 'act_208', 'act_210', 'act_209'] },
         { key: 'gym',    title: 'Gym and fitness', q: 'Do you do any of these?', mode: 'weekly', ids: catIds('Gym & Vigorous') },
         { key: 'sport',  title: 'Sports', q: 'Do you play any of these?', mode: 'weekly', ids: catIds('Sports & Agility'),
-          note: 'Practice, gym and sport are counted per week and shown to your doctor. They are not part of the daily energy figure above.' }
+          }
       ];
       const SEC_OF = {}; SECTIONS.forEach(s => s.ids.forEach(id => SEC_OF[id] = s));
 
@@ -147,12 +147,20 @@
           ${sec.hint ? `<p class="rt-hint" style="margin-top:-6px;margin-bottom:12px;">${esc(sec.hint)}</p>` : ''}
           <div class="browse-grid" role="group" aria-label="${esc(sec.title)}">${sec.ids.map(id => chip(id, nameOf(id), !!find(id), 'act')).join('')}</div>
           ${items.filter(a => SEC_OF[a.id] === sec).map(a => detailCard(a, sec)).join('')}
-          ${sec.note && items.some(a => a.freq === 'weekly') ? `<p class="rt-hint">${esc(sec.note)}</p>` : ''}`).join('');
+          ${sec.mode === 'weekly' && items.some(a => SEC_OF[a.id] === sec) ? `<p class="rt-hint">These are counted per week and shown to your doctor. They are not included in the daily hours or energy figure.</p>` : ''}`).join('');
         document.getElementById('rt-secs').innerHTML = sleep + secs;
         if (focusSel) { const el = document.querySelector(focusSel); if (el) el.focus(); }
         updateSummary();
       }
 
+
+      /* Weekly practice is listed separately: it is not part of the 24-hour day. */
+      function weeklyHtml() {
+        const w = items.filter(a => a.freq === 'weekly' && a.mins > 0 && a.perWeek);
+        if (!w.length) return '';
+        const hrs = w.reduce((t, a) => t + a.perWeek * a.mins / 60, 0);
+        return `<p style="margin:10px 0 0 0;">Not in the daily total: ${w.map(a => esc(nameOf(a.id)) + ' ' + a.perWeek + ' \u00d7 ' + (a.mins >= 60 ? (a.mins / 60) + ' h' : a.mins + ' min')).join(', ')} a week (${hrs.toFixed(1)} h a week).</p>`;
+      }
 
       /* Hours and kcal per part of the day, priced the same way as the total. */
       function nudgeHtml(L) {
@@ -170,7 +178,7 @@
         return `<span>You have described <strong>${fix(L.logged)} of 24 hours</strong>, which gives an estimated <strong>${L.burn.toLocaleString()} kcal</strong> a day. Take a moment to check whether you would like to adjust any hours so they describe your typical day.</span>
           <table class="rt-table"><thead><tr><th scope="col">Part of your day</th><th scope="col">Hours</th><th scope="col">kcal</th></tr></thead><tbody>
           ${rows.map(r => `<tr><td>${esc(r.label)}</td><td>${fix(r.h)}</td><td>${r.k.toLocaleString()}</td></tr>`).join('')}
-          <tr class="tot"><td>Total</td><td>${fix(Math.min(24, L.logged + L.rest))}</td><td>${L.burn.toLocaleString()}</td></tr></tbody></table>`;
+          <tr class="tot"><td>Total</td><td>${fix(Math.min(24, L.logged + L.rest))}</td><td>${L.burn.toLocaleString()}</td></tr></tbody></table>${weeklyHtml()}`;
       }
 
       function updateSummary() {
