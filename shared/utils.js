@@ -99,6 +99,23 @@ const STATE_ALLOWED_KEYS = ['acknowledgedLimitations','profile','vitals','diagno
 // Active-care symptoms the app does not take (About page scope). Kept out of the picker and out of incoming state.
 window.RED_FLAG_SYMPTOMS = new Set(['Chest Pain', 'Fainting / Passing Out', 'Blood in Stool', 'Palpable Lump']);
 
+/* Derived flags: pseudo-symptoms worked out from the profile. They are never shown in the
+   symptom picker and never stored in profile.symptoms (so they stay out of links, the Doctor
+   Brief and symptom matching). Data files can name them in `contraindications`, and
+   derivedFlags(profile) is the place to widen the check when exercises, tests or diet items
+   specific to older adults are added.
+   NEEDS PHYSICIAN REVIEW: SENIOR_AGE is a placeholder cut-off (India's legal senior-citizen
+   age is 60; many clinical guidelines use 65). */
+window.SENIOR_AGE = 65;
+window.SENIOR_FLAG = 'Senior Citizen';
+window.DERIVED_FLAGS = new Set([window.SENIOR_FLAG]);
+window.derivedFlags = function (profile) {
+  const flags = [];
+  const age = Number(profile && profile.age);
+  if (age >= window.SENIOR_AGE) flags.push(window.SENIOR_FLAG);
+  return flags;
+};
+
 function sanitizeIncomingState(input) {
   const BAD = { '__proto__': 1, 'constructor': 1, 'prototype': 1 };
   function clean(v, depth) {

@@ -5,6 +5,8 @@
 // physical activity recommended for adults with normal cognition (strong, moderate evidence); wording must say risk reduction, not treatment.
 // Symptoms with no tagged exercise (chest pain, fever, etc.) are intentional: the page fills the top 10 with a balanced general panel.
 // Clinician review pending for these mappings.
+// "Senior Citizen" in a contraindications list is a derived flag (derivedFlags in shared/utils.js, age >= SENIOR_AGE), not a picker symptom: the item is hidden for seniors and the label is not printed on the card.
+// Currently set on the three Moderate-to-High items (Farmer's Walk, Shadow Boxing, Static Lunge). Age cut-off needs clinician review.
 window.EXERCISES = [
   // --- MUSCULOSKELETAL & POSTURE ---
   // 1
@@ -808,7 +810,7 @@ window.EXERCISES = [
     "video_url": "https://www.youtube.com/watch?v=p5MNNosenJc",
     "video_search_term": "",
     "symptoms": ["Muscle Weakness", "Weak Core", "Osteoporosis", "Poor Posture", "Obesity", "Diabetes", "PCOS", "Fatty Liver"],
-    "contraindications": ["Sciatica", "Recent Surgery / Injury", "Hernia", "High Blood Pressure"]
+    "contraindications": ["Sciatica", "Recent Surgery / Injury", "Hernia", "High Blood Pressure", "Senior Citizen"]
   },
   // 47
   {
@@ -982,7 +984,7 @@ window.EXERCISES = [
     "video_url": "https://www.youtube.com/watch?v=SdjLqIKLaII",
     "video_search_term": "",
     "symptoms": ["Brain Fog", "Low Energy", "Overweight", "High Cholesterol", "Poor Concentration", "Memory Loss", "Cognitive Decline"],
-    "contraindications": ["High Blood Pressure", "Fainting / Passing Out", "Joint Stiffness", "Shoulder Pain"]
+    "contraindications": ["High Blood Pressure", "Fainting / Passing Out", "Joint Stiffness", "Shoulder Pain", "Senior Citizen"]
   },
   // 57
   {
@@ -1212,7 +1214,7 @@ window.EXERCISES = [
     "video_url": "https://www.youtube.com/watch?v=OrMzeb1IGXw",
     "video_search_term": "",
     "symptoms": ["Muscle Weakness", "Balance Issues", "Osteoporosis", "Overweight", "Low Energy"],
-    "contraindications": ["Knee Pain", "Hip Pain", "Arthritis", "Recent Surgery / Injury"]
+    "contraindications": ["Knee Pain", "Hip Pain", "Arthritis", "Recent Surgery / Injury", "Senior Citizen"]
   },
 
   // --- PELVIC FLOOR & DIGESTIVE ---
