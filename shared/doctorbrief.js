@@ -146,7 +146,7 @@
     const acts = (assumedWeek ? [] : (routine.activities || [])).map(a => {
       const d = defs.find(x => x.id === a.id);
       const mins = (Number(a.hours) || 0) * 60 + (Number(a.mins) || 0);
-      return d && mins > 0 ? { id: a.id, name: d.name, cat: d.category, freq: a.freq, mins } : null;
+      return d && mins > 0 ? { id: a.id, name: d.name, cat: d.category, freq: a.freq, mins, perWeek: Number(a.perWeek) || 0, hours: a.hours, rawMins: a.mins } : null;
     }).filter(Boolean);
 
     const daily = acts.filter(a => a.freq !== 'weekly');
@@ -164,9 +164,20 @@
     if (day.active)  dayParts.push('active movement ' + fmtMin(day.active));
 
     // Active things done regularly (daily and weekly), longest first
+    // Weekly activities carry an approximate burn (same pricing as the daily figure, never added to it).
+    const weeklyBurn = a => (a.freq === 'weekly' && a.perWeek && typeof global.weeklyActivityBurn === 'function')
+      ? global.weeklyActivityBurn({ id: a.id, perWeek: a.perWeek, hours: a.hours, mins: a.rawMins }, state.profile) : null;
+    let weekKcal = 0, weekPriced = 0, weekCount = 0;
     const activeList = acts.filter(a => ACTIVE_CATS.indexOf(a.cat) >= 0)
       .sort((a, b) => b.mins - a.mins)
-      .map(a => a.name + ' ' + fmtMin(a.mins) + (a.freq === 'weekly' ? ' per session, weekly' : '/day'));
+      .map(a => {
+        if (a.freq !== 'weekly') return a.name + ' ' + fmtMin(a.mins) + '/day';
+        const b = weeklyBurn(a);
+        weekCount++; if (b) { weekKcal += b.week; weekPriced++; }
+        return a.name + ' ' + fmtMin(a.mins) + ' per session' + (a.perWeek ? ', ' + a.perWeek + ' day' + (a.perWeek > 1 ? 's' : '') + ' a week' : ', weekly')
+          + (b ? ' (about ' + global.approxKcal(b.week).toLocaleString() + ' kcal a week)' : '');
+      });
+    const weekTotal = (weekCount && weekPriced === weekCount && typeof global.approxKcal === 'function') ? global.approxKcal(weekKcal) : 0;
 
     const h = routine.habits || {};
     const habits = [];
@@ -190,7 +201,7 @@
     const burn = assumedWeek ? 0 : (Number(routine.estimatedCalories) || 0);
     let band = null;
     if (burn && global.KYHInsights && global.KYHInsights.activityBandFromBurn) band = global.KYHInsights.activityBandFromBurn(burn);
-    return { items, burn, band, dayParts, activeList, habits, hasActivities: acts.length > 0, assumedWeek };
+    return { items, burn, band, dayParts, activeList, weekTotal, habits, hasActivities: acts.length > 0, assumedWeek };
   }
 
   const MEET_LABEL = { yes: 'Meeting', partial: 'Partly', no: 'Not meeting' };
@@ -351,6 +362,7 @@
     const summary = r.hasActivities
       ? kv('Typical day:', r.dayParts.join(' \u00b7 '))
         + kv('Regular activity:', r.activeList.length ? r.activeList.slice(0, 5).join('; ') + (r.activeList.length > 5 ? '; +' + (r.activeList.length - 5) + ' more' : '') : 'none logged beyond daily routine')
+        + (r.weekTotal ? kv('Weekly activities:', 'about ' + r.weekTotal.toLocaleString() + ' kcal a week in total (rough guide; not part of the daily figure)') : '')
         + kv('Other:', r.habits.join(' \u00b7 '), 'db-opt')
       : '<p class="db-muted">' + (r.assumedWeek ? 'Typical week not entered.' : 'Routine step not completed.') + '</p>';
     return '<section class="db-sec">' + sectionHead(ICON.move, 'Physical activity', 'My usual routine, and exercises I\u2019m considering')

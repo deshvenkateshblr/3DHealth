@@ -645,6 +645,27 @@ const KYH_BRAND_BLURB =
         return def ? def.name : sa.id;
       });
 
+      // Weekly activities: an approximate burn per week so the picture of the person's week is clear.
+      // Indicative only; it is never added to the daily figure.
+      const weeklyPriced = weeklyExtras.filter(sa => Number(sa.perWeek) > 0).map(sa => {
+        const defs = (typeof window !== 'undefined' && window.ACTIVITIES) || [];
+        const def = defs.find(a => a.id === sa.id);
+        const b = typeof weeklyActivityBurn === 'function' ? weeklyActivityBurn(sa, profile, defs) : null;
+        const mins = (Number(sa.hours) || 0) * 60 + (Number(sa.mins) || 0);
+        const len = mins >= 60 ? (mins / 60) + ' h' : mins + ' min';
+        return { text: (def ? def.name : sa.id) + ' ' + sa.perWeek + ' \u00d7 ' + len, week: b ? b.week : null };
+      });
+      if (weeklyPriced.length && weeklyPriced.every(w => w.week != null) && typeof approxKcal === 'function') {
+        const total = weeklyPriced.reduce((t, w) => t + w.week, 0);
+        out.push(insight({
+          id: 'weekly-burn', domain: 'routine', tone: 'good', priority: 47,
+          title: 'Your weekly activities',
+          detail: `${weeklyPriced.map(w => w.text).join(', ')}: roughly ${approxKcal(total).toLocaleString()} kcal a week in all. A rough guide to how active your week is; it is not part of your daily energy figure.`,
+          next: '',
+          sources: ['routine.activities', 'weightKg']
+        }));
+      }
+
       const move = act.exercise + act.yoga;
       if (move < 0.3 && !weeklyExtras.length) {
         out.push(insight({
@@ -1196,7 +1217,7 @@ const KYH_BRAND_BLURB =
     'sugar-high': 'fasting sugar', 'sugar-mid': 'fasting sugar', 'sugar-ok': 'fasting sugar', 'sugar-unknown': 'fasting sugar',
     'hr-high': 'resting heart rate', 'hr-low': 'resting heart rate', 'hr-ok': 'resting heart rate', 'hr-unknown': 'resting heart rate',
     sleep: 'sleep', 'sleep-long': 'sleep', sitting: 'sitting time', 'sitting-ok': 'sitting time',
-    'exercise-gap': 'exercise', 'exercise-weekly': 'exercise', 'exercise-ok': 'exercise',
+    'exercise-gap': 'exercise', 'exercise-weekly': 'exercise', 'weekly-burn': 'exercise', 'exercise-ok': 'exercise',
     'steps-low': 'daily steps', 'steps-mid': 'daily steps', 'steps-ok': 'daily steps',
     sun: 'daylight exposure', 'sun-ok': 'daylight exposure',
     'dinner-gap': 'meal timing', 'dinner-ok': 'meal timing',

@@ -5,16 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <meta name="description" content="Tell KYH about a typical day: sleep, work, movement and exercise. Your estimated daily energy use is worked out as you go.">
       <title>Daily Routine — KYH</title>
-     <link rel="stylesheet" href="shared/styles.css?v=20261016-06a3e55">
+     <link rel="stylesheet" href="shared/styles.css?v=20261016-f023e2e">
 <!-- share:start -->
-<link rel="icon" href="shared/assets/kyh_logo_final.png?v=20261016-06a3e55">
+<link rel="icon" href="shared/assets/kyh_logo_final.png?v=20261016-f023e2e">
 <meta name="theme-color" content="#1f7a6d">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="KYH — Know Your Health">
 <meta property="og:title" content="Daily Routine — KYH">
 <meta property="og:description" content="Tell KYH about a typical day: sleep, work, movement and exercise. Your estimated daily energy use is worked out as you go.">
 <meta property="og:url" content="https://vividnova.com/3DHealth/routine.html">
-<meta property="og:image" content="https://vividnova.com/3DHealth/shared/assets/og-image.png?v=20261016-06a3e55">
+<meta property="og:image" content="https://vividnova.com/3DHealth/shared/assets/og-image.png?v=20261016-f023e2e">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
@@ -30,8 +30,8 @@
 
     <footer id="app-footer"></footer>
 
-    <script src="shared/data.activities.js?v=20261016-06a3e55"></script>
-    <script src="shared/utils.js?v=20261016-06a3e55"></script>
+    <script src="shared/data.activities.js?v=20261016-f023e2e"></script>
+    <script src="shared/utils.js?v=20261016-f023e2e"></script>
     <script>
       const state = loadState();
       const profile = state.profile;
@@ -159,7 +159,14 @@
         const w = items.filter(a => a.freq === 'weekly' && a.mins > 0 && a.perWeek);
         if (!w.length) return '';
         const hrs = w.reduce((t, a) => t + a.perWeek * a.mins / 60, 0);
-        return `<p style="margin:10px 0 0 0;">Not in the daily total: ${w.map(a => esc(nameOf(a.id)) + ' ' + a.perWeek + ' \u00d7 ' + (a.mins >= 60 ? (a.mins / 60) + ' h' : a.mins + ' min')).join(', ')} a week (${hrs.toFixed(1)} h a week).</p>`;
+        let weekKcal = 0, priced = 0;
+        const parts = w.map(a => {
+          const b = weeklyActivityBurn({ id: a.id, perWeek: a.perWeek, mins: a.mins }, profile);
+          if (b) { weekKcal += b.week; priced++; }
+          return esc(nameOf(a.id)) + ' ' + a.perWeek + ' \u00d7 ' + (a.mins >= 60 ? (a.mins / 60) + ' h' : a.mins + ' min') + (b ? ' (about ' + approxKcal(b.session).toLocaleString() + ' kcal each time)' : '');
+        });
+        const total = priced === w.length && priced > 0 ? ` Together about ${approxKcal(weekKcal).toLocaleString()} kcal a week.` : '';
+        return `<p style="margin:10px 0 0 0;">Not in the daily total: ${parts.join(', ')} a week (${hrs.toFixed(1)} h a week).${total} These are rough figures that show how active your week is; your doctor sees them alongside your day.</p>`;
       }
 
       /* Hours and kcal per part of the day, priced the same way as the total. */

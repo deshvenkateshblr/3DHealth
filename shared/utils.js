@@ -632,6 +632,32 @@ function estimateTdeeFromActivities(activities, weightKg, defs, profile) {
   return Math.round(rest > 0 ? rest / 24 * metHours : flatKcal);
 }
 
+/* Weekly activities (gym, sports) are NOT part of the daily figure. This gives an indicative
+   burn for them on their own, priced the same way as the daily total (MET x resting/24 x hours,
+   or the flat rate when the profile is incomplete). It is the energy used while doing the activity
+   (the resting share of that time is already inside the daily total), so it is shown as a guide to
+   how active the week is and is never added to the daily figure.
+   sa = { id, perWeek, hours, mins } (one session = hours + mins). Returns { session, week } or null. */
+function weeklyActivityBurn(sa, profile, defs) {
+  defs = defs || (typeof window !== 'undefined' && window.ACTIVITIES) || [];
+  const def = defs.find(a => a.id === (sa && sa.id));
+  const met = def ? Number(def.met) : 0;
+  const h = (Number(sa && sa.hours) || 0) + (Number(sa && sa.mins) || 0) / 60;
+  const perWeek = Number(sa && sa.perWeek) || 0;
+  if (!(met > 0) || !(h > 0) || !(perWeek > 0)) return null;
+  const rest = restingKcalPerDay(profile);
+  const kg = Number(profile && profile.weightKg) || 0;
+  if (!(rest > 0) && !(kg > 0)) return null;
+  const session = rest > 0 ? rest / 24 * met * h : met * kg * h * MET_KCAL_FACTOR;
+  return { session, week: session * perWeek };
+}
+
+/** Rounded for display so an estimate does not look precise: nearest 10 under 200, else nearest 50. */
+function approxKcal(n) {
+  n = Number(n) || 0;
+  return n < 200 ? Math.round(n / 10) * 10 : Math.round(n / 50) * 50;
+}
+
 /* ---------- Daily-burn bands: what the cut-offs are, and are not ----------
    BURN_LOW_KCAL / BURN_HIGH_KCAL split estimated daily energy use into lower than average,
    typical and higher than average. Used for: the wording and ranking of the burn insight,
