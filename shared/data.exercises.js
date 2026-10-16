@@ -172,7 +172,7 @@ window.EXERCISES = [
     "equipment": "None",
     "note": "Releases tension in the lower back and pelvic region; excellent for menstrual cramping.",
     "extended_info": "This resting posture gently stretches the hips, thighs, and ankles while calming the brain. Because it compresses the abdomen and stretches the lower back, it is highly effective at relieving the deep aches associated with menstrual cramping.",
-    "video_url": "https://www.youtube.com/watch?v=3NZCX72lL2g",  // Source: Ayush CYP
+    "video_url": "https://www.youtube.com/watch?v=zLro1VTkEnI",  // Source: Ayush CYP
     "symptoms": ["Menstrual Pain", "PCOS", "Back Pain", "Stress", "Anxiety"],
     "contraindications": ["Knee Pain", "Arthritis"]
   },
@@ -474,7 +474,7 @@ window.EXERCISES = [
     "equipment": "Chair",
     "note": "Gently massages abdominal organs to stimulate digestion and relieve lower back tightness.",
     "extended_info": "Sitting tall and twisting to look over your shoulder. It relieves tightness in the lower back muscles while the gentle compression helps move trapped gas through the digestive tract without needing to get on the floor.",
-    "video_url": "https://www.youtube.com/watch?v=6P4tCTbXky0", // Source: Ayush CYP (Vakrasana)
+    "video_url": "https://www.youtube.com/watch?v=Tpgi4Y3hgYo", // Source: Ayush CYP (Vakrasana)
     "video_search_term": "",
     "symptoms": ["Constipation", "Bloating", "Irritable Bowel Syndrome", "Indigestion", "Back Pain"],
     "contraindications": ["Pregnancy Discomfort", "Recent Surgery / Injury", "Hernia"]
