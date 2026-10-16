@@ -3,7 +3,7 @@
 // Symptom tag sources (P2-1): Fatty Liver -> moderate aerobic + resistance only (ACSM 2023 guidance: >=150 min/week moderate aerobic, 2 resistance days;
 // low-intensity activity is not expected to reduce liver fat). Memory Loss / Cognitive Decline -> WHO 2019 'Risk reduction of cognitive decline and dementia':
 // physical activity recommended for adults with normal cognition (strong, moderate evidence); wording must say risk reduction, not treatment.
-// Symptoms with no tagged exercise (chest pain, fever, etc.) are intentional; routine-plan.html tells the user to raise them with a doctor.
+// Symptoms with no tagged exercise (chest pain, fever, etc.) are intentional: the page fills the top 10 with a balanced general panel.
 // Clinician review pending for these mappings.
 window.EXERCISES = [
   // --- MUSCULOSKELETAL & POSTURE ---
