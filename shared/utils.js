@@ -96,6 +96,9 @@ function setRememberEnabled(on) {
    keys, cap size/depth, and strip < > from every string so it can never be
    turned into markup even if some page forgets to escape it. */
 const STATE_ALLOWED_KEYS = ['acknowledgedLimitations','profile','vitals','diagnostics','routine','exercises','diet'];
+// Active-care symptoms the app does not take (About page scope). Kept out of the picker and out of incoming state.
+window.RED_FLAG_SYMPTOMS = new Set(['Chest Pain', 'Fainting / Passing Out', 'Blood in Stool', 'Palpable Lump']);
+
 function sanitizeIncomingState(input) {
   const BAD = { '__proto__': 1, 'constructor': 1, 'prototype': 1 };
   function clean(v, depth) {
@@ -118,6 +121,7 @@ function sanitizeIncomingState(input) {
   const out = {};
   if (!input || typeof input !== 'object' || Array.isArray(input)) return out;
   STATE_ALLOWED_KEYS.forEach(k => { if (k in input) { const c = clean(input[k], 0); if (c !== undefined) out[k] = c; } });
+  if (out.profile && Array.isArray(out.profile.symptoms)) out.profile.symptoms = out.profile.symptoms.filter(x => !window.RED_FLAG_SYMPTOMS.has(x));
   return out;
 }
 

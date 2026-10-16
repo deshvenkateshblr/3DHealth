@@ -5,16 +5,16 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="description" content="Select your symptoms, known conditions, and health concerns to get personalized lab tests, nutrition insights, and exercise recommendations in KYH.">
 <title>Symptoms — KYH</title>
-<link rel="stylesheet" href="shared/styles.css?v=20261016-040c0d7">
+<link rel="stylesheet" href="shared/styles.css?v=20261016-b0d4111">
 <!-- share:start -->
-<link rel="icon" href="shared/assets/kyh_logo_final.png?v=20261016-040c0d7">
+<link rel="icon" href="shared/assets/kyh_logo_final.png?v=20261016-b0d4111">
 <meta name="theme-color" content="#1f7a6d">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="KYH — Know Your Health">
 <meta property="og:title" content="Symptoms — KYH">
 <meta property="og:description" content="Select your symptoms, known conditions, and health concerns to get personalized lab tests, nutrition insights, and exercise recommendations in KYH.">
 <meta property="og:url" content="https://vividnova.com/3DHealth/symptoms.html">
-<meta property="og:image" content="https://vividnova.com/3DHealth/shared/assets/og-image.png?v=20261016-040c0d7">
+<meta property="og:image" content="https://vividnova.com/3DHealth/shared/assets/og-image.png?v=20261016-b0d4111">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
@@ -32,9 +32,9 @@
 
 <footer id="app-footer"></footer>
 
-<script src="shared/data.diagnostics.js?v=20261016-040c0d7"></script>
-<script src="shared/data.symptoms.js?v=20261016-040c0d7"></script> <!-- ADDED -->
-<script src="shared/utils.js?v=20261016-040c0d7"></script>
+<script src="shared/data.diagnostics.js?v=20261016-b0d4111"></script>
+<script src="shared/data.symptoms.js?v=20261016-b0d4111"></script> <!-- ADDED -->
+<script src="shared/utils.js?v=20261016-b0d4111"></script>
 <script>
   const state = loadState();
 
@@ -54,7 +54,7 @@
   const SYMPTOM_LIST_RAW = [...new Set([
   ...window.DIAG.flatMap(d => d.symptoms || []),
   ...CATEGORIES.flatMap(c => c.items)
-  ])].sort();
+  ])].filter(s => !window.RED_FLAG_SYMPTOMS.has(s)).sort();
 
   // 3. Filter based on sex
   const SYMPTOM_LIST = isMale
@@ -68,7 +68,7 @@
   }
 
 
-  let selectedSymptoms = new Set((profile && profile.symptoms) || []);
+  let selectedSymptoms = new Set(((profile && profile.symptoms) || []).filter(s => !window.RED_FLAG_SYMPTOMS.has(s)));
 const vitals = state.vitals || {};
 let searchQuery = '';
 const CATEGORIZED_SET = new Set(CATEGORIES.flatMap(c=>c.items));

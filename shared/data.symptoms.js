@@ -1,6 +1,7 @@
 // JavaScript source code
 // shared/data.symptoms.js
 
+// Red-flag symptoms (chest pain, fainting, blood in stool, palpable lump) are deliberately not offered (list: RED_FLAG_SYMPTOMS in shared/utils.js): they belong to active medical care, which the About page puts out of scope.
 window.SYMPTOM_CATEGORIES = [
   {
     name: 'Known conditions', 
@@ -21,11 +22,11 @@ window.SYMPTOM_CATEGORIES = [
   },
   {
     name: 'Digestive', 
-    items: ['Indigestion', 'Acid Reflux', 'Constipation', 'Diarrhea', 'Bloating', 'Irritable Bowel Syndrome', 'Gastritis', 'Ulcer', 'Nausea', 'Vomiting', 'Gut Health', 'Hemorrhoids', 'Loss of Appetite', 'Blood in Stool']
+    items: ['Indigestion', 'Acid Reflux', 'Constipation', 'Diarrhea', 'Bloating', 'Irritable Bowel Syndrome', 'Gastritis', 'Ulcer', 'Nausea', 'Vomiting', 'Gut Health', 'Hemorrhoids', 'Loss of Appetite']
   },
   {
     name: 'Heart & Circulation', 
-    items: ['Heart Palpitations', 'Chest Pain', 'Poor Circulation', 'Varicose Veins', 'Edema', 'Swelling', 'Fainting / Passing Out']
+    items: ['Heart Palpitations', 'Poor Circulation', 'Varicose Veins', 'Edema', 'Swelling']
   },
   {
     name: 'Weight & Metabolic', 
@@ -57,7 +58,7 @@ window.SYMPTOM_CATEGORIES = [
   },
   {
     name: 'Immune & General', 
-    items: ['Immune Weakness', 'Frequent Infections', 'Fever', 'Inflammation', 'Cold Intolerance', 'Heat Intolerance', 'Palpable Lump']
+    items: ['Immune Weakness', 'Frequent Infections', 'Fever', 'Inflammation', 'Cold Intolerance', 'Heat Intolerance']
   }
 ];
 
