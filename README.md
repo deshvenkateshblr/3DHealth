@@ -26,3 +26,6 @@ Live: https://vividnova.com/3DHealth/
 3. The link in `kyf_teaser.html`
 4. Re-run `python3 tools/stamp.py`
 Also place `sitemap.xml` and a `robots.txt` pointing to it at the domain root.
+
+## Licence and content
+All rights reserved (see `LICENSE`). The code is public for transparency, so anyone can see what the app does with their data (nothing leaves the browser). It is not licensed for reuse. Linked videos and guideline material belong to their owners. KYH is not medical advice.
