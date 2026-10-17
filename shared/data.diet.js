@@ -2,78 +2,11 @@
 // KYH Dietary Engine
 // -------------------------------------------------------
 // Contains:
-// 1. window.dietaryDiagnostics   (original)
 // 3. window.NUTRIENTS            (new ranked priorities)
 // 4. window.FOOD_QUALITY         (new)
 // 5. window.PREF_FOOD_EXAMPLES   (new)
 // 6. window.CUISINE_EXTRAS       (new)
 // -------------------------------------------------------
-
-/* ============================================================
-   1. ORIGINAL – Clinical Diagnostics Map
-   ============================================================ */
-window.dietaryDiagnostics = [
-  // --- MACROS ---
-  {
-    nutrient: "Protein", category: "Macro",
-    symptoms: ["Low Energy", "Immune Weakness", "Hair loss", "Frequent Infections", "Postpartum Recovery"],
-    diet_markers: ["Protein Portions (Engine Calculation)"],
-    feedback: {
-      deficient: "Your estimated protein intake is below your target, which often impacts recovery and hair health. Let's aim to consistently hit your personalized portion goal.",
-      sufficient: "You are doing a fantastic job hitting your protein targets! Your diet is doing its job here."
-    }
-  },
-  {
-    nutrient: "Healthy Fats", category: "Macro",
-    symptoms: ["Eczema", "Brain fog", "Joint aches", "Low Energy"],
-    diet_markers: ["Fat Portions (Engine Calculation)"],
-    feedback: {
-      deficient: "Your healthy fat intake appears low, which can lead to skin issues like eczema and brain fog. Adding nuts or plant oils will help.",
-      sufficient: "Your healthy fat intake is right on target, providing excellent support for your brain and skin."
-    }
-  },
-  {
-    nutrient: "Carbohydrates", category: "Macro",
-    symptoms: ["Fainting / Passing Out", "Low Energy", "Fatigue", "Underweight"],
-    diet_markers: ["Carb Portions (Engine Calculation)"],
-    feedback: {
-      deficient: "You are operating in a steep energy deficit, likely causing your severe fatigue. Adding a portion of complex carbs will stabilize your blood sugar.",
-      sufficient: "Your energy intake is solid! Since you are still experiencing crashes, let's look at your sleep or hydration."
-    }
-  },
-
-  // --- MICROS ---
-  {
-    nutrient: "Iron", category: "Micro",
-    symptoms: ["Fatigue", "Cold", "Fainting / Passing Out", "Low Energy", "Pregnancy Discomfort"],
-    diet_markers: ["legumes", "greens"],
-    feedback: {
-      deficient: "Based on your diet, your fatigue and feeling cold is likely linked to low iron. Adding a serving of spinach or lentils 3x a week is your highest leverage action right now.",
-      sufficient: "You are doing a great job eating iron-rich greens and legumes regularly! We may need a routine CBC blood test to look deeper."
-    }
-  },
-  {
-    nutrient: "Dietary Fiber", category: "Micro",
-    symptoms: ["Constipation", "Frequent bloating", "Blood in Stool", "Pregnancy Discomfort"],
-    diet_markers: ["fruits", "greens", "legumes"],
-    feedback: {
-      deficient: "Your gut issues are directly tied to a lack of fiber. Your immediate priority is adding a serving of whole fruit or greens to your day.",
-      sufficient: "Your whole-food and fiber intake is excellent! Ensure you are drinking enough water to help that fiber move."
-    }
-  },
-  {
-    nutrient: "Calcium", category: "Micro",
-    profile: "High Risk (Post-menopausal women, Vegans)",
-    symptoms: ["Joint aches", "Muscle cramps", "Bone pain", "Pregnancy Discomfort"],
-    diet_markers: ["greens", "dietType"],
-    feedback: {
-      deficient: "At this stage, calcium is critical. Since your intake of fortified dairy or greens is low, let's aim to add fortified plant milks or take a daily Calcium + D3 supplement.",
-      sufficient: "Your calcium intake from your diet looks strong! Continue prioritizing these foods."
-    }
-  }
-];
-
-
 
 /* ============================================================
    3. NEW – Food Quality Markers

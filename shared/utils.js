@@ -1,5 +1,5 @@
 /* ============================================================
-   Your Health Profile — shared utilities used by every page.
+   KYH (Know Your Health) — shared utilities used by every page.
    Handles: cross-page state, unit conversion, range parsing,
    dataset matching, and the reference-range gauge component.
    ============================================================ */
